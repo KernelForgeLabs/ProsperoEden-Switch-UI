@@ -23,6 +23,9 @@ struct Palette
     Color panel = Color::rgb(0x111c28);
     Color text = Color::rgb(0xf8fbff);
     Color muted = Color::rgb(0xd6e0e9);
+    // Transparent by default: many NXThemes already have a dock shape in
+    // their background. Other themes can opt into the extra contrast surface.
+    bool dock_panel = false;
 };
 
 inline std::string_view trim(std::string_view v)
@@ -48,6 +51,22 @@ inline bool hex_color(std::string_view value, Color *output)
     }
     *output = Color::rgb(value_hex);
     return true;
+}
+
+// Parse explicit theme preferences without accepting unknown values.
+inline bool parse_toggle(std::string_view value, bool *output)
+{
+    if (value == "on" || value == "true" || value == "1")
+    {
+        *output = true;
+        return true;
+    }
+    if (value == "off" || value == "false" || value == "0")
+    {
+        *output = false;
+        return true;
+    }
+    return false;
 }
 
 inline Palette read_palette()
@@ -81,6 +100,7 @@ inline Palette read_palette()
         else if (key == "panel") hex_color(value, &out.panel);
         else if (key == "text") hex_color(value, &out.text);
         else if (key == "muted") hex_color(value, &out.muted);
+        else if (key == "dock_panel") parse_toggle(value, &out.dock_panel);
     }
     return out;
 }

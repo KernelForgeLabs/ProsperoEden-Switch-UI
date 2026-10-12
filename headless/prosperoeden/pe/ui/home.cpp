@@ -325,13 +325,8 @@ void Launcher::draw_home(Canvas &c)
         const float step = 310.0f;
         const float size = 268.0f;
 
-        // The wallpaper stays visible. Only text-bearing surfaces get scrims.
-        list.rounded_rect({75.0f, 94.0f, 1770.0f, 152.0f}, 30.0f,
-                          style.panel.with_alpha(look().high_contrast ? 0.96f : 0.62f));
-        text(c, "HOME", 112.0f, baseline(119.0f, 52.0f, theme::kHeading),
-             theme::kHeading, style.text, Align::left, 2.0f);
-        text(c, style.name, 112.0f, baseline(173.0f, 34.0f, theme::kSmall),
-             theme::kSmall, style.muted);
+        // Switch Home v3.1: keep the wallpaper clean. No header title or
+        // frame/plate is drawn over art; retain the useful clock alone.
         text(c, clock_, 1800.0f, baseline(124.0f, 48.0f, theme::kClock),
              theme::kClock, style.text, Align::right);
         text(c, "Recently played  /  All installed games", 136.0f,
@@ -379,8 +374,12 @@ void Launcher::draw_home(Canvas &c)
                  theme::kSmall, style.muted, Align::right);
 
         // Switch-style system dock, preserving existing ProsperoEden actions.
-        list.rounded_rect({490.0f, 760.0f, 940.0f, 188.0f}, 80.0f,
-                          style.panel.with_alpha(look().high_contrast ? 0.96f : 0.78f));
+        // Themes with their own built-in bottom bar should not have a second
+        // opaque oval painted on top. Other wallpapers may opt into a dock
+        // panel with `dock_panel=on` in the persistent theme palette.ini.
+        if (style.dock_panel)
+            list.rounded_rect({490.0f, 760.0f, 940.0f, 188.0f}, 80.0f,
+                              style.panel.with_alpha(look().high_contrast ? 0.96f : 0.78f));
         static constexpr const char *labels[] = {"All Games", "Settings", "About", "Details"};
         for (int i = 0; i < 4; ++i)
         {
