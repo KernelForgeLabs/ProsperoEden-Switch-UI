@@ -137,6 +137,7 @@ class Launcher
     void draw_home(Canvas &c);
     void draw_controllers(Canvas &c);
     void open_library_at_last();
+    void open_library_at_file(const std::string &file);
 
     // ---- library and game settings (library.cpp) ----
     // The game list is read beside the menu: reading every game takes a moment.
@@ -375,6 +376,7 @@ class Launcher
     std::array<tween::Spring, 4> controller_lit_{};
     std::array<float, 4> controller_pop_{}; // 1 when a controller appears, then decays
     int home_focus_ = 0;
+    int switch_home_last_tile_ = 0; // Remember the selected cover when moving to system controls.
     std::array<tween::Spring, 10> home_springs_{};
     float intro_ = 0.0f;
     bool first_start_ = true;

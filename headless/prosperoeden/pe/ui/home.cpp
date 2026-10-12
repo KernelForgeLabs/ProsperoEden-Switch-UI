@@ -19,6 +19,44 @@ namespace
 
 const Color kWhite{1.0f, 1.0f, 1.0f, 1.0f};
 
+// Experimental Home Menu. Set to false to use the untouched original renderer and navigation.
+constexpr bool kSwitchHomePrototype = true;
+
+// Keep the original recent-game focus IDs (5-8), but hide repeats of the
+// Continue Playing game and duplicate file paths. Both rendering and navigation
+// use this same layout to keep focus and launch actions in sync.
+struct SwitchRecentTiles
+{
+    std::array<int, 4> source_indices{};
+    int count = 0;
+};
+
+SwitchRecentTiles switch_recent_tiles(const Home &home)
+{
+    SwitchRecentTiles shown;
+    if (!home.status.empty())
+        return shown;
+    for (int i = 0; i < static_cast<int>(home.recents.size()) && shown.count < 4; ++i)
+    {
+        const std::string &file = home.recents[static_cast<std::size_t>(i)].file;
+        if (file.empty() || (home.last_exists && file == home.last_file))
+            continue;
+        bool duplicate = false;
+        for (int j = 0; j < shown.count; ++j)
+        {
+            const int earlier = shown.source_indices[static_cast<std::size_t>(j)];
+            if (file == home.recents[static_cast<std::size_t>(earlier)].file)
+            {
+                duplicate = true;
+                break;
+            }
+        }
+        if (!duplicate)
+            shown.source_indices[static_cast<std::size_t>(shown.count++)] = i;
+    }
+    return shown;
+}
+
 constexpr Rect kHero{120.0f, 200.0f, 1680.0f, 480.0f};
 // Header tabs, hero buttons and "view all" are as wide as their words need in the language shown;
 // these are their sizes in English and the edges they keep.
@@ -42,19 +80,24 @@ Rect pad_rect(int player)
 
 } // namespace
 
-void Launcher::open_library_at_last()
+void Launcher::open_library_at_file(const std::string &file)
 {
     open(Screen::library, true);
     enter_library();
     for (int i = 0; i < static_cast<int>(games_.size()); ++i)
     {
-        if (games_[static_cast<std::size_t>(i)].file == home_.last_file)
+        if (games_[static_cast<std::size_t>(i)].file == file)
         {
             library_.reset(library_.count, i);
             refresh_selected_game();
             break;
         }
     }
+}
+
+void Launcher::open_library_at_last()
+{
+    open_library_at_file(home_.last_file);
 }
 
 void Launcher::press_home(Key key)
@@ -66,6 +109,88 @@ void Launcher::press_home(Key key)
     const int recent_count = recents_shown ? static_cast<int>(home_.recents.size()) : 0;
     const int before = home_focus_;
     int &focus = home_focus_;
+
+    const SwitchRecentTiles shown = switch_recent_tiles(home_);
+    // Open details for the currently highlighted cover. The bottom Details
+    // button remembers the cover selected before pressing Down.
+    const auto open_switch_details = [&]
+    {
+        const int target = focus == 4 ? switch_home_last_tile_ : focus;
+        if (target == 0 && continue_ready)
+        {
+            open_library_at_last();
+            return;
+        }
+        if (ready && target >= 5 && target <= 8)
+        {
+            const int source = target - 5;
+            for (int i = 0; i < shown.count; ++i)
+            {
+                if (shown.source_indices[static_cast<std::size_t>(i)] == source)
+                {
+                    open_library_at_file(home_.recents[static_cast<std::size_t>(source)].file);
+                    return;
+                }
+            }
+        }
+        cue(Cue::error);
+    };
+
+    if (kSwitchHomePrototype)
+    {
+        // A visual tile still uses the original focus/action ID: 0, 5, 6, 7 or 8.
+        // IDs 1-4 are the bottom row, not the old header/hero positions.
+        const auto tile_at = [&](int position)
+        {
+            return position == 0 ? 0 :
+                   5 + shown.source_indices[static_cast<std::size_t>(position - 1)];
+        };
+        const auto tile_position = [&](int id)
+        {
+            for (int i = 0; i <= shown.count; ++i)
+                if (tile_at(i) == id)
+                    return i;
+            return -1;
+        };
+        int position = tile_position(focus);
+        if (position < 0 && (focus < 1 || focus > 4))
+        {
+            // Recents can disappear when game files are rescanned.
+            focus = ready ? 0 : 2;
+            position = tile_position(focus);
+        }
+        if (key == Key::left || key == Key::right)
+        {
+            const int delta = key == Key::right ? 1 : -1;
+            if (position >= 0)
+            {
+                const int next = std::clamp(position + delta, 0, shown.count);
+                focus = tile_at(next);
+                switch_home_last_tile_ = focus;
+            }
+            else
+            {
+                const int last = continue_ready ? 4 : 3;
+                focus = std::clamp(focus + delta, 1, last);
+            }
+        }
+        else if (key == Key::down && position >= 0)
+        {
+            switch_home_last_tile_ = focus;
+            focus = 1; // All Games
+        }
+        else if (key == Key::up && focus >= 1 && focus <= 4 && ready)
+        {
+            const int saved = tile_position(switch_home_last_tile_);
+            focus = saved >= 0 ? switch_home_last_tile_ : 0;
+        }
+        if (key == Key::left || key == Key::right || key == Key::up || key == Key::down)
+        {
+            if (focus != before)
+                cue(Cue::focus);
+            return;
+        }
+    }
 
     switch (key)
     {
@@ -111,7 +236,9 @@ void Launcher::press_home(Key key)
         break;
     }
     case Key::triangle:
-        if ((focus == 0 || focus == 4) && continue_ready)
+        if (kSwitchHomePrototype && (focus == 0 || focus == 4 || (focus >= 5 && focus <= 8)))
+            open_switch_details();
+        else if ((focus == 0 || focus == 4) && continue_ready)
             open_library_at_last();
         return;
     case Key::cross:
@@ -137,7 +264,10 @@ void Launcher::press_home(Key key)
         }
         else if (focus == 4 && continue_ready)
         {
-            open_library_at_last();
+            if (kSwitchHomePrototype)
+                open_switch_details();
+            else
+                open_library_at_last();
         }
         else if (focus >= 5 && focus < 5 + recent_count && ready)
         {
@@ -219,8 +349,7 @@ void Launcher::draw_home(Canvas &c)
     const auto measure = [&](std::string_view value, float size, float tracking = 0.0f)
     { return text_width(c, value, size, tracking); };
     // BEGIN SWITCH HOME PROTOTYPE -- generated by standalone helper
-    // Set this to false and rebuild to restore the original layout without losing this patch.
-    constexpr bool kSwitchHomePrototype = true;
+    // The compile-time switch is defined once above so render and input use the same mode.
     if (kSwitchHomePrototype)
     {
         gfx::DrawList &list = c.list;
@@ -259,10 +388,12 @@ void Launcher::draw_home(Canvas &c)
         game_tile(0, home_.last_cover, continue_title, focus(0));
         if (home_.status.empty())
         {
-            for (int i = 0; i < static_cast<int>(home_.recents.size()) && i < 4; ++i)
+            const SwitchRecentTiles shown = switch_recent_tiles(home_);
+            for (int i = 0; i < shown.count; ++i)
             {
-                const Recent &recent = home_.recents[static_cast<std::size_t>(i)];
-                game_tile(1 + i, recent.cover, recent.title, focus(5 + i));
+                const int source = shown.source_indices[static_cast<std::size_t>(i)];
+                const Recent &recent = home_.recents[static_cast<std::size_t>(source)];
+                game_tile(1 + i, recent.cover, recent.title, focus(5 + source));
             }
         }
         else
@@ -273,7 +404,7 @@ void Launcher::draw_home(Canvas &c)
                    home_.launch_failed);
         }
 
-        // Reuse the existing focus indices and press_home() actions: no game-launch rewrite.
+        // Same original focus IDs and game-launch actions, with matching D-pad order.
         constexpr float nav_y = 822.0f;
         const auto nav_button = [&](float x, const char *label, float f)
         {
