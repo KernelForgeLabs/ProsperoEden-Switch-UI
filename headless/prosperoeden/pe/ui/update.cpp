@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "pe/ui/launcher.hpp"
+#include "pe/ui/switch_style.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -246,6 +247,16 @@ void Launcher::scroll_notes(float by)
 
 void Launcher::begin_update()
 {
+    // Defense in depth: even if the update dialog is invoked unexpectedly,
+    // never overwrite this fork's modified launcher with an official executable.
+    if (!switch_ui::kOfficialSelfUpdateEnabled)
+    {
+        update_stage_ = UpdateStage::failed;
+        update_status_.error = "Custom Switch UI build: update via GitHub fork instead";
+        cue(Cue::error);
+        return;
+    }
+
     update_status_ = {};
     update_fraction_.snap(0.0f);
     update_rate_ = 0.0f;

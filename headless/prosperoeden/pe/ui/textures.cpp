@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "pe/ui/textures.hpp"
+#include "pe/ui/switch_style.hpp"
 
 #include "pe/core/log.hpp"
 
@@ -33,7 +34,14 @@ bool Textures::load_art(const std::string &directory)
     const auto load = [&](const char *name, std::uint32_t *texture)
     {
         gfx::Image image;
-        if (!gfx::load_tga(directory + "/" + name, &image))
+        const std::string asset = name;
+        // Art can live outside PPSA99008 so a custom release build or full
+        // reinstall does not discard the user's chosen wallpaper. The brand
+        // and controller files always come from the original package.
+        const bool external = asset == "art/backdrop.tga" || asset == "art/backdrop-blur.tga";
+        const bool theme_loaded = external &&
+            gfx::load_tga(std::string(switch_ui::kActiveThemeDir) + "/" + asset, &image);
+        if (!theme_loaded && !gfx::load_tga(directory + "/" + name, &image))
         {
             sys::log("art %s could not be read", name);
             return false;

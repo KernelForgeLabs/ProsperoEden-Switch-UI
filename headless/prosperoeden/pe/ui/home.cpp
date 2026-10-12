@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "pe/ui/launcher.hpp"
+#include "pe/ui/switch_style.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -21,41 +22,6 @@ const Color kWhite{1.0f, 1.0f, 1.0f, 1.0f};
 
 // Experimental Home Menu. Set to false to use the untouched original renderer and navigation.
 constexpr bool kSwitchHomePrototype = true;
-
-// Keep the original recent-game focus IDs (5-8), but hide repeats of the
-// Continue Playing game and duplicate file paths. Both rendering and navigation
-// use this same layout to keep focus and launch actions in sync.
-struct SwitchRecentTiles
-{
-    std::array<int, 4> source_indices{};
-    int count = 0;
-};
-
-SwitchRecentTiles switch_recent_tiles(const Home &home)
-{
-    SwitchRecentTiles shown;
-    if (!home.status.empty())
-        return shown;
-    for (int i = 0; i < static_cast<int>(home.recents.size()) && shown.count < 4; ++i)
-    {
-        const std::string &file = home.recents[static_cast<std::size_t>(i)].file;
-        if (file.empty() || (home.last_exists && file == home.last_file))
-            continue;
-        bool duplicate = false;
-        for (int j = 0; j < shown.count; ++j)
-        {
-            const int earlier = shown.source_indices[static_cast<std::size_t>(j)];
-            if (file == home.recents[static_cast<std::size_t>(earlier)].file)
-            {
-                duplicate = true;
-                break;
-            }
-        }
-        if (!duplicate)
-            shown.source_indices[static_cast<std::size_t>(shown.count++)] = i;
-    }
-    return shown;
-}
 
 constexpr Rect kHero{120.0f, 200.0f, 1680.0f, 480.0f};
 // Header tabs, hero buttons and "view all" are as wide as their words need in the language shown;
@@ -100,6 +66,31 @@ void Launcher::open_library_at_last()
     open_library_at_file(home_.last_file);
 }
 
+// The home row starts with Continue Playing, then recents, then all locally
+// installed games. The actual library scan feeds this vector, so unlike the
+// v2 recent-only row it can scroll beyond five titles.
+std::vector<Launcher::SwitchHomeTile> Launcher::switch_home_tiles() const
+{
+    std::vector<SwitchHomeTile> tiles;
+    if (!home_.setup_ready) return tiles;
+    const auto add = [&](const std::string &file, const std::string &title,
+                         const std::string &cover)
+    {
+        if (file.empty()) return;
+        for (const SwitchHomeTile &tile : tiles)
+            if (tile.file == file) return;
+        tiles.push_back({file, title, cover});
+    };
+    if (home_.last_exists)
+        add(home_.last_file, home_.last_title, home_.last_cover);
+    for (const Recent &recent : home_.recents)
+        add(recent.file, recent.title, recent.cover);
+    for (const Game &game : games_)
+        if (!game.remote)
+            add(game.file, game.name, game.cover);
+    return tiles;
+}
+
 void Launcher::press_home(Key key)
 {
     const bool ready = home_.setup_ready;
@@ -110,84 +101,63 @@ void Launcher::press_home(Key key)
     const int before = home_focus_;
     int &focus = home_focus_;
 
-    const SwitchRecentTiles shown = switch_recent_tiles(home_);
-    // Open details for the currently highlighted cover. The bottom Details
-    // button remembers the cover selected before pressing Down.
-    const auto open_switch_details = [&]
-    {
-        const int target = focus == 4 ? switch_home_last_tile_ : focus;
-        if (target == 0 && continue_ready)
-        {
-            open_library_at_last();
-            return;
-        }
-        if (ready && target >= 5 && target <= 8)
-        {
-            const int source = target - 5;
-            for (int i = 0; i < shown.count; ++i)
-            {
-                if (shown.source_indices[static_cast<std::size_t>(i)] == source)
-                {
-                    open_library_at_file(home_.recents[static_cast<std::size_t>(source)].file);
-                    return;
-                }
-            }
-        }
-        cue(Cue::error);
-    };
-
     if (kSwitchHomePrototype)
     {
-        // A visual tile still uses the original focus/action ID: 0, 5, 6, 7 or 8.
-        // IDs 1-4 are the bottom row, not the old header/hero positions.
-        const auto tile_at = [&](int position)
+        const auto tiles = switch_home_tiles();
+        const int count = static_cast<int>(tiles.size());
+        if (count > 0)
+            switch_home_index_ = std::clamp(switch_home_index_, 0, count - 1);
+        else
+            switch_home_index_ = 0;
+        const auto details = [&]
         {
-            return position == 0 ? 0 :
-                   5 + shown.source_indices[static_cast<std::size_t>(position - 1)];
-        };
-        const auto tile_position = [&](int id)
-        {
-            for (int i = 0; i <= shown.count; ++i)
-                if (tile_at(i) == id)
-                    return i;
-            return -1;
-        };
-        int position = tile_position(focus);
-        if (position < 0 && (focus < 1 || focus > 4))
-        {
-            // Recents can disappear when game files are rescanned.
-            focus = ready ? 0 : 2;
-            position = tile_position(focus);
-        }
-        if (key == Key::left || key == Key::right)
-        {
-            const int delta = key == Key::right ? 1 : -1;
-            if (position >= 0)
-            {
-                const int next = std::clamp(position + delta, 0, shown.count);
-                focus = tile_at(next);
-                switch_home_last_tile_ = focus;
-            }
+            if (count > 0)
+                open_library_at_file(tiles[static_cast<std::size_t>(switch_home_index_)].file);
             else
+                cue(Cue::error);
+        };
+        switch (key)
+        {
+        case Key::left:
+        case Key::right:
+            if (focus == 0 && count > 0)
+                switch_home_index_ = std::clamp(switch_home_index_ + (key == Key::right ? 1 : -1),
+                                                0, count - 1);
+            else if (focus >= 1 && focus <= 4)
+                focus = std::clamp(focus + (key == Key::right ? 1 : -1), 1, 4);
+            cue(Cue::focus);
+            return;
+        case Key::down:
+            if (focus == 0) { focus = 1; cue(Cue::focus); }
+            return;
+        case Key::up:
+            if (focus >= 1 && focus <= 4 && count > 0) { focus = 0; cue(Cue::focus); }
+            return;
+        case Key::triangle:
+            details();
+            return;
+        case Key::cross:
+            press_ = 1.0f;
+            if (focus == 0 && count > 0)
             {
-                const int last = continue_ready ? 4 : 3;
-                focus = std::clamp(focus + delta, 1, last);
+                const auto &tile = tiles[static_cast<std::size_t>(switch_home_index_)];
+                launch(tile.file, tile.title, tile.cover);
             }
-        }
-        else if (key == Key::down && position >= 0)
-        {
-            switch_home_last_tile_ = focus;
-            focus = 1; // All Games
-        }
-        else if (key == Key::up && focus >= 1 && focus <= 4 && ready)
-        {
-            const int saved = tile_position(switch_home_last_tile_);
-            focus = saved >= 0 ? switch_home_last_tile_ : 0;
-        }
-        if (key == Key::left || key == Key::right || key == Key::up || key == Key::down)
-        {
-            if (focus != before)
-                cue(Cue::focus);
+            else if (focus == 0 || focus == 1)
+            {
+                if (ready) { open(Screen::library, true); enter_library(); }
+                else cue(Cue::error);
+            }
+            else if (focus == 2)
+            {
+                open(Screen::settings, true);
+                prefs_ = services_.preferences();
+                section_.snap(1.0f);
+            }
+            else if (focus == 3) open(Screen::about, true);
+            else if (focus == 4) details();
+            return;
+        default:
             return;
         }
     }
@@ -236,9 +206,7 @@ void Launcher::press_home(Key key)
         break;
     }
     case Key::triangle:
-        if (kSwitchHomePrototype && (focus == 0 || focus == 4 || (focus >= 5 && focus <= 8)))
-            open_switch_details();
-        else if ((focus == 0 || focus == 4) && continue_ready)
+        if ((focus == 0 || focus == 4) && continue_ready)
             open_library_at_last();
         return;
     case Key::cross:
@@ -264,10 +232,7 @@ void Launcher::press_home(Key key)
         }
         else if (focus == 4 && continue_ready)
         {
-            if (kSwitchHomePrototype)
-                open_switch_details();
-            else
-                open_library_at_last();
+            open_library_at_last();
         }
         else if (focus >= 5 && focus < 5 + recent_count && ready)
         {
@@ -348,81 +313,119 @@ void Launcher::draw_home(Canvas &c)
     const auto focus = [&](int index) { return home_springs_[static_cast<std::size_t>(index)].value; };
     const auto measure = [&](std::string_view value, float size, float tracking = 0.0f)
     { return text_width(c, value, size, tracking); };
-    // BEGIN SWITCH HOME PROTOTYPE -- generated by standalone helper
-    // The compile-time switch is defined once above so render and input use the same mode.
+    // BEGIN SWITCH HOME PROTOTYPE v3
     if (kSwitchHomePrototype)
     {
-        gfx::DrawList &list = c.list;
-        // The normal launcher draws the active backdrop before it calls draw_home().
-        text(c, "PROSPEROEDEN / SWITCH HOME", 112.0f,
-             baseline(82.0f, 42.0f, theme::kBrand), theme::kBrand,
-             theme::kText, Align::left, 1.0f);
-        text(c, clock_, 1800.0f, baseline(82.0f, 38.0f, theme::kClock),
-             theme::kClock, theme::kText, Align::right);
-        list.rounded_rect({112.0f, 158.0f, 1696.0f, 2.0f}, 1.0f,
-                          theme::kText.with_alpha(0.18f));
-        text(c, "Continue playing and recently played", 120.0f,
-             baseline(218.0f, 32.0f, theme::kText24), theme::kText24,
-             theme::kText);
-
-        const float row_x = 112.0f;
-        const float row_y = 326.0f;
-        const float step = 338.0f;
+        const auto &style = switch_ui::palette();
+        const auto tiles = switch_home_tiles();
+        const int count = static_cast<int>(tiles.size());
+        const int selected = count > 0 ? std::clamp(switch_home_index_, 0, count - 1) : 0;
+        const float row_x = 136.0f;
+        const float row_y = 340.0f;
+        const float step = 310.0f;
         const float size = 268.0f;
-        const auto game_tile = [&](int slot, const std::string &image,
-                                   const std::string &title, float selection)
+
+        // The wallpaper stays visible. Only text-bearing surfaces get scrims.
+        list.rounded_rect({75.0f, 94.0f, 1770.0f, 152.0f}, 30.0f,
+                          style.panel.with_alpha(look().high_contrast ? 0.96f : 0.62f));
+        text(c, "HOME", 112.0f, baseline(119.0f, 52.0f, theme::kHeading),
+             theme::kHeading, style.text, Align::left, 2.0f);
+        text(c, style.name, 112.0f, baseline(173.0f, 34.0f, theme::kSmall),
+             theme::kSmall, style.muted);
+        text(c, clock_, 1800.0f, baseline(124.0f, 48.0f, theme::kClock),
+             theme::kClock, style.text, Align::right);
+        text(c, "Recently played  /  All installed games", 136.0f,
+             baseline(280.0f, 34.0f, theme::kText24),
+             theme::kText24, style.text);
+
+        // Clip before drawing covers: off-screen games are not allowed to
+        // spill into the margins. Their positions move on a critically damped spring.
+        list.push_clip({112.0f, 325.0f, 1696.0f, 364.0f});
+        for (int i = 0; i < count; ++i)
         {
-            const Rect r{row_x + step * static_cast<float>(slot), row_y, size, size};
-            list.push_transform(1.0f + 0.055f * selection * motion(),
-                                r.x + r.w * 0.5f, r.y + r.h * 0.5f, 0.0f, 0.0f);
-            plate(c, kTilePlate, r, selection);
-            cover(c, image, {r.x + 8.0f, r.y + 8.0f, r.w - 16.0f, r.h - 16.0f}, 16.0f, 1.0f);
+            const float x = row_x + step * static_cast<float>(i) - switch_home_scroll_.value;
+            if (x + size < 104.0f || x > 1820.0f) continue;
+            const bool highlighted = home_focus_ == 0 && i == selected;
+            const float lift = highlighted ? 1.0f : 0.0f;
+            const Rect r{x, row_y, size, size};
+            list.push_transform(1.0f + 0.055f * lift * motion(),
+                                r.x + r.w * 0.5f, r.y + r.h * 0.5f, 0.0f, -4.0f * lift * motion());
+            list.rounded_rect({r.x - 5.0f, r.y - 5.0f, r.w + 10.0f, r.h + 10.0f},
+                              24.0f, style.panel.with_alpha(0.70f));
+            cover(c, tiles[static_cast<std::size_t>(i)].cover,
+                  {r.x + 3.0f, r.y + 3.0f, r.w - 6.0f, r.h - 6.0f}, 16.0f, 1.0f);
+            if (highlighted)
+                list.bordered_rect({r.x - 5.0f, r.y - 5.0f, r.w + 10.0f, r.h + 10.0f},
+                                   23.0f, Color::rgb(0x000000, 0.01f), 4.0f, style.accent);
             list.pop_transform();
-            text_shrink(c, title, r.x + r.w * 0.5f,
-                        baseline(row_y + size + 22.0f, 32.0f, theme::kText24),
-                        theme::kText24, theme::kText, r.w, Align::center);
-        };
+            list.rounded_rect({x - 4.0f, row_y + size + 12.0f, size + 8.0f, 45.0f},
+                              10.0f, style.panel.with_alpha(0.73f));
+            text_shrink(c, tiles[static_cast<std::size_t>(i)].title, x + size * 0.5f,
+                        baseline(row_y + size + 16.0f, 36.0f, theme::kText24),
+                        theme::kText24, style.text, size - 12.0f, Align::center);
+        }
+        list.pop_clip();
+        if (count == 0)
+            text(c, "No installed games yet - select All Games", 136.0f,
+                 baseline(410.0f, 42.0f, theme::kText24), theme::kText24, style.text);
+        if (!home_.status.empty())
+            notice(c, home_.status, 136.0f,
+                   baseline(714.0f, 34.0f, theme::kText24),
+                   theme::kText24, theme::kWarning, 1490.0f, home_.launch_failed);
+        // Subtle page position hint only when there are more than five covers.
+        if (count > 5)
+            text(c, std::to_string(selected + 1) + " / " + std::to_string(count),
+                 1770.0f, baseline(700.0f, 30.0f, theme::kSmall),
+                 theme::kSmall, style.muted, Align::right);
 
-        const std::string continue_title = home_.last_file.empty()
-            ? "Open library" : home_.last_title;
-        game_tile(0, home_.last_cover, continue_title, focus(0));
-        if (home_.status.empty())
+        // Switch-style system dock, preserving existing ProsperoEden actions.
+        list.rounded_rect({490.0f, 760.0f, 940.0f, 188.0f}, 80.0f,
+                          style.panel.with_alpha(look().high_contrast ? 0.96f : 0.78f));
+        static constexpr const char *labels[] = {"All Games", "Settings", "About", "Details"};
+        for (int i = 0; i < 4; ++i)
         {
-            const SwitchRecentTiles shown = switch_recent_tiles(home_);
-            for (int i = 0; i < shown.count; ++i)
+            const float cx = 660.0f + static_cast<float>(i) * 200.0f;
+            const float cy = 831.0f;
+            const bool highlighted = home_focus_ == i + 1;
+            list.circle(cx, cy, 48.0f, highlighted ? style.accent :
+                         Color::rgb(0xdce4ec, look().high_contrast ? 0.29f : 0.20f));
+            if (highlighted) list.ring(cx, cy, 53.0f, 3.0f, style.text);
+            const Color ink = highlighted ? style.panel : style.text;
+            if (i == 0) // library: four squares
             {
-                const int source = shown.source_indices[static_cast<std::size_t>(i)];
-                const Recent &recent = home_.recents[static_cast<std::size_t>(source)];
-                game_tile(1 + i, recent.cover, recent.title, focus(5 + source));
+                for (int dx = -1; dx <= 1; dx += 2)
+                    for (int dy = -1; dy <= 1; dy += 2)
+                        list.rounded_rect({cx + dx * 11.0f - 8.0f, cy + dy * 11.0f - 8.0f,
+                                           16.0f, 16.0f}, 3.0f, ink);
             }
+            else if (i == 1) // settings: cog-like spokes and central hole
+            {
+                for (int n = 0; n < 8; ++n)
+                {
+                    const float angle = static_cast<float>(n) * 3.14159265f / 4.0f;
+                    list.line(cx + 18.0f * std::cos(angle), cy + 18.0f * std::sin(angle),
+                              cx + 27.0f * std::cos(angle), cy + 27.0f * std::sin(angle), 4.0f, ink);
+                }
+                list.ring(cx, cy, 15.0f, 6.0f, ink);
+            }
+            else if (i == 2) // about
+            {
+                list.ring(cx, cy, 26.0f, 3.0f, ink);
+                list.circle(cx, cy - 13.0f, 3.6f, ink);
+                list.rounded_rect({cx - 2.2f, cy - 4.0f, 4.4f, 23.0f}, 2.0f, ink);
+            }
+            else // details
+            {
+                for (int n = 0; n < 3; ++n)
+                    list.line(cx - 22.0f, cy - 15.0f + n * 15.0f,
+                              cx + 23.0f, cy - 15.0f + n * 15.0f, 4.0f, ink);
+            }
+            text(c, labels[i], cx, baseline(892.0f, 35.0f, theme::kSmall),
+                 theme::kSmall, style.text, Align::center);
         }
-        else
-        {
-            notice(c, home_.status, 120.0f,
-                   baseline(704.0f, 34.0f, theme::kText24),
-                   theme::kText24, theme::kWarning, 1650.0f,
-                   home_.launch_failed);
-        }
-
-        // Same original focus IDs and game-launch actions, with matching D-pad order.
-        constexpr float nav_y = 822.0f;
-        const auto nav_button = [&](float x, const char *label, float f)
-        {
-            const Rect r{x, nav_y, 260.0f, 70.0f};
-            plate(c, kNavPlate, r, f);
-            text(c, label, r.x + r.w * 0.5f,
-                 baseline(r.y, r.h, theme::kText24), theme::kText24,
-                 theme::kText, Align::center);
-        };
-        nav_button(278.0f, "All games", std::max(focus(1), focus(9)));
-        nav_button(570.0f, "Settings", focus(2));
-        nav_button(862.0f, "About", focus(3));
-        nav_button(1154.0f, "Game details", focus(4));
-        list.rounded_rect({112.0f, 952.0f, 1696.0f, 2.0f}, 1.0f,
-                          theme::kText.with_alpha(0.18f));
-        text(c, "Cross: select     D-pad: navigate     Triangle: details",
-             118.0f, baseline(976.0f, 28.0f, theme::kSmall),
-             theme::kSmall, theme::kMuted);
+        text(c, "Cross: Select      Left/Right: Browse      Down: Menu      Triangle: Details",
+             130.0f, baseline(998.0f, 30.0f, theme::kSmall), theme::kSmall,
+             style.text);
         return;
     }
     // END SWITCH HOME PROTOTYPE

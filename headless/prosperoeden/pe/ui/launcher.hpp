@@ -138,6 +138,14 @@ class Launcher
     void draw_controllers(Canvas &c);
     void open_library_at_last();
     void open_library_at_file(const std::string &file);
+    struct SwitchHomeTile
+    {
+        std::string file;
+        std::string title;
+        std::string cover;
+    };
+    std::vector<SwitchHomeTile> switch_home_tiles() const;
+
 
     // ---- library and game settings (library.cpp) ----
     // The game list is read beside the menu: reading every game takes a moment.
@@ -377,6 +385,9 @@ class Launcher
     std::array<float, 4> controller_pop_{}; // 1 when a controller appears, then decays
     int home_focus_ = 0;
     int switch_home_last_tile_ = 0; // Remember the selected cover when moving to system controls.
+    int switch_home_index_ = 0; // Horizontal carousel cursor (independent of menu focus IDs).
+    tween::Spring switch_home_scroll_; // Smooth horizontal carousel scrolling.
+
     std::array<tween::Spring, 10> home_springs_{};
     float intro_ = 0.0f;
     bool first_start_ = true;

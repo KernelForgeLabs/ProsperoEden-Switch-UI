@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "pe/ui/launcher.hpp"
+#include "pe/ui/switch_style.hpp"
 
 #include <algorithm>
 
@@ -314,6 +315,20 @@ void Launcher::update(float dt)
         check_games_present();
     }
 
+    // Follow the selection smoothly, but keep a full row of covers in view.
+    if (screen_ == Screen::home)
+    {
+        const auto tiles = switch_home_tiles();
+        const int count = static_cast<int>(tiles.size());
+        if (count > 0)
+            switch_home_index_ = std::clamp(switch_home_index_, 0, count - 1);
+        else
+            switch_home_index_ = 0;
+        const float furthest = std::max(0, count - 5) * 310.0f;
+        switch_home_scroll_.target = std::clamp((switch_home_index_ - 2) * 310.0f, 0.0f, furthest);
+    }
+    switch_home_scroll_.update(dt, look().reduce_motion ? 65.0f : 13.0f);
+
     // A newer release: the update dialog, or a notification when the app cannot install it.
     update_offer(dt);
     update_install(dt);
@@ -349,7 +364,7 @@ void Launcher::update_offer(float dt)
             // "v1.000.050" and "1.000.050" both read as the number.
             const std::string &newer = offer.version;
             update_version_ = newer.size() > 1 && (newer[0] == 'v' || newer[0] == 'V') ? newer.substr(1) : newer;
-            if (offer.installable && first_start_)
+            if (offer.installable && first_start_ && switch_ui::kOfficialSelfUpdateEnabled)
             {
                 // Asked each time the app opens (not on returning from a game).
                 update_ = offer;
@@ -432,7 +447,9 @@ void Launcher::draw_update_notice(Canvas &c)
     list.line(cx + 8.0f, cy - 2.0f, cx, cy - 10.0f, 2.6f, theme::kLime);
     text_shrink(c, tr("Update available"), panel.x + 88.0f, baseline(panel.y + 18.0f, 34.0f, theme::kText24),
                 theme::kText24, theme::kTitle, panel.w - 112.0f);
-    text_shrink(c, fill(tr("Version {0} is on homebrew.page"), {update_version_}), panel.x + 88.0f,
+    text_shrink(c, switch_ui::kOfficialSelfUpdateEnabled ?
+                fill(tr("Version {0} is on homebrew.page"), {update_version_}) :
+                "Fork protected: merge upstream to update", panel.x + 88.0f,
                 baseline(panel.y + 54.0f, 30.0f, theme::kSmall), theme::kSmall, theme::kCopy,
                 panel.w - 112.0f);
     // The time it has left.
