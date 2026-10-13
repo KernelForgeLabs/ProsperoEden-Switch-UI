@@ -523,6 +523,19 @@ std::optional<std::string> EdenServices::room_text(int field, const std::string&
     return Common::UTF16ToUTF8(answer.text);
 }
 
+std::optional<std::string> EdenServices::theme_quick_id(const std::atomic<bool>& stop) {
+    Eden::TextRequest request;
+    request.title = u"Themezer Home Menu Quick ID";
+    request.initial = u"T";
+    request.max_length = 9;
+    request.numbers = false;
+    const auto answer = Eden::AskSystemKeyboard(request, stop);
+    if (answer.outcome == Eden::TextOutcome::unavailable)
+        throw std::runtime_error("The system keyboard is unavailable");
+    if (answer.outcome != Eden::TextOutcome::accepted) return std::nullopt;
+    return Common::UTF16ToUTF8(answer.text);
+}
+
 std::optional<std::int64_t> EdenServices::ask_seed(std::int64_t current, const std::atomic<bool>& stop) {
     Eden::TextRequest request;
     request.title = u"RNG seed";

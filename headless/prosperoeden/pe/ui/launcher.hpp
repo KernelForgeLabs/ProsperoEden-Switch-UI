@@ -7,6 +7,7 @@
 #include "pe/audio/sounds.hpp"
 #include "pe/ui/qr_code.hpp"
 #include "pe/ui/widgets.hpp"
+#include "pe/ui/switch_theme_download.hpp"
 
 #include <array>
 #include <future>
@@ -210,6 +211,7 @@ class Launcher
     void enter_themes();
     void press_themes(Key key);
     void draw_themes(Canvas &c);
+    void update_theme_download();
     void press_dialog(Key key);
     void draw_dialog(Canvas &c, Modal modal, float open);
     int dialog_rows(Modal modal) const;
@@ -414,6 +416,11 @@ class Launcher
     int switch_theme_selected_ = 0;
     bool switch_theme_restart_ = false;
     std::string switch_theme_status_;
+    // Two-step asynchronous operation: keyboard first, then HTTPS and import.
+    // Never perform network IO in the frame/render thread.
+    std::atomic<bool> switch_theme_stop_{false};
+    std::future<std::optional<std::string>> switch_theme_keyboard_;
+    std::future<switch_theme::ImportResult> switch_theme_download_;
     tween::Spring section_;
     int option_ = 0;
     tween::Spring option_cursor_; // highlight position in pixels

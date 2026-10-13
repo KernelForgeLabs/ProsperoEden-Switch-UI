@@ -17,7 +17,10 @@
 namespace pe::ui::switch_theme
 {
 // Theme assets are independent of /data/homebrew/PPSA99008 and app updates.
-inline constexpr const char *kRoot = "/data/prosperoeden/themes";
+#ifndef PROSPEROEDEN_SWITCH_THEME_ROOT
+#define PROSPEROEDEN_SWITCH_THEME_ROOT "/data/prosperoeden/themes"
+#endif
+inline constexpr const char *kRoot = PROSPEROEDEN_SWITCH_THEME_ROOT;
 
 inline bool valid_id(const std::string &id)
 {

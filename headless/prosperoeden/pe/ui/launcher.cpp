@@ -59,6 +59,9 @@ Launcher::~Launcher()
     if (room_edit_.valid()) room_edit_.wait();
     seed_edit_stop_ = true;
     if (seed_edit_.valid()) seed_edit_.wait();
+    switch_theme_stop_ = true;
+    if (switch_theme_keyboard_.valid()) switch_theme_keyboard_.wait();
+    if (switch_theme_download_.valid()) switch_theme_download_.wait();
     // The game list may still be reading; it uses the services this launcher was given.
     if (scan_.valid())
         scan_.wait();
@@ -257,6 +260,7 @@ void Launcher::update(float dt)
     poll_pairing(dt);
     refresh_sync_setup(dt);
     update_multiplayer();
+    update_theme_download();
     update_game_options();
     update_controllers(dt);
     transition_.update(dt);

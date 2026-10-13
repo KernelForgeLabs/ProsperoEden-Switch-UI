@@ -4,6 +4,10 @@
 
 #include "pe/ui/launcher.hpp"
 #include "pe/ui/switch_theme_manager.hpp"
+#include "pe/ui/switch_theme_download.hpp"
+#include <chrono>
+#include <exception>
+#include <future>
 
 #include <algorithm>
 #include <string>
@@ -896,10 +900,8 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
     list.pop_opacity();
 }
 
-// ---------------------------------------------------------------- Switch Themes (v4.0)
-// This screen intentionally selects only verified, already-installed artwork.
-// The native HTTPS/NXTheme downloader is a separate feature: do not claim a
-// Quick ID is downloaded before the PS5 network and archive adapters exist.
+// ---------------------------------------------------------------- Switch Themes (v4.1)
+// Installed themes are preserved and imported themes are staged atomically.
 void Launcher::enter_themes()
 {
     switch_theme_ids_ = switch_theme::installed();
@@ -911,17 +913,77 @@ void Launcher::enter_themes()
     const auto active = switch_theme::current_id();
     for (int i = 0; i < static_cast<int>(switch_theme_ids_.size()); ++i)
         if (switch_theme_ids_[static_cast<std::size_t>(i)] == active)
-            switch_theme_selected_ = i + 1;
+            switch_theme_selected_ = i + 2;
+}
+
+void Launcher::update_theme_download()
+{
+    if (switch_theme_keyboard_.valid() &&
+        switch_theme_keyboard_.wait_for(std::chrono::seconds{0}) == std::future_status::ready)
+    {
+        std::optional<std::string> entered;
+        try { entered = switch_theme_keyboard_.get(); }
+        catch (const std::exception&) { switch_theme_status_ = "PS5 keyboard could not be opened."; }
+        if (!entered && !switch_theme_stop_.load() &&
+            switch_theme_status_ == "Opening PS5 keyboard...")
+            switch_theme_status_ = "Quick ID entry cancelled.";
+        if (entered && !switch_theme_stop_.load())
+        {
+            const auto id = switch_theme::normalize_quick_id(*entered);
+            if (id.empty()) switch_theme_status_ = "Enter a Home Menu ID like TF7CA; pack IDs are not supported.";
+            else
+            {
+                switch_theme_status_ = "Downloading " + id + " from Themezer...";
+                try
+                {
+                    switch_theme_download_ = std::async(std::launch::async, [this, id] {
+                        return switch_theme::install_quick_id(id, switch_theme_stop_);
+                    });
+                }
+                catch (const std::exception&) { switch_theme_status_ = "Could not start download."; }
+            }
+        }
+    }
+    if (switch_theme_download_.valid() &&
+        switch_theme_download_.wait_for(std::chrono::seconds{0}) == std::future_status::ready)
+    {
+        switch_theme::ImportResult result;
+        try { result = switch_theme_download_.get(); }
+        catch (const std::exception&) { result.message = "Theme installation failed unexpectedly."; }
+        switch_theme_status_ = result.message;
+        switch_theme_restart_ = false;
+        if (result.success)
+        {
+            // Refresh the list without changing the active theme. Activation is explicit.
+            switch_theme_ids_ = switch_theme::installed();
+            if (switch_theme::store().usable("legacy"))
+                switch_theme_ids_.insert(switch_theme_ids_.begin(), "legacy");
+            switch_theme_selected_ = 1; // highlight Install from Themezer for next use
+            for (std::size_t i=0;i<switch_theme_ids_.size();++i)
+                if (switch_theme_ids_[i] == result.id)
+                    switch_theme_selected_ = static_cast<int>(i) + 2;
+            cue(Cue::saved);
+        }
+        else cue(Cue::error);
+    }
 }
 
 void Launcher::press_themes(Key key)
 {
-    const int count = static_cast<int>(switch_theme_ids_.size()) + 1; // "Original" first
+    const int count = static_cast<int>(switch_theme_ids_.size()) + 2;
+    const bool busy = switch_theme_keyboard_.valid() || switch_theme_download_.valid();
     if (key == Key::circle)
     {
-        open(Screen::settings, false);
+        if (busy)
+        {
+            // The asynchronous worker reads stop; it will not commit a cancelled theme.
+            switch_theme_stop_ = true;
+            switch_theme_status_ = "Cancelling theme installation...";
+        }
+        else open(Screen::settings, false);
         return;
     }
+    if (busy) return;
     if (key == Key::up || key == Key::down)
     {
         switch_theme_selected_ = (switch_theme_selected_ + (key == Key::down ? 1 : count - 1)) % count;
@@ -929,8 +991,25 @@ void Launcher::press_themes(Key key)
         return;
     }
     if (key != Key::cross) return;
+    if (switch_theme_selected_ == 1)
+    {
+        switch_theme_stop_ = false;
+        switch_theme_status_ = "Opening PS5 keyboard...";
+        switch_theme_restart_ = false;
+        try
+        {
+            switch_theme_keyboard_ = std::async(std::launch::async,
+                [this] { return services_.theme_quick_id(switch_theme_stop_); });
+        }
+        catch (const std::exception&)
+        {
+            switch_theme_status_ = "Could not open PS5 keyboard.";
+            cue(Cue::error);
+        }
+        return;
+    }
     const std::string id = switch_theme_selected_ == 0 ? "default" :
-        switch_theme_ids_[static_cast<std::size_t>(switch_theme_selected_ - 1)];
+        switch_theme_ids_[static_cast<std::size_t>(switch_theme_selected_ - 2)];
     std::string error;
     if (!switch_theme::activate(id, &error))
     {
@@ -954,7 +1033,7 @@ void Launcher::draw_themes(Canvas &c)
     text_shrink(c, "Active: " + switch_theme::current_id(), 1660.0f,
                 baseline(250.0f, 30.0f, theme::kText24), theme::kText24,
                 theme::kMeta, 460.0f, Align::right);
-    const int count = static_cast<int>(switch_theme_ids_.size()) + 1;
+    const int count = static_cast<int>(switch_theme_ids_.size()) + 2;
     const std::string active_id = switch_theme::current_id();
     // Scroll a short window with the selection; never draw outside the panel.
     const int start = std::clamp(switch_theme_selected_ - 3, 0, std::max(0, count - 7));
@@ -964,22 +1043,22 @@ void Launcher::draw_themes(Canvas &c)
         const Rect r{238.0f, y, 1444.0f, 66.0f};
         plate(c, kRowPlate, r, i == switch_theme_selected_ ? 1.0f : 0.0f);
         const std::string name = i == 0 ? "Original package artwork" :
-            switch_theme::display_name(switch_theme_ids_[static_cast<std::size_t>(i - 1)]);
+            i == 1 ? "Install from Themezer Quick ID" :
+            switch_theme::display_name(switch_theme_ids_[static_cast<std::size_t>(i - 2)]);
         text_shrink(c, name, 264.0f, baseline(y + 5.0f, 54.0f, theme::kText24),
                     theme::kText24, theme::kValue, 960.0f);
-        const std::string id = i == 0 ? "default" : switch_theme_ids_[static_cast<std::size_t>(i - 1)];
+        const std::string id = i == 0 ? "default" : i == 1 ? "DOWNLOAD" :
+            switch_theme_ids_[static_cast<std::size_t>(i - 2)];
         text_shrink(c, id == active_id ? "ACTIVE" : id,
                     1630.0f, baseline(y + 5.0f, 54.0f, theme::kSmall),
                     theme::kSmall, theme::kMeta, 330.0f, Align::right);
     }
-    if (switch_theme_ids_.empty())
-        text_block(c, "Install themes using the Linux Themezer Bridge and FTP. "
-                      "Themezer Quick ID downloading on the PS5 is planned for a later version.",
-                   250.0f, 825.0f, theme::kSmall, 32.0f, theme::kCopy, 1400.0f, 3);
-    else if (!switch_theme_status_.empty())
-        text_shrink(c, switch_theme_status_, 250.0f, baseline(842.0f, 40.0f, theme::kSmall),
-                    theme::kSmall, switch_theme_restart_ ? theme::kValue : theme::kWarning,
-                    1370.0f);
+    const std::string help = switch_theme_status_.empty() ?
+        "Choose Install from Themezer and enter a Home Menu Quick ID (Txxxx). "
+        "Download requires internet; restart after applying." : switch_theme_status_;
+    text_block(c, help, 250.0f, 820.0f, theme::kSmall, 32.0f,
+               switch_theme_status_.empty() || switch_theme_restart_ ? theme::kCopy : theme::kLimePale,
+               1400.0f, 2);
     static constexpr Hint kHints[] = {
         {Pad::cross, TR("Apply")}, {Pad::circle, TR("Back")}, {Pad::updown, TR("Browse")}};
     draw_footer(c, kHints, 3);
