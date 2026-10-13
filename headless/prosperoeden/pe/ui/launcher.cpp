@@ -42,9 +42,9 @@ Launcher::Launcher(Services &services, Textures &textures, const Fonts &fonts, b
     const bool continue_ready = home_.setup_ready && home_.last_exists;
     home_focus_ = continue_ready ? 0 : home_.setup_ready ? 1 : 2;
     home_springs_[static_cast<std::size_t>(home_focus_)].snap(1.0f);
-    settings_.visible = 12;
-    settings_.pitch = 52.0f;
-    settings_.reset(12, 0);
+    settings_.visible = 13;
+    settings_.pitch = 48.0f;
+    settings_.reset(13, 0);
     section_.snap(1.0f);
     detail_.snap(1.0f);
     cue(home_.launch_failed ? Cue::notify : first_start ? Cue::welcome : Cue::resume);
@@ -231,6 +231,8 @@ void Launcher::press(Key key)
         return press_library(key);
     case Screen::settings:
         return press_settings(key);
+    case Screen::themes:
+        return press_themes(key);
     case Screen::files:
         return press_files(key);
     case Screen::language:
@@ -404,6 +406,8 @@ void Launcher::draw_screen(Canvas &c, Screen screen)
         return draw_library(c);
     case Screen::settings:
         return draw_settings(c);
+    case Screen::themes:
+        return draw_themes(c);
     case Screen::files:
         return draw_files(c);
     case Screen::language:

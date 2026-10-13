@@ -4,6 +4,7 @@
 
 #include "pe/core/file.hpp"
 #include "pe/ui/theme.hpp"
+#include "pe/ui/switch_theme_manager.hpp"
 #include <cstdint>
 #include <cstdlib>
 #include <string>
@@ -14,7 +15,7 @@ namespace pe::ui::switch_ui
 // Fork safety: official app releases replace eboot.bin. Never call the updater
 // from our modified build; merge upstream in Git and rebuild instead.
 inline constexpr bool kOfficialSelfUpdateEnabled = false;
-inline constexpr const char *kActiveThemeDir = "/data/prosperoeden/themes/active";
+// Legacy v3 installations remain usable when no current.txt is present.
 
 struct Palette
 {
@@ -75,7 +76,8 @@ inline Palette read_palette()
     std::string content;
     // One bounded, tiny file outside the application install. Missing or malformed
     // files do not prevent the launcher from starting.
-    if (!pe::read_file(std::string(kActiveThemeDir) + "/palette.ini", &content, 4096))
+    const auto root = switch_theme::asset_root();
+    if (root.empty() || !pe::read_file(root + "/palette.ini", &content, 4096))
         return out;
     std::size_t position = 0;
     while (position < content.size())

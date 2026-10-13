@@ -65,6 +65,7 @@ class Launcher
         home,
         library,
         settings,
+        themes,
         files,
         language,
         about,
@@ -205,6 +206,10 @@ class Launcher
     // ---- settings and its dialogs (settings.cpp) ----
     void press_settings(Key key);
     void draw_settings(Canvas &c);
+    // Switch UI: select preinstalled external Themezer artwork on the console.
+    void enter_themes();
+    void press_themes(Key key);
+    void draw_themes(Canvas &c);
     void press_dialog(Key key);
     void draw_dialog(Canvas &c, Modal modal, float open);
     int dialog_rows(Modal modal) const;
@@ -405,6 +410,10 @@ class Launcher
     // settings and dialogs
     Preferences prefs_;
     ListView settings_;
+    std::vector<std::string> switch_theme_ids_;
+    int switch_theme_selected_ = 0;
+    bool switch_theme_restart_ = false;
+    std::string switch_theme_status_;
     tween::Spring section_;
     int option_ = 0;
     tween::Spring option_cursor_; // highlight position in pixels

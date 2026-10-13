@@ -39,8 +39,9 @@ bool Textures::load_art(const std::string &directory)
         // reinstall does not discard the user's chosen wallpaper. The brand
         // and controller files always come from the original package.
         const bool external = asset == "art/backdrop.tga" || asset == "art/backdrop-blur.tga";
-        const bool theme_loaded = external &&
-            gfx::load_tga(std::string(switch_ui::kActiveThemeDir) + "/" + asset, &image);
+        const auto theme_root = switch_theme::asset_root();
+        const bool theme_loaded = external && !theme_root.empty() &&
+            gfx::load_tga(theme_root + "/" + asset, &image);
         if (!theme_loaded && !gfx::load_tga(directory + "/" + name, &image))
         {
             sys::log("art %s could not be read", name);

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "pe/ui/launcher.hpp"
+#include "pe/ui/switch_theme_manager.hpp"
 
 #include <algorithm>
 #include <string>
@@ -20,7 +21,7 @@ constexpr Rect kListPanel{108.0f, 188.0f, 820.0f, 720.0f};
 constexpr Rect kDetailPanel{980.0f, 188.0f, 820.0f, 720.0f};
 constexpr Rect kDialog{550.0f, 180.0f, 820.0f, 720.0f};
 constexpr float kRowsTop = 264.0f;
-constexpr float kRowHeight = 50.0f;
+constexpr float kRowHeight = 46.0f;
 enum Category
 {
     kProfiles,
@@ -35,15 +36,16 @@ enum Category
     kSaveSync,
     kMultiplayer,
     kLanguage,
+    kThemes,
     kCategoryCount,
 };
 constexpr const char *kCategories[kCategoryCount] = {
     TR("Profiles"), TR("Video"), TR("Performance"), TR("Audio"), TR("Controls"), TR("Accessibility"),
-    TR("Diagnostics"), TR("Game files"), TR("Downloads"), TR("Save sync"), TR("Multiplayer"), TR("Language")};
+    TR("Diagnostics"), TR("Game files"), TR("Downloads"), TR("Save sync"), TR("Multiplayer"), TR("Language"), TR("Themes")};
 // The same as headings: capitals differ by language, so each is its own text.
 constexpr const char *kHeadings[kCategoryCount] = {
     TR("PROFILES"), TR("VIDEO"), TR("PERFORMANCE"), TR("AUDIO"), TR("CONTROLS"), TR("ACCESSIBILITY"),
-    TR("DIAGNOSTICS"), TR("GAME FILES"), TR("DOWNLOADS"), TR("SAVE SYNC"), TR("MULTIPLAYER"), TR("LANGUAGE")};
+    TR("DIAGNOSTICS"), TR("GAME FILES"), TR("DOWNLOADS"), TR("SAVE SYNC"), TR("MULTIPLAYER"), TR("LANGUAGE"), TR("THEMES")};
 
 // The Video dialog's rows, and the window that shows five of them (placed as a game's settings
 // are).
@@ -140,6 +142,10 @@ void Launcher::press_settings(Key key)
         press_ = 1.0f;
         switch (settings_.selected)
         {
+        case kThemes:
+            open(Screen::themes, true);
+            enter_themes();
+            break;
         case kFiles:
             open(Screen::files, true);
             enter_files();
@@ -227,6 +233,7 @@ void Launcher::draw_settings(Canvas &c)
         }(),
         services_.room_status().phase == Eden::Multiplayer::Phase::Connected ? tr("Connected") : tr("Off"),
         pick(services_.language_labels(), prefs_.language),
+        switch_theme::current_id(),
     };
     for (int row = 0; row < kCategoryCount; ++row)
     {
@@ -356,6 +363,12 @@ void Launcher::draw_settings(Canvas &c)
             lines.push_back({tr("SYNC"), tr("Off")});
         break;
     }
+    case kThemes:
+        about = tr("Choose an installed Switch theme. The wallpaper changes after restarting the app.");
+        lines = {{"ACTIVE", switch_theme::current_id()},
+                 {"STORAGE", "/data/prosperoeden/themes/installed"},
+                 {"IMPORT", "Stage a .nxtheme with the Themezer Bridge"}};
+        break;
     case kMultiplayer:
         about = tr("Join an Eden room, then choose Local Wireless in a supported game. Everyone needs a compatible game version.");
         lines = {{tr("PUBLIC ROOMS"), tr("Browse the public directory")},
@@ -881,6 +894,95 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
     }
     list.pop_transform();
     list.pop_opacity();
+}
+
+// ---------------------------------------------------------------- Switch Themes (v4.0)
+// This screen intentionally selects only verified, already-installed artwork.
+// The native HTTPS/NXTheme downloader is a separate feature: do not claim a
+// Quick ID is downloaded before the PS5 network and archive adapters exist.
+void Launcher::enter_themes()
+{
+    switch_theme_ids_ = switch_theme::installed();
+    if (switch_theme::store().usable("legacy"))
+        switch_theme_ids_.insert(switch_theme_ids_.begin(), "legacy");
+    switch_theme_selected_ = 0;
+    switch_theme_status_.clear();
+    switch_theme_restart_ = false;
+    const auto active = switch_theme::current_id();
+    for (int i = 0; i < static_cast<int>(switch_theme_ids_.size()); ++i)
+        if (switch_theme_ids_[static_cast<std::size_t>(i)] == active)
+            switch_theme_selected_ = i + 1;
+}
+
+void Launcher::press_themes(Key key)
+{
+    const int count = static_cast<int>(switch_theme_ids_.size()) + 1; // "Original" first
+    if (key == Key::circle)
+    {
+        open(Screen::settings, false);
+        return;
+    }
+    if (key == Key::up || key == Key::down)
+    {
+        switch_theme_selected_ = (switch_theme_selected_ + (key == Key::down ? 1 : count - 1)) % count;
+        cue(Cue::focus);
+        return;
+    }
+    if (key != Key::cross) return;
+    const std::string id = switch_theme_selected_ == 0 ? "default" :
+        switch_theme_ids_[static_cast<std::size_t>(switch_theme_selected_ - 1)];
+    std::string error;
+    if (!switch_theme::activate(id, &error))
+    {
+        switch_theme_status_ = error;
+        cue(Cue::error);
+        return;
+    }
+    switch_theme_restart_ = true;
+    switch_theme_status_ = "Theme selected. Close and restart ProsperoEden to apply.";
+    cue(Cue::saved);
+}
+
+void Launcher::draw_themes(Canvas &c)
+{
+    draw_frame(c, "Themes", "Switch-style themes stored outside the app installation");
+    const Rect panel{180.0f, 185.0f, 1560.0f, 745.0f};
+    glass(c, panel, 26.0f, theme::kPanel.with_alpha(0.85f),
+          theme::kPanelEdge.with_alpha(0.5f));
+    text(c, "Installed themes", 238.0f, baseline(240.0f, 42.0f, theme::kHeading),
+         theme::kHeading, theme::kTitle);
+    text_shrink(c, "Active: " + switch_theme::current_id(), 1660.0f,
+                baseline(250.0f, 30.0f, theme::kText24), theme::kText24,
+                theme::kMeta, 460.0f, Align::right);
+    const int count = static_cast<int>(switch_theme_ids_.size()) + 1;
+    const std::string active_id = switch_theme::current_id();
+    // Scroll a short window with the selection; never draw outside the panel.
+    const int start = std::clamp(switch_theme_selected_ - 3, 0, std::max(0, count - 7));
+    for (int i = start; i < std::min(count, start + 7); ++i)
+    {
+        const float y = 321.0f + static_cast<float>(i - start) * 75.0f;
+        const Rect r{238.0f, y, 1444.0f, 66.0f};
+        plate(c, kRowPlate, r, i == switch_theme_selected_ ? 1.0f : 0.0f);
+        const std::string name = i == 0 ? "Original package artwork" :
+            switch_theme::display_name(switch_theme_ids_[static_cast<std::size_t>(i - 1)]);
+        text_shrink(c, name, 264.0f, baseline(y + 5.0f, 54.0f, theme::kText24),
+                    theme::kText24, theme::kValue, 960.0f);
+        const std::string id = i == 0 ? "default" : switch_theme_ids_[static_cast<std::size_t>(i - 1)];
+        text_shrink(c, id == active_id ? "ACTIVE" : id,
+                    1630.0f, baseline(y + 5.0f, 54.0f, theme::kSmall),
+                    theme::kSmall, theme::kMeta, 330.0f, Align::right);
+    }
+    if (switch_theme_ids_.empty())
+        text_block(c, "Install themes using the Linux Themezer Bridge and FTP. "
+                      "Themezer Quick ID downloading on the PS5 is planned for a later version.",
+                   250.0f, 825.0f, theme::kSmall, 32.0f, theme::kCopy, 1400.0f, 3);
+    else if (!switch_theme_status_.empty())
+        text_shrink(c, switch_theme_status_, 250.0f, baseline(842.0f, 40.0f, theme::kSmall),
+                    theme::kSmall, switch_theme_restart_ ? theme::kValue : theme::kWarning,
+                    1370.0f);
+    static constexpr Hint kHints[] = {
+        {Pad::cross, TR("Apply")}, {Pad::circle, TR("Back")}, {Pad::updown, TR("Browse")}};
+    draw_footer(c, kHints, 3);
 }
 
 } // namespace pe::ui
