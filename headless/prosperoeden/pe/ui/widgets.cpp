@@ -735,7 +735,8 @@ void icon(Canvas &c, Icon which, float cx, float cy, float size, Color ink)
 // ---------------------------------------------------------------- Switch-inspired HOME pictograms
 // Their optical weight, geometry and filled treatment are deliberately
 // independent of the lighter line icons in other ProsperoEden screens.
-void draw_switch_dock_glyph(Canvas &c, Icon which, float cx, float cy, float size, Color ink)
+void draw_switch_dock_glyph(Canvas &c, Icon which, float cx, float cy, float size,
+                            Color ink, Color cutout)
 {
     auto &d = c.list;
     const float u = size / 48.0f;
@@ -770,11 +771,11 @@ void draw_switch_dock_glyph(Canvas &c, Icon which, float cx, float cy, float siz
                  24.0f + 19.0f*std::cos(a), 24.0f + 19.0f*std::sin(a), 5.4f);
         }
         disk(24.0f, 24.0f, 13.1f);
-        d.circle(X(24.0f), Y(24.0f), 5.5f*u, Color::rgb(0xe8eaf0));
+        d.circle(X(24.0f), Y(24.0f), 5.5f*u, cutout);
         return;
     case Icon::about:
         disk(24.0f, 24.0f, 18.0f);
-        d.circle(X(24.0f), Y(24.0f), 14.4f*u, Color::rgb(0xe8eaf0));
+        d.circle(X(24.0f), Y(24.0f), 14.4f*u, cutout);
         disk(24.0f, 15.0f, 2.3f);
         rect(22.1f, 21.0f, 3.8f, 14.0f, 1.8f);
         return;

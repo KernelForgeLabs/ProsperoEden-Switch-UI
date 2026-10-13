@@ -262,24 +262,24 @@ void Launcher::draw_home(Canvas &c)
     {
         const bool focused = switch_home_dock_ && !rail_focus_ && switch_home_action_ == i;
         const float x = dock_x(i);
-        const Color face = focused ? Color::rgb(0xf8fafc) : Color::rgb(0xe2e5eb).with_alpha(0.93f);
-        const Color ink = Color::rgb(0x292e38);
+        const Color face = focused ? t.title : t.panel.with_alpha(0.93f);
+        const Color ink = focused ? t.panel : t.title;
         list.circle(x, kDockY, kDockRadius, face);
-        list.ring(x, kDockY, kDockRadius, 1.2f, Color::rgb(0x364052).with_alpha(0.52f));
+        list.ring(x, kDockY, kDockRadius, 1.2f, t.row_edge.with_alpha(0.52f));
         if (focused)
         {
             list.ring(x, kDockY, kDockRadius + 6.0f, 3.5f, t.accent);
-            list.ring(x, kDockY, kDockRadius + 10.0f, 1.0f, Color::rgb(0xffffff).with_alpha(0.6f));
+            list.ring(x, kDockY, kDockRadius + 10.0f, 1.0f, t.accent_pale.with_alpha(0.6f));
         }
-        draw_switch_dock_glyph(c, kDock[i].icon, x, kDockY, 46.0f, ink);
+        draw_switch_dock_glyph(c, kDock[i].icon, x, kDockY, 46.0f, ink, face);
         if (focused)
         {
             // Selected label stays legible on both pale and dark wallpapers.
             list.rounded_rect({x - 94.0f, kDockY + 54.0f, 188.0f, 33.0f}, 13.0f,
-                              Color::rgb(0x111621).with_alpha(0.84f));
+                              t.panel.with_alpha(0.84f));
         }
         text_shrink(c, tr(kDock[i].label), x, baseline(kDockY + 58.0f, 30.0f, t.size_small),
-                    t.size_small, focused ? Color::rgb(0xffffff) : t.title,
+                    t.size_small, t.title,
                     178.0f, Align::center);
     }
 
