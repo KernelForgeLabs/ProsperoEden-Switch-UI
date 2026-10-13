@@ -31,7 +31,7 @@ constexpr float kCellPitchY = 346.0f; // cover, title, metadata, spacing
 constexpr float kGridTop = 152.0f;
 constexpr float kGridBottom = 972.0f;
 constexpr float kGridWidth = kCellPitchX * (kColumns - 1) + kCover;
-constexpr Rect kDetail{1304.0f, 136.0f, 520.0f, 836.0f};
+
 
 // A game's settings: a page of three parts beside the rail.
 constexpr Rect kKinds{layout::kLeft, 160.0f, 400.0f, 792.0f};
