@@ -5,8 +5,12 @@
 #include "pe/ui/theme.hpp"
 
 #include "pe/core/strings.hpp"
+#include "pe/ui/switch_bootstrap.hpp"
 
 #include <array>
+#include <memory>
+#include <vector>
+#include <string>
 #include <cstdint>
 
 namespace pe::ui
@@ -81,11 +85,52 @@ Theme canopy()
     return t;
 }
 
+// Dark is self-contained in the release, so a fresh install works offline even when
+// /data/prosperoeden/themes is empty or unwritable.
+Theme switch_dark()
+{
+    Theme t = canopy();
+    t.id = "switch-dark";
+    t.name = "Switch Dark";
+    t.summary = "Dark minimalist HOME theme, included with the app.";
+    t.base = rgb(0x0b1019);
+    t.scrim = rgb(0x060910);
+    t.glass = rgb(0x141c28);
+    t.panel = rgb(0x141a24);
+    t.panel_edge = rgb(0x526070);
+    t.row = rgb(0x202a38);
+    t.row_edge = rgb(0x4c5b70);
+    t.row_focus = rgb(0x31465b);
+    t.accent = rgb(0x66cdfb);
+    t.accent_deep = rgb(0x315c83);
+    t.accent_pale = rgb(0xc9edfd);
+    t.on_accent = rgb(0x07121c);
+    t.highlight = rgb(0x639dc7);
+    t.title = rgb(0xf8fafc);
+    t.text = rgb(0xf5f7fb);
+    t.body = rgb(0xe5edf5);
+    t.copy = rgb(0xc4d1df);
+    t.meta = rgb(0xb9c6d4);
+    t.faint = rgb(0x8b9aad);
+    t.rule = rgb(0x425061);
+    t.motes = 0;
+    t.drift = 0.0f;
+    t.backdrop = "switch-dark-backdrop.tga";
+    t.backdrop_blur = "switch-dark-backdrop-blur.tga";
+    return t;
+}
+
+struct ExternalNames {
+    std::string id, name, summary, backdrop, blur;
+};
+
 struct Store
 {
-    std::array<Theme, 1> all{canopy()};
+    std::vector<Theme> all;
+    std::vector<std::unique_ptr<ExternalNames>> names;
     int index = 0;
-    Theme active = all[0];
+    Theme active;
+    Store() : all{switch_dark(), canopy()}, active(all[0]) {}
 };
 
 Store &store()
@@ -94,7 +139,59 @@ Store &store()
     return value;
 }
 
+bool &ready()
+{
+    static bool started = false;
+    return started;
+}
+
 } // namespace
+
+void initialize_switch_themes()
+{
+    if (ready()) return;
+    ready() = true;
+    Store &s = store();
+    const std::string folder = switch_bootstrap::root();
+    // A missing or read-only /data mount is nonfatal: Switch Dark is compiled in.
+    (void)switch_bootstrap::ensure(folder);
+    for (const auto &item : switch_bootstrap::installed(folder)) {
+        auto name = std::make_unique<ExternalNames>();
+        name->id = item.id;
+        name->name = item.name;
+        name->summary = "Installed Themezer wallpaper (from persistent storage)";
+        name->backdrop = item.art + "/backdrop.tga";
+        name->blur = item.art + "/backdrop-blur.tga";
+        Theme t = switch_dark();
+        t.id = name->id.c_str();
+        t.name = name->name.c_str();
+        t.summary = name->summary.c_str();
+        t.backdrop = name->backdrop.c_str();
+        t.backdrop_blur = name->blur.c_str();
+        s.names.push_back(std::move(name));
+        s.all.push_back(t);
+    }
+}
+
+// Old v4 selection takes precedence during migration; otherwise use the
+// official preference. An unknown/removed theme falls back to Switch Dark.
+std::string startup_switch_theme(std::string_view preference)
+{
+    initialize_switch_themes();
+    const std::string stored = switch_bootstrap::selected(switch_bootstrap::root());
+    const auto available = [](std::string_view id) {
+        for (const Theme &t : themes()) if (id == t.id) return true;
+        return false;
+    };
+    if (!stored.empty() && stored != "default" && available(stored)) return stored;
+    if (available(preference)) return std::string(preference);
+    return "switch-dark";
+}
+
+void remember_switch_theme(std::string_view id)
+{
+    (void)switch_bootstrap::set_selected(switch_bootstrap::root(), std::string(id));
+}
 
 const Theme &th()
 {
@@ -103,6 +200,7 @@ const Theme &th()
 
 std::span<const Theme> themes()
 {
+    initialize_switch_themes();
     return store().all;
 }
 
@@ -113,6 +211,7 @@ int theme_index()
 
 bool use_theme(std::string_view id)
 {
+    initialize_switch_themes();
     Store &all = store();
     for (std::size_t i = 0; i < all.all.size(); ++i)
     {

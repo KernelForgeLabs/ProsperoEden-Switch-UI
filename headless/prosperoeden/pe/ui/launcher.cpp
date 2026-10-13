@@ -34,7 +34,7 @@ Launcher::Launcher(Services &services, Textures &textures, const Fonts &fonts, b
     clock_ = services_.clock();
     prefs_ = services_.preferences();
     // The look the player chose; a theme this build does not have leaves the first in use.
-    use_theme(prefs_.theme);
+    use_theme(startup_switch_theme(prefs_.theme));
     sources_ = services_.sources();
     sources_generation_ = sources_.generation; // the list read below has the sources' games
     downloads_ = services_.downloads();

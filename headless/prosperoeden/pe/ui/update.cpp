@@ -246,20 +246,11 @@ void Launcher::scroll_notes(float by)
 
 void Launcher::begin_update()
 {
+    // The official updater would overwrite this fork's custom eboot.bin.
+    // Still show update notices and release notes, but install through GitHub builds.
     update_status_ = {};
-    update_fraction_.snap(0.0f);
-    update_rate_ = 0.0f;
-    update_rate_done_ = 0;
-    update_rate_wait_ = 0.0f;
-    update_stage_time_ = 0.0f;
-    if (services_.start_update())
-    {
-        update_stage_ = UpdateStage::working;
-        cue(Cue::select);
-        return;
-    }
     update_stage_ = UpdateStage::failed;
-    update_status_.error = "The update helper could not start";
+    update_status_.error = "Switch UI fork: update using a rebuilt fork release.";
     update_choice_ = 0;
     update_choice_x_.snap(0.0f);
     cue(Cue::error);

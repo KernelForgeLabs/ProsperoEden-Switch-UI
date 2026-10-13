@@ -448,7 +448,10 @@ void Launcher::press_dialog(Key key)
         prefs_.theme = chosen.id;
         const bool saved = save_preferences(true);
         if (saved)
+        {
             use_theme(chosen.id);
+            remember_switch_theme(chosen.id);
+        }
         else
             prefs_.theme = had;
         cue(saved ? Cue::saved : Cue::error);

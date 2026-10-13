@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <span>
+#include <string>
 #include <string_view>
 
 namespace pe::ui
@@ -117,6 +118,11 @@ std::span<const Theme> themes();
 int theme_index();
 // Puts a theme in use by its id; false when this build has none of that name (the one in use stays).
 bool use_theme(std::string_view id);
+// Switch fork: initialize persistent theme library (safe and idempotent),
+// recover a v4 current.txt, and save later theme choices outside the app.
+void initialize_switch_themes();
+std::string startup_switch_theme(std::string_view preference);
+void remember_switch_theme(std::string_view id);
 
 // A kit theme (ps5-homebrew-ui) as a launcher theme: every role filled from the kit's colours, its
 // corners, focus ring and motion. False when the kit has no theme of that id (theme_kit.cpp).

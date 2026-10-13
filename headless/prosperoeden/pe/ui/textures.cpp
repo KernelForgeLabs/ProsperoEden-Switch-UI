@@ -35,7 +35,9 @@ bool Textures::load_art(const std::string &directory)
     const auto load = [&](const std::string &name, std::uint32_t *texture)
     {
         gfx::Image image;
-        if (!gfx::load_tga(directory + "/" + name, &image))
+        // An external Themezer theme stores its assets outside the app's folder.
+        const std::string path = !name.empty() && name.front() == '/' ? name : directory + "/" + name;
+        if (!gfx::load_tga(path, &image))
         {
             sys::log("art %s could not be read", name.c_str());
             return false;
@@ -45,8 +47,13 @@ bool Textures::load_art(const std::string &directory)
     };
     // The theme names its artwork (theme.hpp).
     const std::string art = "art/";
-    const bool backdrop = load(art + th().backdrop, &backdrop_);
-    const bool blur = load(art + th().backdrop_blur, &backdrop_blur_);
+    const std::string backdrop_path = th().backdrop;
+    const std::string blur_path = th().backdrop_blur;
+    bool backdrop = load(backdrop_path.front() == '/' ? backdrop_path : art + backdrop_path, &backdrop_);
+    bool blur = load(blur_path.front() == '/' ? blur_path : art + blur_path, &backdrop_blur_);
+    // Corrupt external artwork must not make a fresh or upgraded launcher unusable.
+    if (!backdrop) backdrop = load(art + "switch-dark-backdrop.tga", &backdrop_);
+    if (!blur) blur = load(art + "switch-dark-backdrop-blur.tga", &backdrop_blur_);
     const bool brand = load(art + th().brand, &brand_);
     // Only the home screen's controller display needs this one.
     (void)load("art/controller.tga", &controller_);
