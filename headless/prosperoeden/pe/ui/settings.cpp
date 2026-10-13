@@ -41,17 +41,19 @@ constexpr const char *kCategories[kCategoryCount] = {
 constexpr Icon kIcons[kCategoryCount] = {
     Icon::profile, Icon::video, Icon::performance, Icon::audio, Icon::controls, Icon::accessibility,
     Icon::diagnostics, Icon::files, Icon::downloads, Icon::sync, Icon::language, Icon::theme};
-constexpr int kTileColumns = 4;
-constexpr int kTileRows = 3;
-constexpr float kTileGap = 24.0f;
-constexpr float kTileWidth = (layout::kWidth - kTileGap * (kTileColumns - 1)) / kTileColumns;
-constexpr float kTileHeight = 224.0f;
-constexpr float kTilesTop = 152.0f;
-constexpr Rect kStrip{layout::kLeft, kTilesTop + (kTileHeight + kTileGap) * kTileRows, layout::kWidth, 68.0f};
+// Switch-style Settings: a scroll-free, vertical category list on the left,
+// and a detail/description pane on the right. Actions stay in press_settings().
+constexpr int kTileColumns = 1;
+constexpr int kTileRows = kCategoryCount;
+constexpr float kTileGap = 7.0f;
+constexpr float kTileWidth = 622.0f;
+constexpr float kTileHeight = 58.0f;
+constexpr float kTilesTop = 145.0f;
+constexpr Rect kStrip{824.0f, 196.0f, 964.0f, 632.0f};
 Rect tile_rect(int index)
 {
-    return {layout::kLeft + (kTileWidth + kTileGap) * static_cast<float>(index % kTileColumns),
-            kTilesTop + (kTileHeight + kTileGap) * static_cast<float>(index / kTileColumns), kTileWidth, kTileHeight};
+    return {layout::kLeft, kTilesTop + (kTileHeight + kTileGap) * static_cast<float>(index),
+            kTileWidth, kTileHeight};
 }
 
 // The Video dialog's rows, and the window that shows five of them (placed as a game's settings
@@ -143,13 +145,8 @@ void Launcher::press_settings(Key key)
             at += kTileColumns;
         break;
     case Key::left:
-        if (at % kTileColumns == 0)
-            return focus_rail();
-        at -= 1;
-        break;
     case Key::right:
-        if (at % kTileColumns != kTileColumns - 1)
-            at += 1;
+        // Switch Settings moves vertically; L1/R1 changes launcher sections.
         break;
     case Key::cross:
         press_ = 1.0f;
@@ -248,38 +245,47 @@ void Launcher::draw_settings(Canvas &c)
         pick(services_.language_labels(), prefs_.language),
         t.name,
     };
+    // The selected row gets a crisp thin outline rather than an animated
+    // acrylic tile. Every category remains at the same index and has the same action.
     for (int i = 0; i < kCategoryCount; ++i)
     {
         const Rect r = tile_rect(i);
-        const float f = tween::clamp01(settings_springs_[static_cast<std::size_t>(i)].value);
-        const float scale = 1.0f + (0.03f * f - 0.035f * press_ * f) * motion();
-        const float here = arrive(i);
-        list.push_opacity(here);
-        list.push_transform(scale, r.x + r.w * 0.5f, r.y + r.h * 0.5f, 0.0f,
-                            -3.0f * f * motion() + (1.0f - here) * 18.0f);
-        plate(c, tile_plate(), r, f);
-        icon(c, kIcons[i], r.x + 50.0f, r.y + 52.0f, 44.0f, gfx::mix(t.accent, t.accent_pale, f));
-        {
-            // A name of two long words takes two lines: the icon over it leaves the room.
-            const Heavy heavy(c);
-            const char *name = tr(kCategories[i]);
-            const float width = r.w - 56.0f;
-            const float line = baseline(r.y + r.h - 98.0f, 38.0f, 30.0f);
-            // (Two words: one long word is drawn smaller rather than broken.)
-            if (text_width(c, name, 30.0f) > width && std::string_view{name}.find(' ') != std::string_view::npos &&
-                fonts_.font->wrap(name, text_size(30.0f), width).size() == 2)
-                text_block(c, name, r.x + 28.0f, line - 36.0f, 30.0f, 36.0f, t.title, width, 2, kShrink);
-            else
-                text_shrink(c, name, r.x + 28.0f, line, 30.0f, t.title, width);
-        }
-        text_shrink(c, summaries[i], r.x + 28.0f, baseline(r.y + r.h - 56.0f, 28.0f, t.size_small), t.size_small,
-                    gfx::mix(t.meta, t.body, f), r.w - 56.0f);
-        list.pop_transform();
-        list.pop_opacity();
+        const bool selected = i == settings_.selected && !rail_focus_;
+        const Color fill = selected ? t.row_focus.with_alpha(0.87f) : t.panel.with_alpha(0.59f);
+        const Color edge = selected ? t.accent_pale : t.rule.with_alpha(0.35f);
+        list.bordered_rect(r, 9.0f, fill, selected ? 2.5f : 1.0f, edge);
+        icon(c, kIcons[i], r.x + 36.0f, r.y + r.h * 0.5f, 27.0f,
+             selected ? t.accent_pale : t.copy);
+        text_shrink(c, tr(kCategories[i]), r.x + 72.0f,
+                    baseline(r.y, r.h, 26.0f), 26.0f,
+                    selected ? t.title : t.body, r.w - 122.0f);
+        // The chevron means the whole row is selectable, just like Switch Settings.
+        text(c, ">", r.x + r.w - 27.0f, baseline(r.y, r.h, 24.0f), 24.0f,
+             selected ? t.accent_pale : t.faint, Align::center);
     }
 
-    // ---- under the tiles: what the focused one is about ----
-    glass(c, kStrip, t.radius_row + 2.0f, t.panel.with_alpha(0.80f), t.panel_edge.with_alpha(0.34f), 0.5f);
+    // Secondary details live in the right column, rather than in a row of
+    // oversized tiles or a horizontal strip across the entire screen.
+    list.bordered_rect(kStrip, 13.0f, t.panel.with_alpha(0.74f), 1.0f,
+                       t.rule.with_alpha(0.43f));
+    const int selected = std::clamp(settings_.selected, 0, kCategoryCount - 1);
+    icon(c, kIcons[selected], kStrip.x + 62.0f, kStrip.y + 70.0f, 52.0f, t.accent_pale);
+    {
+        const Heavy heavy(c);
+        text_shrink(c, tr(kCategories[selected]), kStrip.x + 112.0f,
+                    baseline(kStrip.y + 38.0f, 62.0f, t.size_lead), t.size_lead,
+                    t.title, kStrip.w - 162.0f);
+    }
+    list.rounded_rect({kStrip.x + 44.0f, kStrip.y + 134.0f,
+                       kStrip.w - 88.0f, 1.0f}, 0.0f, t.rule.with_alpha(0.6f));
+    text_shrink(c, tr("CURRENT SETTING"), kStrip.x + 44.0f,
+                baseline(kStrip.y + 161.0f, 30.0f, t.size_small),
+                t.size_small, t.meta, kStrip.w - 88.0f);
+    text_shrink(c, summaries[selected], kStrip.x + 44.0f,
+                baseline(kStrip.y + 205.0f, 44.0f, t.size_heading),
+                t.size_heading, t.accent_pale, kStrip.w - 88.0f);
+    list.rounded_rect({kStrip.x + 44.0f, kStrip.y + 282.0f,
+                       kStrip.w - 88.0f, 1.0f}, 0.0f, t.rule.with_alpha(0.6f));
     const char *about = "";
     switch (settings_.selected)
     {
@@ -322,16 +328,12 @@ void Launcher::draw_settings(Canvas &c)
     default:
         break;
     }
-    const float version = text(c, version_, kStrip.x + kStrip.w - 28.0f, baseline(kStrip.y, kStrip.h, t.size_small),
-                               t.size_small, t.faint, Align::right);
-    const float shown = tween::clamp01(section_.value);
-    list.push_opacity(shown);
-    list.push_transform(1.0f, 0.0f, 0.0f, 0.0f, (1.0f - shown) * 8.0f * motion());
-    list.circle(kStrip.x + 34.0f, kStrip.y + kStrip.h * 0.5f, 5.0f, t.accent);
-    text_shrink(c, about, kStrip.x + 56.0f, baseline(kStrip.y, kStrip.h, 22.0f), 22.0f, t.copy,
-                kStrip.w - 28.0f - version - 40.0f - 56.0f);
-    list.pop_transform();
-    list.pop_opacity();
+    text_block(c, about, kStrip.x + 44.0f,
+               baseline(kStrip.y + 323.0f, 36.0f, t.size_text),
+               t.size_text, 40.0f, t.copy, kStrip.w - 88.0f, 4, kShrink);
+    text_shrink(c, version_, kStrip.x + 44.0f,
+                baseline(kStrip.y + kStrip.h - 75.0f, 30.0f, t.size_small),
+                t.size_small, t.faint, kStrip.w - 88.0f);
 
     static constexpr Hint kHints[] = {
         {Pad::cross, TR("Select")}, {Pad::circle, TR("Back")}, {Pad::l1, TR("Sections"), Pad::r1}};
@@ -486,6 +488,7 @@ void Launcher::press_dialog(Key key)
         {
             use_theme(chosen.id);
             remember_switch_theme(chosen.id);
+            theme_reload_pending_ = true;
         }
         else
             prefs_.theme = had;
@@ -618,8 +621,10 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
     list.push_opacity(open);
     list.push_transform(1.0f - 0.03f * (1.0f - open) * motion(), 960.0f, 540.0f, 0.0f,
                         (1.0f - open) * 26.0f * motion());
-    glass(c, kDialog, th().radius_panel, th().panel.with_alpha(0.97f), th().panel_edge.with_alpha(0.66f),
-          1.6f);
+    // Flat, Switch-like system dialog.  Preserve all existing modal coordinates
+    // and interaction semantics, including Quick IDs and safe delete confirmation.
+    list.bordered_rect(kDialog, 13.0f, th().panel.with_alpha(0.97f), 1.5f,
+                       th().rule.with_alpha(0.75f));
 
     const char *title = "";
     const char *copy = "";
@@ -646,8 +651,8 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
         copy = tr("Make the menu easier to see and follow.");
         break;
     case Modal::theme:
-        title = tr("Theme");
-        copy = tr("The look of this menu.");
+        title = tr("Themes");
+        copy = tr("Choose a wallpaper or enter a Themezer code.");
         break;
     default:
         title = tr("Diagnostics");
@@ -674,15 +679,21 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
     for (int row = first; row <= last; ++row)
     {
         list.push_opacity(scrolls ? rows_view.row_alpha(row, kVideoRowHeight) : 1.0f);
-        plate_rest(c, row_plate(), {592.0f, dialog_row_top(modal, theme_scroll ? row - theme_first : row), 736.0f, 94.0f});
+        const Rect r{592.0f, dialog_row_top(modal, theme_scroll ? row - theme_first : row), 736.0f, 94.0f};
+        if (theme_scroll)
+            list.bordered_rect(r, 8.0f, th().row.with_alpha(0.72f), 1.0f, th().rule.with_alpha(0.4f));
+        else
+            plate_rest(c, row_plate(), r);
         list.pop_opacity();
     }
-    plate_focus(c, row_plate(),
-                {592.0f,
-                 scrolls ? kVideoRowsTop + rows_view.cursor() - rows_view.scroll() :
-                theme_scroll ? dialog_row_top(modal, option_ - theme_first) : option_cursor_.value,
-                 736.0f, 94.0f},
-                1.0f);
+    const Rect focus_row{592.0f,
+                         scrolls ? kVideoRowsTop + rows_view.cursor() - rows_view.scroll() :
+                         theme_scroll ? dialog_row_top(modal, option_ - theme_first) : option_cursor_.value,
+                         736.0f, 94.0f};
+    if (theme_scroll)
+        list.bordered_rect(focus_row, 8.0f, th().row_focus.with_alpha(0.88f), 2.5f, th().accent_pale);
+    else
+        plate_focus(c, row_plate(), focus_row, 1.0f);
 
     // A row's name takes what its control (`taken` wide, at the right) leaves of the row.
     const auto label = [&](int row, const char *value, float taken)

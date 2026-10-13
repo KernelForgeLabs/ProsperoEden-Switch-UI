@@ -127,10 +127,10 @@ float Launcher::arrive(int index, float step) const
 
 void Launcher::focus_rail()
 {
-    rail_focus_ = true;
-    rail_index_ = section();
-    message_.clear();
-    cue(Cue::focus);
+    // The custom Switch UI has no left section rail. The left-edge action
+    // goes HOME; L1/R1 can still move directly between the sections.
+    go_section(0);
+    cue(Cue::back);
 }
 
 void Launcher::press_rail(Key key)
@@ -187,7 +187,7 @@ void Launcher::draw_scrims(Canvas &c)
     // Non-HOME screens keep the upstream's readable, even background scrim.
     (void)home;
     if (away > 0.01f)
-        list.hgradient_rect(kScreen, 0.0f, shade.with_alpha(0.92f * away), shade.with_alpha(0.76f * away));
+        list.hgradient_rect(kScreen, 0.0f, shade.with_alpha(0.48f * away), shade.with_alpha(0.42f * away));
 }
 
 void Launcher::draw_rail(Canvas &c)

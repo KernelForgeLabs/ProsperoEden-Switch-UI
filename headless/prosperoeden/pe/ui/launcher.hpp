@@ -36,6 +36,15 @@ class Launcher
     // The sounds asked for since the last call.
     std::vector<audio::Cue> take_cues();
     // Launcher sound level (0-100) as set in Settings > Audio.
+    // True once when a user chooses a theme; the frontend swaps GPU textures
+    // on the render thread, never from a download/keyboard worker.
+    bool take_theme_reload()
+    {
+        const bool reload = theme_reload_pending_;
+        theme_reload_pending_ = false;
+        return reload;
+    }
+
     int menu_volume() const
     {
         return prefs_.menu_volume;
@@ -424,6 +433,7 @@ class Launcher
     std::string launch_cover_;
     tween::Timer launch_;
     Rect launch_from_{790.0f, 250.0f, 340.0f, 340.0f}; // where its cover was when it was started
+    bool theme_reload_pending_ = false;
     bool done_ = false;
 
     // home: 0 the main action, 1 game settings, 2-5 recent, 6 view all

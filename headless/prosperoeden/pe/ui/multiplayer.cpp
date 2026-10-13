@@ -341,7 +341,10 @@ void Launcher::draw_multiplayer(Canvas& c) {
     draw_frame(c, tr(room_page_ == RoomPage::choice ? TR("Multiplayer") :
                      room_page_ == RoomPage::public_rooms ? TR("Public rooms") : TR("Private room")),
                tr(states[static_cast<int>(room_status_.phase)]));
-    draw_room_panel(c, kRoom);
+    // The front page is Switch-like: simple selection rows, small connection
+    // status. The detailed status pane stays available inside actual rooms.
+    if (room_page_ != RoomPage::choice)
+        draw_room_panel(c, kRoom);
     const float x = kPane.x;
     const bool own = !rail_focus_;
     if (room_page_ == RoomPage::choice) {
@@ -350,20 +353,38 @@ void Launcher::draw_multiplayer(Canvas& c) {
                                    TR("Connect using a room address, port and password.")};
         const Icon icons[]{Icon::multiplayer, Icon::lock};
         for (int i = 0; i < 2; ++i) {
-            const Rect row{x, kPane.y + i * 196.0f, kPane.w, 172};
-            const float f = own && room_row_ == i ? 1.0f : 0.0f;
-            const float scale = 1.0f + (0.015f * f - 0.02f * press_ * f) * motion();
-            c.list.push_transform(scale, row.x + row.w * 0.5f, row.y + row.h * 0.5f, 0, 0);
-            plate(c, tile_plate(), row, f);
-            icon(c, icons[i], row.x + 76, row.y + 86, 64, f > 0 ? t.accent_pale : t.accent);
+            const Rect row{x, kPane.y + 96.0f + i * 122.0f, 998.0f, 104.0f};
+            const bool selected = own && room_row_ == i;
+            c.list.bordered_rect(row, 10.0f,
+                selected ? t.row_focus.with_alpha(0.88f) : t.panel.with_alpha(0.70f),
+                selected ? 2.5f : 1.0f,
+                selected ? t.accent_pale : t.rule.with_alpha(0.44f));
+            icon(c, icons[i], row.x + 58.0f, row.y + 52.0f, 43.0f,
+                 selected ? t.accent_pale : t.body);
             {
                 const Heavy heavy(c);
-                text_shrink(c, tr(labels[i]), row.x + 148, baseline(row.y + 40, 44, t.size_heading), t.size_heading,
-                            t.title, row.w - 148 - 40);
+                text_shrink(c, tr(labels[i]), row.x + 114.0f,
+                            baseline(row.y + 13.0f, 40.0f, 30.0f), 30.0f,
+                            t.title, row.w - 162.0f);
             }
-            text_shrink(c, tr(descriptions[i]), row.x + 148, baseline(row.y + 94, 32, 22), 22, t.copy, row.w - 148 - 40);
-            c.list.pop_transform();
+            text_shrink(c, tr(descriptions[i]), row.x + 114.0f,
+                        baseline(row.y + 62.0f, 29.0f, t.size_small), t.size_small,
+                        t.copy, row.w - 162.0f);
         }
+        // Compact connection status without an oversized frosted column.
+        const Rect status{1215.0f, kPane.y + 96.0f, 566.0f, 226.0f};
+        c.list.bordered_rect(status, 10.0f, t.panel.with_alpha(0.72f), 1.0f,
+                             t.rule.with_alpha(0.44f));
+        text_shrink(c, tr("CONNECTION"), status.x + 28.0f,
+                    baseline(status.y + 23.0f, 28.0f, t.size_small), t.size_small,
+                    t.meta, status.w - 56.0f);
+        const bool connected = room_status_.phase == Phase::Connected;
+        text_shrink(c, connected ? room_status_.room : tr(states[static_cast<int>(room_status_.phase)]),
+                    status.x + 28.0f, baseline(status.y + 71.0f, 46.0f, t.size_heading),
+                    t.size_heading, connected ? t.accent_pale : t.title, status.w - 56.0f);
+        text_shrink(c, fill(tr("Nickname: {0}"), {room_connection_.nickname}),
+                    status.x + 28.0f, baseline(status.y + 147.0f, 36.0f, t.size_small),
+                    t.size_small, t.copy, status.w - 56.0f);
         static constexpr Hint kHints[]{{Pad::cross, TR("Select")}, {Pad::square, TR("Go offline")},
                                        {Pad::circle, TR("Back")}, {Pad::l1, TR("Sections"), Pad::r1}};
         draw_footer(c, kHints, 4);

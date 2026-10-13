@@ -358,6 +358,10 @@ std::string RunApp(const std::string& launch_error, bool first_start, Eden::Mult
                                                 std::to_string(ms) + " ms").c_str());
             }
             launcher.update(dt);
+            // Theme selection changes only on the main launcher thread. Replace
+            // artwork in this GL context without restarting the PS5 application.
+            if (launcher.take_theme_reload() && !textures.load_art(Eden::AppFile("ui")))
+                Eden::Report("menu", "Theme reload failed; previous artwork remains available");
             if (launcher.output() != output) {
                 // Output resolution changed in Settings > Video: the display opens again at the new
                 // size, and with it everything that lives in its GL context. The launcher stays as

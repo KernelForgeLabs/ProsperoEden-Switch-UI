@@ -32,10 +32,12 @@ std::uint32_t Textures::create(const gfx::Image &image)
 
 bool Textures::load_art(const std::string &directory)
 {
+    // Stage all four textures before touching the active ones. A corrupt or
+    // incomplete imported theme must not blank the running HOME screen.
+    std::uint32_t backdrop = 0, blur = 0, brand = 0, controller = 0;
     const auto load = [&](const std::string &name, std::uint32_t *texture)
     {
         gfx::Image image;
-        // An external Themezer theme stores its assets outside the app's folder.
         const std::string path = !name.empty() && name.front() == '/' ? name : directory + "/" + name;
         if (!gfx::load_tga(path, &image))
         {
@@ -45,19 +47,29 @@ bool Textures::load_art(const std::string &directory)
         *texture = create(image);
         return *texture != 0;
     };
-    // The theme names its artwork (theme.hpp).
-    const std::string art = "art/";
-    const std::string backdrop_path = th().backdrop;
-    const std::string blur_path = th().backdrop_blur;
-    bool backdrop = load(backdrop_path.front() == '/' ? backdrop_path : art + backdrop_path, &backdrop_);
-    bool blur = load(blur_path.front() == '/' ? blur_path : art + blur_path, &backdrop_blur_);
-    // Corrupt external artwork must not make a fresh or upgraded launcher unusable.
-    if (!backdrop) backdrop = load(art + "switch-dark-backdrop.tga", &backdrop_);
-    if (!blur) blur = load(art + "switch-dark-backdrop-blur.tga", &backdrop_blur_);
-    const bool brand = load(art + th().brand, &brand_);
-    // Only the home screen's controller display needs this one.
-    (void)load("art/controller.tga", &controller_);
-    return backdrop && blur && brand;
+    const auto from_theme = [&](const std::string &value)
+    {
+        return !value.empty() && value.front() == '/' ? value : "art/" + value;
+    };
+    bool ok_backdrop = load(from_theme(th().backdrop), &backdrop);
+    bool ok_blur = load(from_theme(th().backdrop_blur), &blur);
+    if (!ok_backdrop) ok_backdrop = load("art/switch-dark-backdrop.tga", &backdrop);
+    if (!ok_blur) ok_blur = load("art/switch-dark-backdrop-blur.tga", &blur);
+    const bool ok_brand = load("art/" + std::string(th().brand), &brand);
+    (void)load("art/controller.tga", &controller);
+    if (!(ok_backdrop && ok_blur && ok_brand))
+    {
+        for (const auto texture : {backdrop, blur, brand, controller})
+            if (texture != 0) batch_.delete_texture(texture);
+        return false;
+    }
+    for (const auto texture : {backdrop_, backdrop_blur_, brand_, controller_})
+        if (texture != 0) batch_.delete_texture(texture);
+    backdrop_ = backdrop;
+    backdrop_blur_ = blur;
+    brand_ = brand;
+    controller_ = controller;
+    return true;
 }
 
 bool Textures::load_splash(const std::string &path)
