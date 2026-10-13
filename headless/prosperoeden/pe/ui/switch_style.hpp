@@ -27,6 +27,7 @@ struct Palette
     // Transparent by default: many NXThemes already have a dock shape in
     // their background. Other themes can opt into the extra contrast surface.
     bool dock_panel = false;
+    bool soft_sounds = true; // Original synthesized Switch-inspired navigation; not Nintendo audio.
 };
 
 inline std::string_view trim(std::string_view v)
@@ -103,6 +104,7 @@ inline Palette read_palette()
         else if (key == "text") hex_color(value, &out.text);
         else if (key == "muted") hex_color(value, &out.muted);
         else if (key == "dock_panel") parse_toggle(value, &out.dock_panel);
+        else if (key == "sound_profile") { if (value == "original") out.soft_sounds = false; else if (value == "soft") out.soft_sounds = true; }
     }
     return out;
 }

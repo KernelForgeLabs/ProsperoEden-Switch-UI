@@ -8,6 +8,8 @@
 #include <cctype>
 #include <cstdio>
 #include <cstring>
+#include <cerrno>
+#include <unistd.h>
 #include <dirent.h>
 #include <string>
 #include <sys/stat.h>
@@ -133,6 +135,57 @@ public:
         }
         return id == "legacy" ? "Legacy active theme" : id;
     }
+    // Delete only a validated, inactive theme and only the known files this
+    // importer creates. Unknown files cause a safe failure rather than any
+    // recursive filesystem traversal. Never follow symbolic links.
+    bool remove_inactive(const std::string &id, std::string *error) const
+    {
+        const auto fail = [&](const char* message) {
+            if (error) *error = message;
+            return false;
+        };
+        if (!valid_id(id) || id == "legacy" || id == "default")
+            return fail("Only installed themes can be deleted.");
+        if (current_id() == id)
+            return fail("Activate another theme before deleting this one.");
+        const std::string folder = path_for(id);
+        const std::string art = folder + "/art";
+        struct stat info{};
+        if (lstat(folder.c_str(), &info) != 0 || !S_ISDIR(info.st_mode) ||
+            lstat(art.c_str(), &info) != 0 || !S_ISDIR(info.st_mode))
+            return fail("Theme folder is missing or unsafe.");
+        for (const std::string &path : {art + "/backdrop.tga",
+                    art + "/backdrop-blur.tga", folder + "/palette.ini"})
+        {
+            if (lstat(path.c_str(), &info) != 0 || !S_ISREG(info.st_mode))
+                return fail("Theme files are missing or unsafe.");
+        }
+        // Avoid partial deletion if other files have been added by hand.
+        const auto known_files_only = [](const std::string &directory,
+                                         const std::vector<std::string> &allowed) {
+            DIR* dir = opendir(directory.c_str());
+            if (!dir) return false;
+            bool ok = true;
+            while (const dirent *entry = readdir(dir))
+            {
+                const std::string name = entry->d_name;
+                if (name != "." && name != ".." &&
+                    std::find(allowed.begin(), allowed.end(), name) == allowed.end())
+                    { ok = false; break; }
+            }
+            closedir(dir);
+            return ok;
+        };
+        if (!known_files_only(art, {"backdrop.tga", "backdrop-blur.tga"}) ||
+            !known_files_only(folder, {"palette.ini", "art"}))
+            return fail("Theme contains additional files; use FTP to remove it safely.");
+        const bool ok = std::remove((art + "/backdrop.tga").c_str()) == 0 &&
+             std::remove((art + "/backdrop-blur.tga").c_str()) == 0 &&
+             std::remove((folder + "/palette.ini").c_str()) == 0 &&
+             rmdir(art.c_str()) == 0 && rmdir(folder.c_str()) == 0;
+        if (!ok) return fail("Unable to delete theme files. Check FTP permissions.");
+        return true;
+    }
     bool activate(const std::string &id, std::string *error) const
     {
         if (id != "default" && !usable(id))
@@ -183,4 +236,5 @@ inline std::string current_id() { return store().current_id(); }
 inline std::string asset_root() { return store().asset_root(); }
 inline std::string display_name(const std::string &id) { return store().display_name(id); }
 inline bool activate(const std::string &id, std::string *error) { return store().activate(id, error); }
+inline bool remove_inactive(const std::string &id, std::string *error) { return store().remove_inactive(id, error); }
 } // namespace pe::ui::switch_theme

@@ -101,6 +101,58 @@ int priority(const std::string& name)
     return 9999;
 }
 
+// New ZIP-based NXThemes include an info.json manifest (ThemeName/Author).
+// We only need the bounded, user-visible title; never trust it as a path.
+// A tiny quoted-string reader avoids a new library dependency in the PS5 build.
+std::string field_value(const std::string& data, const char* key)
+{
+    const std::string needle = std::string("\"") + key + "\"";
+    std::size_t start = data.find(needle);
+    if (start == std::string::npos) return {};
+    start = data.find(':', start + needle.size());
+    if (start == std::string::npos) return {};
+    ++start;
+    while (start < data.size() && std::isspace(static_cast<unsigned char>(data[start]))) ++start;
+    if (start >= data.size() || data[start++] != '"') return {};
+    std::string result;
+    for (; start < data.size() && result.size() <= 60; ++start)
+    {
+        char c = data[start];
+        if (c == '"') return result.empty() ? std::string{} : result;
+        if (c == '\\')
+        {
+            if (++start >= data.size()) return {};
+            c = data[start];
+            // We accept standard escapes for quotes and backslashes. Discard
+            // names needing other JSON escapes rather than corrupting UTF-8.
+            if (c != '"' && c != '\\' && c != '/') return {};
+        }
+        if (static_cast<unsigned char>(c) < 32 || c == '=' || c == '\n' || c == '\r') return {};
+        result.push_back(c);
+    }
+    return {};
+}
+
+std::string archive_title(mz_zip_archive& zip)
+{
+    const int index = mz_zip_reader_locate_file(&zip, "info.json", nullptr, 0);
+    if (index < 0) return {};
+    mz_zip_archive_file_stat info{};
+    if (!mz_zip_reader_file_stat(&zip, static_cast<mz_uint>(index), &info) ||
+        info.m_uncomp_size == 0 || info.m_uncomp_size > 16384) return {};
+    std::size_t bytes = 0;
+    void* raw = mz_zip_reader_extract_to_heap(&zip, static_cast<mz_uint>(index), &bytes, 0);
+    if (!raw || bytes > 16384) { mz_free(raw); return {}; }
+    const std::string json(static_cast<const char*>(raw), bytes);
+    mz_free(raw);
+    for (const char* key : {"ThemeName", "Name", "name", "title"})
+    {
+        const auto name = field_value(json, key);
+        if (!name.empty()) return name;
+    }
+    return {};
+}
+
 // Center crop and bilinear resizing; preserves the original wallpaper's framing.
 std::vector<unsigned char> resize(const unsigned char* input, int sw, int sh, int dw, int dh)
 {
@@ -215,6 +267,9 @@ ImportResult unpack(const std::string& id, const std::vector<unsigned char>& byt
         mz_zip_reader_end(&zip);
         return failed("No supported JPEG/PNG wallpaper in NXTheme.");
     }
+    // Preserve the human-readable Themezer name before closing the ZIP.
+    std::string theme_title = archive_title(zip);
+    if (theme_title.empty()) theme_title = "Themezer " + id;
     std::size_t length=0;
     void* raw = mz_zip_reader_extract_to_heap(&zip,static_cast<mz_uint>(selected),&length,0);
     mz_zip_reader_end(&zip);
@@ -253,7 +308,7 @@ ImportResult unpack(const std::string& id, const std::vector<unsigned char>& byt
     std::FILE* ini=ok?std::fopen((stage+"/palette.ini").c_str(),"wb"):nullptr;
     if (ini)
     {
-        const std::string text="name=Themezer "+id+"\naccent=#62d8e6\ndock_panel=off\n";
+        const std::string text="name="+theme_title+"\naccent=#62d8e6\ndock_panel=off\n";
         ok=std::fwrite(text.data(),1,text.size(),ini)==text.size() && ok;
         ok=std::fclose(ini)==0 && ok;
     }
@@ -265,7 +320,7 @@ ImportResult unpack(const std::string& id, const std::vector<unsigned char>& byt
         cleanup(stage);
         return failed("Could not save theme artwork. Existing themes are untouched.");
     }
-    return {true,id,"Installed "+id+". Select it and restart to apply."};
+    return {true,id,"Installed "+theme_title+" ("+id+"). Select it and restart to apply."};
 }
 } // namespace
 

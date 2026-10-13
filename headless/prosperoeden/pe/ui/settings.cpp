@@ -909,6 +909,7 @@ void Launcher::enter_themes()
         switch_theme_ids_.insert(switch_theme_ids_.begin(), "legacy");
     switch_theme_selected_ = 0;
     switch_theme_status_.clear();
+    switch_theme_delete_id_.clear();
     switch_theme_restart_ = false;
     const auto active = switch_theme::current_id();
     for (int i = 0; i < static_cast<int>(switch_theme_ids_.size()); ++i)
@@ -976,9 +977,14 @@ void Launcher::press_themes(Key key)
     {
         if (busy)
         {
-            // The asynchronous worker reads stop; it will not commit a cancelled theme.
             switch_theme_stop_ = true;
             switch_theme_status_ = "Cancelling theme installation...";
+        }
+        else if (!switch_theme_delete_id_.empty())
+        {
+            switch_theme_delete_id_.clear();
+            switch_theme_status_ = "Deletion cancelled.";
+            cue(Cue::back);
         }
         else open(Screen::settings, false);
         return;
@@ -986,11 +992,46 @@ void Launcher::press_themes(Key key)
     if (busy) return;
     if (key == Key::up || key == Key::down)
     {
+        switch_theme_delete_id_.clear();
         switch_theme_selected_ = (switch_theme_selected_ + (key == Key::down ? 1 : count - 1)) % count;
         cue(Cue::focus);
         return;
     }
+    if (key == Key::square)
+    {
+        if (switch_theme_selected_ < 2)
+        {
+            switch_theme_status_ = "Select an installed theme to delete.";
+            cue(Cue::error);
+            return;
+        }
+        const std::string id = switch_theme_ids_[static_cast<std::size_t>(switch_theme_selected_ - 2)];
+        if (switch_theme_delete_id_ != id)
+        {
+            switch_theme_delete_id_ = id;
+            switch_theme_status_ = "Press Square again to DELETE " + switch_theme::display_name(id) + ". Circle cancels.";
+            cue(Cue::modal_open);
+            return;
+        }
+        switch_theme_delete_id_.clear();
+        std::string error;
+        if (!switch_theme::remove_inactive(id, &error))
+        {
+            switch_theme_status_ = error;
+            cue(Cue::error);
+            return;
+        }
+        switch_theme_status_ = "Deleted theme " + id + ".";
+        switch_theme_ids_ = switch_theme::installed();
+        if (switch_theme::store().usable("legacy"))
+            switch_theme_ids_.insert(switch_theme_ids_.begin(), "legacy");
+        switch_theme_selected_ = std::clamp(switch_theme_selected_, 0,
+            static_cast<int>(switch_theme_ids_.size()) + 1);
+        cue(Cue::saved);
+        return;
+    }
     if (key != Key::cross) return;
+    switch_theme_delete_id_.clear();
     if (switch_theme_selected_ == 1)
     {
         switch_theme_stop_ = false;
@@ -1060,8 +1101,9 @@ void Launcher::draw_themes(Canvas &c)
                switch_theme_status_.empty() || switch_theme_restart_ ? theme::kCopy : theme::kLimePale,
                1400.0f, 2);
     static constexpr Hint kHints[] = {
-        {Pad::cross, TR("Apply")}, {Pad::circle, TR("Back")}, {Pad::updown, TR("Browse")}};
-    draw_footer(c, kHints, 3);
+        {Pad::cross, TR("Apply")}, {Pad::square, TR("Delete")},
+        {Pad::circle, TR("Back")}, {Pad::updown, TR("Browse")}};
+    draw_footer(c, kHints, 4);
 }
 
 } // namespace pe::ui

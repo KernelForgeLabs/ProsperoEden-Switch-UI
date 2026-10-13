@@ -18,6 +18,7 @@
 #include "pe/platform/audio_out.hpp"
 #include "pe/platform/display_egl.hpp"
 #include "pe/ui/launcher.hpp"
+#include "pe/ui/switch_style.hpp"
 #include "radio_input.h"
 #include "ps5_system_language.hpp"
 #ifdef EDEN_DEV_ROM_ID
@@ -222,6 +223,7 @@ std::string RunApp(const std::string& launch_error, bool first_start, Eden::Mult
         pe::audio::SoundBank sounds;
         std::vector<std::string> sound_errors;
         const int sound_files = sounds.load(Eden::AppFile("ui/sounds"), &sound_errors);
+        sounds.set_soft_navigation(pe::ui::switch_ui::palette().soft_sounds);
         for (const auto& error : sound_errors) Eden::Report("menu sound", error.c_str());
         pe::ps5::AudioOut audio;
         const bool audio_ready = Eden::AudioOutReady() && audio.start(*mixer);

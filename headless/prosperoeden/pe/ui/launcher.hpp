@@ -416,6 +416,7 @@ class Launcher
     int switch_theme_selected_ = 0;
     bool switch_theme_restart_ = false;
     std::string switch_theme_status_;
+    std::string switch_theme_delete_id_; // Square once to arm; Square again to confirm.
     // Two-step asynchronous operation: keyboard first, then HTTPS and import.
     // Never perform network IO in the frame/render thread.
     std::atomic<bool> switch_theme_stop_{false};

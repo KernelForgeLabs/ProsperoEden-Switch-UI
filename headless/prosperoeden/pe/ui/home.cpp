@@ -352,13 +352,18 @@ void Launcher::draw_home(Canvas &c)
                 list.bordered_rect({r.x - 5.0f, r.y - 5.0f, r.w + 10.0f, r.h + 10.0f},
                                    23.0f, Color::rgb(0x000000, 0.01f), 4.0f, style.accent);
             list.pop_transform();
-            list.rounded_rect({x - 4.0f, row_y + size + 12.0f, size + 8.0f, 45.0f},
-                              10.0f, style.panel.with_alpha(0.73f));
-            text_shrink(c, tiles[static_cast<std::size_t>(i)].title, x + size * 0.5f,
-                        baseline(row_y + size + 16.0f, 36.0f, theme::kText24),
-                        theme::kText24, style.text, size - 12.0f, Align::center);
         }
         list.pop_clip();
+        // Switch convention: show the selected game title above the covers,
+        // rather than repeating truncated labels underneath every tile.
+        if (count > 0 && home_focus_ == 0)
+        {
+            const float current_x = row_x + step * static_cast<float>(selected) - switch_home_scroll_.value;
+            const float title_x = std::clamp(current_x, 120.0f, 1350.0f);
+            text_shrink(c, tiles[static_cast<std::size_t>(selected)].title,
+                        title_x, baseline(262.0f, 48.0f, theme::kText24),
+                        theme::kText24, style.text, 1680.0f - title_x);
+        }
         if (count == 0)
             text(c, "No installed games yet - select All Games", 136.0f,
                  baseline(410.0f, 42.0f, theme::kText24), theme::kText24, style.text);
@@ -421,9 +426,16 @@ void Launcher::draw_home(Canvas &c)
             text(c, labels[i], cx, baseline(892.0f, 35.0f, theme::kSmall),
                  theme::kSmall, style.text, Align::center);
         }
-        text(c, "Cross: Select      Left/Right: Browse      Down: Menu      Triangle: Details",
-             130.0f, baseline(998.0f, 30.0f, theme::kSmall), theme::kSmall,
-             style.text);
+        // Reuse ProsperoEden's native controller glyphs instead of spelling
+        // the PlayStation button names out in the HOME screen footer.
+        static constexpr Hint kGameHints[] = {
+            {Pad::cross, TR("Select")}, {Pad::leftright, TR("Browse")},
+            {Pad::updown, TR("Menu")}, {Pad::triangle, TR("Details")}};
+        static constexpr Hint kDockHints[] = {
+            {Pad::cross, TR("Open")}, {Pad::leftright, TR("Browse")},
+            {Pad::updown, TR("Games")}, {Pad::triangle, TR("Details")}};
+        draw_hints(c, home_focus_ == 0 ? kGameHints : kDockHints, 4,
+                   130.0f, 1004.0f, style.text, 1460.0f);
         return;
     }
     // END SWITCH HOME PROTOTYPE
