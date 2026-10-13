@@ -32,6 +32,7 @@ struct DockAction
 };
 constexpr DockAction kDock[] = {
     {Icon::library, TR("All Games")},
+    {Icon::multiplayer, TR("Multiplayer")},
     {Icon::settings, TR("Settings")},
     {Icon::about, TR("About")},
     {Icon::files, TR("Game Details")},
@@ -45,7 +46,7 @@ Rect cover_rect(int index, float scroll)
 
 float dock_x(int index)
 {
-    return 657.0f + 205.0f * static_cast<float>(index);
+    return 535.0f + 215.0f * static_cast<float>(index);
 }
 
 } // namespace
@@ -137,17 +138,15 @@ void Launcher::press_home(Key key)
         {
             if (switch_home_action_ > 0)
                 --switch_home_action_;
-            else
-                focus_rail(); // keep the official section rail accessible
+            // Stop at the first action rather than focusing a hidden rail.
         }
         else if (switch_home_index_ > 0)
             --switch_home_index_;
-        else
-            focus_rail();
+        // The HOME menu has no visible side rail; the left edge is the start of the row.
         break;
     case Key::right:
         if (switch_home_dock_)
-            switch_home_action_ = std::min(3, switch_home_action_ + 1);
+            switch_home_action_ = std::min(4, switch_home_action_ + 1);
         else if (switch_home_index_ + 1 < count)
             ++switch_home_index_;
         break;
@@ -181,9 +180,12 @@ void Launcher::press_home(Key key)
                 go_section(1); // All Games
                 break;
             case 1:
-                go_section(3); // Settings
+                go_section(2); // Multiplayer
                 break;
             case 2:
+                go_section(3); // Settings
+                break;
+            case 3:
                 go_section(4); // About
                 break;
             default:
@@ -240,17 +242,19 @@ void Launcher::draw_home(Canvas &c)
             continue;
         const bool focused = !switch_home_dock_ && !rail_focus_ && selected == i;
         const float focus = focused ? 1.0f : 0.0f;
-        const float scale = 1.0f + 0.024f * focus * motion();
+        const float scale = 1.0f + 0.012f * focus * motion();
         list.push_transform(scale, r.x + r.w * 0.5f, r.y + r.h * 0.5f, 0.0f, 0.0f);
         cover(c, items[static_cast<std::size_t>(i)].cover, r, 15.0f, 0.9f);
         if (focused)
-            focus_ring(c, r, 15.0f, focus);
+            // Clean Switch-style focus: a thin outline, without upstream's animated halo.
+            list.bordered_rect({r.x - 3.0f, r.y - 3.0f, r.w + 6.0f, r.h + 6.0f},
+                               18.0f, Color{0.0f, 0.0f, 0.0f, 0.0f}, 3.0f, t.accent_pale);
         list.pop_transform();
     }
     list.pop_clip();
 
     // No additional dock plate: leave the wallpaper visible beneath the icons.
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < 5; ++i)
     {
         const bool focused = switch_home_dock_ && !rail_focus_ && switch_home_action_ == i;
         const float x = dock_x(i);
@@ -274,7 +278,10 @@ void Launcher::draw_home(Canvas &c)
         {Pad::updown, TR("Games / Menu")},
         {Pad::triangle, TR("Game settings")},
     };
-    draw_footer(c, hints, 4, home_.system_status);
+    // Avoid a permanent "N games installed / Firmware ready" label. Only report
+    // an actionable missing-setup warning, never a success/status counter.
+    draw_footer(c, hints, 4,
+                home_.setup_ready ? std::string_view{} : std::string_view{home_.system_status});
 }
 
 } // namespace pe::ui

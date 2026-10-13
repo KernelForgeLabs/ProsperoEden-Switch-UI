@@ -91,7 +91,9 @@ void SoundBank::play(Mixer &mixer, Cue cue)
     PlayParams params;
     params.bus = Bus::ui;
     auto &set = sets_[index];
-    if (!set.empty())
+    const bool soft_cue = soft_navigation_ &&
+        (cue == Cue::focus || cue == Cue::select || cue == Cue::back || cue == Cue::page);
+    if (!set.empty() && !soft_cue)
     {
         // +-3 % pitch keeps repeated sounds from feeling mechanical.
         jitter_state_ = jitter_state_ * 1664525u + 1013904223u;
@@ -103,13 +105,13 @@ void SoundBank::play(Mixer &mixer, Cue cue)
     }
     const CueInfo &info = kCues[index];
     Tone tone;
-    tone.wave = info.wave;
-    tone.start_hz = info.start_hz;
-    tone.end_hz = info.end_hz;
-    tone.seconds = info.seconds;
-    tone.attack = std::min(0.006f, info.seconds * 0.2f);
-    tone.release = std::min(0.12f, info.seconds * 0.5f);
-    params.gain = info.gain;
+    tone.wave = soft_cue ? Wave::sine : info.wave;
+    tone.start_hz = soft_cue ? (cue == Cue::focus ? 880.0f : cue == Cue::back ? 490.0f : 740.0f) : info.start_hz;
+    tone.end_hz = soft_cue ? (cue == Cue::focus ? 950.0f : cue == Cue::back ? 420.0f : 880.0f) : info.end_hz;
+    tone.seconds = soft_cue ? (cue == Cue::focus ? 0.026f : 0.060f) : info.seconds;
+    tone.attack = std::min(0.006f, tone.seconds * 0.2f);
+    tone.release = std::min(0.12f, tone.seconds * 0.5f);
+    params.gain = soft_cue ? 0.16f : info.gain;
     mixer.play_tone(tone, params);
 }
 

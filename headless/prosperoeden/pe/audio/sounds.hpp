@@ -47,6 +47,7 @@ class SoundBank
     // Returns the number of files loaded; errors name the rejected ones.
     int load(const std::string &directory, std::vector<std::string> *errors = nullptr);
     void play(Mixer &mixer, Cue cue);
+    void set_soft_navigation(bool enabled) { soft_navigation_ = enabled; }
     bool has_recording(Cue cue) const
     {
         return cue < Cue::count && !sets_[static_cast<std::size_t>(cue)].empty();
@@ -61,6 +62,7 @@ class SoundBank
     std::vector<std::unique_ptr<Sound>> sets_[kCueCount];
     std::size_t next_[kCueCount]{};
     std::uint32_t jitter_state_ = 0x9e3779b9u;
+    bool soft_navigation_ = false;
 };
 
 } // namespace pe::audio

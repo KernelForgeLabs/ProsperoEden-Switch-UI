@@ -19,6 +19,7 @@
 #include "pe/platform/audio_out.hpp"
 #include "pe/platform/display_egl.hpp"
 #include "pe/ui/launcher.hpp"
+#include "pe/ui/switch_bootstrap.hpp"
 #include "radio_input.h"
 #include "ps5_system_language.hpp"
 #ifdef EDEN_DEV_ROM_ID
@@ -39,6 +40,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 #include <memory>
 #include <pthread.h>
 #include <string>
@@ -75,6 +77,26 @@ long long Milliseconds(Clock::duration value) {
 float MenuGain(int volume) {
     const float level = static_cast<float>(std::clamp(volume, 0, 100)) / 100.0f;
     return level * level;
+}
+
+// Per-theme sound opt-out retained from the v4 Switch UI fork. Missing files,
+// builtin themes and unknown settings default to the gentle synthesized cues.
+bool SoftSwitchMenuSounds() {
+    namespace boot = pe::ui::switch_bootstrap;
+    const std::string id(pe::ui::th().id);
+    if (!boot::valid_id(id)) return true;
+    const boot::fs::path home(boot::root());
+    const boot::fs::path palette = id == "legacy" ? home / "active" / "palette.ini" :
+        home / "installed" / id / "palette.ini";
+    if (!boot::regular_without_links(palette)) return true;
+    std::ifstream input(palette);
+    std::string line;
+    while (std::getline(input, line)) {
+        line = boot::trim(line);
+        if (line == "sound_profile=original") return false;
+        if (line == "sound_profile=soft") return true;
+    }
+    return true;
 }
 
 // The launcher speaks the console's language when the app has a catalog for it
@@ -234,6 +256,8 @@ std::string RunApp(const std::string& launch_error, bool first_start, Eden::Mult
         pe::audio::SoundBank sounds;
         std::vector<std::string> sound_errors;
         const int sound_files = sounds.load(Eden::AppFile("ui/sounds"), &sound_errors);
+        // Restore the fork's gentle, synthesized HOME focus/selection cues.
+        sounds.set_soft_navigation(SoftSwitchMenuSounds());
         for (const auto& error : sound_errors) Eden::Report("menu sound", error.c_str());
         pe::ps5::AudioOut audio;
         const bool audio_ready = Eden::AudioOutReady() && audio.start(*mixer);

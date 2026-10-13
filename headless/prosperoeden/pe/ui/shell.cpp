@@ -182,17 +182,10 @@ void Launcher::draw_scrims(Canvas &c)
     const Color shade = th().base;
     const float away = tween::clamp01(dim_.value);
     const float home = 1.0f - away;
-    if (home > 0.01f)
-    {
-        list.hgradient_rect({0.0f, 0.0f, 653.0f, 1080.0f}, 0.0f, shade.with_alpha(0.94f * home),
-                            shade.with_alpha(0.78f * home));
-        list.hgradient_rect({653.0f, 0.0f, 538.0f, 1080.0f}, 0.0f, shade.with_alpha(0.78f * home),
-                            shade.with_alpha(0.16f * home));
-        list.hgradient_rect({1191.0f, 0.0f, 729.0f, 1080.0f}, 0.0f, shade.with_alpha(0.16f * home),
-                            shade.with_alpha(0.30f * home));
-        list.gradient_rect({0.0f, 640.0f, 1920.0f, 440.0f}, 0.0f, shade.with_alpha(0.0f),
-                           shade.with_alpha(0.90f * home));
-    }
+    // Switch HOME uses an unobstructed wallpaper. The old left-to-right
+    // launcher scrim covered large portions of Themezer artwork.
+    // Non-HOME screens keep the upstream's readable, even background scrim.
+    (void)home;
     if (away > 0.01f)
         list.hgradient_rect(kScreen, 0.0f, shade.with_alpha(0.92f * away), shade.with_alpha(0.76f * away));
 }

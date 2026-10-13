@@ -663,7 +663,10 @@ void Launcher::draw(gfx::DrawList &list)
                       modal_shown_ == Modal::game_options || mapping_of_game;
     if (page)
         draw_game_page(c, opened);
-    draw_rail(c);
+    // The Switch HOME dock replaces the upstream vertical rail. All other
+    // sections retain the official rail until their own redesign lands.
+    if (screen_ != Screen::home)
+        draw_rail(c);
     draw_clock(c);
     if (modal_shown_ != Modal::none && (!page || mapping_of_game))
     {

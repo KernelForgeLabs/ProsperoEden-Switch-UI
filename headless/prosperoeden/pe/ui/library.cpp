@@ -22,11 +22,12 @@ using audio::Cue;
 namespace
 {
 
-// The Library: covers four to a row at the left, the selected game's details at the right.
-constexpr int kColumns = 4;
-constexpr float kCover = 240.0f;
-constexpr float kCellPitchX = kCover + 32.0f;
-constexpr float kCellPitchY = 346.0f; // a cover, its name on up to two lines, a line under it, and the gap
+// Switch-style full-width Library: game settings and mods remain on Triangle/Square.
+// A dedicated Game Settings dialog replaces the redundant details side panel.
+constexpr int kColumns = 6;
+constexpr float kCover = 236.0f;
+constexpr float kCellPitchX = kCover + 30.0f;
+constexpr float kCellPitchY = 346.0f; // cover, title, metadata, spacing
 constexpr float kGridTop = 152.0f;
 constexpr float kGridBottom = 972.0f;
 constexpr float kGridWidth = kCellPitchX * (kColumns - 1) + kCover;
@@ -561,167 +562,16 @@ void Launcher::draw_library(Canvas &c)
         scrollbar(c, grid_rows_, left + kGridWidth + 22.0f, kGridTop, kGridBottom - kGridTop - 152.0f);
     }
 
-    // ---- the selected game ----
-    const Game *game = count > 0 ? &games_[static_cast<std::size_t>(library_.selected)] : nullptr;
-    const bool remote = game != nullptr && game->remote;
-    const float x = kDetail.x + 36.0f;
-    const float width = kDetail.w - 72.0f;
-    glass(c, kDetail, t.radius_panel, t.panel.with_alpha(0.90f), t.panel_edge.with_alpha(0.42f), 1.2f);
-    const float shown = tween::clamp01(detail_.value);
-    list.push_opacity(shown);
-    // Its cover again as a band across the top, running out into the panel.
-    const Rect band{kDetail.x + 1.0f, kDetail.y + 1.0f, kDetail.w - 2.0f, 148.0f};
-    if (game != nullptr && !game->cover.empty())
-    {
-        const Cover picture = c.textures.cover(game->cover, kDetail.w);
-        if (picture.texture != 0)
-        {
-            // Drawn taller than the band and cut at its foot, so only its upper corners are round.
-            const Rect tall{band.x, band.y, band.w, band.h + 60.0f};
-            list.push_clip(band);
-            list.rounded_image(picture.texture, tall, {0.0f, 0.27f, 1.0f, tall.h / tall.w}, t.radius_panel - 1.0f,
-                               Color{1.0f, 1.0f, 1.0f, remote ? 0.55f : 0.9f});
-            list.pop_clip();
-        }
-        // (With high contrast the panel is solid, and of its own colour: glass() in widgets.cpp.)
-        const Color ground = look().high_contrast ? gfx::mix(t.scrim, t.panel, 0.4f) : t.panel.with_alpha(0.97f);
-        list.gradient_rect({band.x, band.y + 40.0f, band.w, band.h - 39.0f}, 0.0f, ground.with_alpha(0.0f), ground);
-    }
-    list.push_transform(1.0f, 0.0f, 0.0f, 0.0f, (1.0f - shown) * 10.0f * motion());
-    kicker(c, tr("GAME DETAILS"), x, baseline(kDetail.y + 162.0f, 30.0f, t.size_small), t.accent, width);
-    float y = kDetail.y + 198.0f;
-    {
-        const Heavy heavy(c);
-        const int lines = text_block(c, game != nullptr ? game->name : tr("No ROM selected"), x,
-                                     baseline(y, 46.0f, t.size_lead), t.size_lead, 46.0f, t.title, width, 2, 0.8f);
-        y += 46.0f * static_cast<float>(std::max(1, lines)) + 8.0f;
-    }
-    if (game != nullptr)
-    {
-        text_shrink(c, game->format + "  /  " + game->size, x, baseline(y, 30.0f, 22.0f), 22.0f, t.copy, width);
-        y += 30.0f;
-        text_fit(c, game->file, x, baseline(y, 26.0f, 18.0f), 18.0f, t.faint, width);
-        y += 38.0f;
-    }
-    // What it comes with and the language it will use; where it is, for one still on its sources.
-    if (game != nullptr)
-    {
-        float cx = x;
-        const auto add = [&](const std::string &words, Tone tone)
-        {
-            const float room = x + width - cx;
-            if (words.empty() || (cx > x && chip_width(c, words, tone, 2000.0f) > room))
-                return;
-            cx += chip(c, words, cx, y + 22.0f, tone, room) + 10.0f;
-        };
-        if (remote)
-        {
-            Color tone = t.value;
-            const std::string state = remote_state(*game, &tone);
-            const Download *download = download_of(game->key);
-            add(download != nullptr ? state : std::string{tr("Not on the console")},
-                download != nullptr && download->state == DownloadState::failed ? Tone::warning : Tone::plain);
-            std::string sources;
-            for (const std::string &name : game->sources)
-                sources += (sources.empty() ? "" : ", ") + name;
-            add(sources, Tone::plain);
-        }
-        else
-        {
-            add(game->addons_short.empty() ? game->addons : game->addons_short, Tone::plain);
-            add(game->language, game->language_note.empty() ? Tone::plain : Tone::warning);
-        }
-        y += 56.0f;
-        if (!remote && !game->language_note.empty())
-        {
-            notice(c, game->language_note, x, baseline(y, 26.0f, 18.0f), 18.0f, t.warning, width, false);
-            y += 30.0f;
-        }
-    }
-    // What it is set to: one line each.
-    if (game != nullptr && !remote)
-    {
-        const bool can_configure = game->title_id != 0;
-        const bool has_mods = can_configure && game->mods > 0;
-        struct Line
-        {
-            const char *name;
-            std::string value;
-            Color color;
-        };
-        const Line lines[] = {
-            {tr("Console mode"),
-             can_configure ? std::string{selected_docked_ ? tr("Docked") : tr("Handheld")} : std::string{tr("Unavailable")},
-             can_configure ? t.value : t.meta},
-            {tr("Mods"),
-             !has_mods ? std::string{can_configure ? tr("No mods") : tr("Unavailable")} :
-             game->mods_enabled ? fill(tr("{0} of {1} on"), {std::to_string(game->mods_on), std::to_string(game->mods)}) :
-                                  std::string{tr("Off")},
-             has_mods && game->mods_enabled ? t.accent_pale : t.meta},
-            {tr("Game settings"), can_configure ? changes_text(selected_changes_) : std::string{tr("Unavailable")},
-             selected_changes_ > 0 ? t.accent_pale : t.meta},
-        };
-        for (const Line &line : lines)
-        {
-            const float value = text_shrink(c, line.value, x + width, baseline(y, 46.0f, t.size_small), t.size_small,
-                                            line.color, width * 0.6f, Align::right);
-            text_shrink(c, line.name, x, baseline(y, 46.0f, t.size_small), t.size_small, t.label,
-                        width - value - 20.0f);
-            list.rounded_rect({x, y + 45.0f, width, 1.0f}, 0.0f, t.rule.with_alpha(0.45f));
-            y += 46.0f;
-        }
-        // What it runs with, once that is read, where a long name and a note leave it room over
-        // the buttons.
-        if (!selected_session_.empty() && y + 44.0f <= kDetail.y + kDetail.h - 36.0f - 68.0f - 14.0f - 76.0f - 8.0f)
-        {
-            icon(c, selected_docked_ ? Icon::docked : Icon::handheld, x + 13.0f, y + 28.0f, 26.0f, t.label);
-            text_shrink(c, selected_session_, x + 38.0f, baseline(y + 12.0f, 32.0f, 18.0f), 18.0f, t.meta,
-                        width - 38.0f);
-        }
-    }
-    list.pop_transform();
-    list.pop_opacity();
-
-    // Its actions, as the buttons that do them.
-    const Rect first{x, kDetail.y + kDetail.h - 36.0f - 68.0f - 14.0f - 76.0f, width, 76.0f};
-    const Rect second{x, kDetail.y + kDetail.h - 36.0f - 68.0f, width, 68.0f};
-    const Download *queued = remote ? download_of(game->key) : nullptr;
-    if (remote)
-    {
-        primary_button(c, first, queued != nullptr ? tr("Play when downloaded") : tr("Download and play"), Pad::cross,
-                       0.0f, 0.0f);
-        secondary_button(c, second, queued != nullptr ? tr("Cancel download") : tr("Download"), Pad::square, 0.0f,
-                         0.0f);
-    }
-    else
-    {
-        primary_button(c, first, tr("Play"), Pad::cross, 0.0f, 0.0f, game != nullptr && home_.setup_ready);
-        secondary_button(c, second, tr("Game settings"), Pad::triangle, 0.0f, 0.0f,
-                         game != nullptr && game->title_id != 0);
-    }
-
-    if (remote)
-    {
-        // What a failed download said takes the status's place.
-        const std::string failed = queued != nullptr && queued->state == DownloadState::failed ? queued->error :
-                                                                                               std::string{};
-        static constexpr Hint kRemote[] = {{Pad::cross, TR("Download and play")},
-                                           {Pad::square, TR("Download")},
-                                           {Pad::circle, TR("Back")},
-                                           {Pad::l1, TR("Sections"), Pad::r1}};
-        static constexpr Hint kQueued[] = {{Pad::cross, TR("Play when downloaded")},
-                                           {Pad::square, TR("Cancel download")},
-                                           {Pad::circle, TR("Back")},
-                                           {Pad::l1, TR("Sections"), Pad::r1}};
-        draw_footer(c, queued != nullptr ? kQueued : kRemote, 4, failed);
-        return;
-    }
+    // The grid is the complete Library view. Cross launches, Triangle opens the
+    // full game settings page (including mods/options), Square handles downloads
+    // or the existing Mods shortcut. No duplicate right-hand detail card.
     static constexpr Hint kHints[] = {{Pad::cross, TR("Play")},
                                       {Pad::triangle, TR("Game settings")},
-                                      {Pad::square, TR("Mods")},
+                                      {Pad::square, TR("Mods / Download")},
                                       {Pad::circle, TR("Back")},
                                       {Pad::l1, TR("Sections"), Pad::r1}};
-    draw_footer(c, kHints, 5, count > 0 ? list_position(library_.selected + 1, count) : std::string{});
+    draw_footer(c, kHints, 5);
+
 }
 
 // ---------------------------------------------------------------- game settings dialog
