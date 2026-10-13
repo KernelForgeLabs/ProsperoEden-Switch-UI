@@ -60,6 +60,9 @@ Launcher::~Launcher()
 {
     room_directory_stop_ = true;
     if (room_directory_request_.valid()) room_directory_request_.wait();
+    theme_stop_ = true;
+    if (theme_keyboard_.valid()) theme_keyboard_.wait();
+    if (theme_download_.valid()) theme_download_.wait();
     room_edit_stop_ = true;
     if (room_edit_.valid()) room_edit_.wait();
     seed_edit_stop_ = true;
@@ -383,6 +386,8 @@ void Launcher::update(float dt)
         presence_wait_ = 0.0f;
         check_games_present();
     }
+
+    update_switch_theme_import();
 
     // A newer release: the update dialog, or a notification when the app cannot install it.
     update_offer(dt);

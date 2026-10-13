@@ -6,6 +6,7 @@
 
 #include "pe/audio/sounds.hpp"
 #include "pe/ui/qr_code.hpp"
+#include "pe/ui/switch_theme_download.hpp"
 #include "pe/ui/widgets.hpp"
 
 #include <array>
@@ -241,11 +242,19 @@ class Launcher
 
     // ---- settings and its dialogs (settings.cpp) ----
     void press_settings(Key key);
+    void update_switch_theme_import();
+    void begin_switch_theme_import();
     void draw_settings(Canvas &c);
     void press_dialog(Key key);
     void draw_dialog(Canvas &c, Modal modal, float open);
     int dialog_rows(Modal modal) const;
     float dialog_row_top(Modal modal, int row) const;
+
+    // Quick ID entry and HTTPS import are async. On exit the futures are joined.
+    std::future<std::optional<std::string>> theme_keyboard_;
+    std::future<switch_theme::ImportResult> theme_download_;
+    std::atomic<bool> theme_stop_{false};
+    std::string theme_delete_confirm_;
 
     // ---- a newer release of the app (update.cpp) ----
     // Takes the update check's answer when it comes, and opens the dialog once the menu is free.

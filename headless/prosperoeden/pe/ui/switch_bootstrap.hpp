@@ -167,4 +167,33 @@ inline bool set_selected(const std::string &root_path, const std::string &id) {
     return !ec;
 }
 
+// Reject active and unexpected theme directories. Never recursively delete arbitrary data.
+inline bool remove_installed(const std::string &root_path, const std::string &id) {
+    if (!valid_id(id) || id == "default" || id == "canopy" || id == "switch-dark" ||
+        id == "legacy" || selected(root_path) == id) return false;
+    const fs::path home(root_path);
+    const fs::path folder = home / "installed" / id;
+    const fs::path artwork = folder / "art";
+    if (!directory_without_links(folder) || !directory_without_links(artwork) ||
+        !regular_without_links(folder / "palette.ini") || !usable(folder)) return false;
+    // Reject unexpected entries (including links), and allow only the importer format.
+    std::error_code ec;
+    for (const auto &item : fs::directory_iterator(folder, ec)) {
+        if (ec || (item.path().filename() != "palette.ini" && item.path().filename() != "art"))
+            return false;
+    }
+    if (ec) return false;
+    for (const auto &item : fs::directory_iterator(artwork, ec)) {
+        if (ec || (item.path().filename() != "backdrop.tga" &&
+                   item.path().filename() != "backdrop-blur.tga")) return false;
+    }
+    if (ec) return false;
+    for (const fs::path &item : {artwork / "backdrop.tga", artwork / "backdrop-blur.tga",
+                                 folder / "palette.ini", artwork, folder}) {
+        ec.clear();
+        if (!fs::remove(item, ec) || ec) return false;
+    }
+    return true;
+}
+
 } // namespace pe::ui::switch_bootstrap

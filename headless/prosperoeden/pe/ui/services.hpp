@@ -660,6 +660,8 @@ class Services
     // Asks for a game's RNG seed on the system keyboard (digits only), starting from the seed it
     // has (-1: none). The seed typed; -1 when what was typed is not a seed (0 to 4294967295);
     // nothing when the keyboard was cancelled. Throws when the keyboard cannot be opened.
+    // A single Home Menu Quick ID, typed using the PS5 system keyboard.
+    virtual std::optional<std::string> theme_id_text(const std::atomic<bool>&) { return std::nullopt; }
     virtual std::optional<std::int64_t> ask_seed(std::int64_t /*current*/, const std::atomic<bool>& /*stop*/)
     { return std::nullopt; }
     virtual bool can_launch_game() { return true; }

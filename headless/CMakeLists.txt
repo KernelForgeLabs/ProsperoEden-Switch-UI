@@ -2663,6 +2663,8 @@ endif()
                 "${launcher_dir}/pe/ui/launcher.cpp"
                 "${launcher_dir}/pe/ui/library.cpp"
                 "${launcher_dir}/pe/ui/settings.cpp"
+                "${launcher_dir}/pe/ui/switch_theme_download.cpp"
+                "${launcher_dir}/pe/ui/switch_theme_ui.cpp"
                 "${launcher_dir}/pe/ui/shell.cpp"
                 "${launcher_dir}/pe/ui/textures.cpp"
                 "${launcher_dir}/pe/ui/theme.cpp"

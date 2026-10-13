@@ -147,30 +147,49 @@ bool &ready()
 
 } // namespace
 
-void initialize_switch_themes()
-{
-    if (ready()) return;
-    ready() = true;
-    Store &s = store();
-    const std::string folder = switch_bootstrap::root();
-    // A missing or read-only /data mount is nonfatal: Switch Dark is compiled in.
-    (void)switch_bootstrap::ensure(folder);
-    for (const auto &item : switch_bootstrap::installed(folder)) {
+namespace {
+void append_installed(Store &s) {
+    for (const auto &item : switch_bootstrap::installed(switch_bootstrap::root())) {
         auto name = std::make_unique<ExternalNames>();
         name->id = item.id;
         name->name = item.name;
         name->summary = "Installed Themezer wallpaper (from persistent storage)";
         name->backdrop = item.art + "/backdrop.tga";
         name->blur = item.art + "/backdrop-blur.tga";
-        Theme t = switch_dark();
-        t.id = name->id.c_str();
-        t.name = name->name.c_str();
-        t.summary = name->summary.c_str();
-        t.backdrop = name->backdrop.c_str();
-        t.backdrop_blur = name->blur.c_str();
+        Theme theme = switch_dark();
+        theme.id = name->id.c_str();
+        theme.name = name->name.c_str();
+        theme.summary = name->summary.c_str();
+        theme.backdrop = name->backdrop.c_str();
+        theme.backdrop_blur = name->blur.c_str();
         s.names.push_back(std::move(name));
-        s.all.push_back(t);
+        s.all.push_back(theme);
     }
+}
+} // namespace
+
+void initialize_switch_themes() {
+    if (ready()) return;
+    ready() = true;
+    Store &s = store();
+    (void)switch_bootstrap::ensure(switch_bootstrap::root());
+    append_installed(s);
+}
+
+// Refreshes the menu list after an import/deletion. The active Theme's string
+// fields point into ExternalNames, so preserve its identity before rebuilding.
+void refresh_switch_themes() {
+    initialize_switch_themes();
+    Store &s = store();
+    const std::string active = s.active.id;
+    s.active = switch_dark();
+    s.index = 0;
+    s.all.clear();
+    s.all.push_back(switch_dark());
+    s.all.push_back(canopy());
+    s.names.clear();
+    append_installed(s);
+    (void)use_theme(active);
 }
 
 // Old v4 selection takes precedence during migration; otherwise use the

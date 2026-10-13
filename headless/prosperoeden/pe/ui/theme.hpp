@@ -121,6 +121,7 @@ bool use_theme(std::string_view id);
 // Switch fork: initialize persistent theme library (safe and idempotent),
 // recover a v4 current.txt, and save later theme choices outside the app.
 void initialize_switch_themes();
+void refresh_switch_themes();
 std::string startup_switch_theme(std::string_view preference);
 void remember_switch_theme(std::string_view id);
 

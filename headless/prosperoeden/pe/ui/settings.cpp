@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "pe/ui/launcher.hpp"
+#include "pe/ui/switch_bootstrap.hpp"
 
 #include <algorithm>
 #include <string>
@@ -194,7 +195,7 @@ void Launcher::press_settings(Key key)
             break;
         case kTheme:
             open_modal(Modal::theme);
-            option_ = theme_index();
+            option_ = theme_index() + 1;
             option_cursor_.snap(dialog_row_top(Modal::theme, option_));
             break;
         default:
@@ -367,7 +368,7 @@ int Launcher::dialog_rows(Modal modal) const
     case Modal::accessibility:
         return 3;
     case Modal::theme:
-        return static_cast<int>(themes().size());
+        return 1 + static_cast<int>(themes().size());
     case Modal::game:
         // Console mode, video, performance, audio, controls, system, language, mods; save data in
         // builds that move saves.
@@ -413,8 +414,16 @@ void Launcher::press_dialog(Key key)
     const bool adjust = key == Key::left || key == Key::right;
     const bool activate = key == Key::cross;
     const int step = key == Key::left ? -1 : 1;
+    if (modal_ == Modal::theme && (theme_keyboard_.valid() || theme_download_.valid())) {
+        if (key == Key::circle) {
+            theme_stop_ = true;
+            say(tr("Cancelling Themezer import..."));
+        }
+        return;
+    }
     if (key == Key::circle)
     {
+        theme_delete_confirm_.clear();
         close_modal();
         return;
     }
@@ -429,9 +438,35 @@ void Launcher::press_dialog(Key key)
         }
         return;
     }
+    if (modal_ == Modal::theme && key == Key::square) {
+        if (option_ <= 2) { say(tr("Bundled themes cannot be deleted."), true); return; }
+        const auto all = themes();
+        const int index = option_ - 1;
+        if (index >= static_cast<int>(all.size())) return;
+        const std::string id = all[static_cast<std::size_t>(index)].id;
+        if (id == th().id || id == switch_bootstrap::selected(switch_bootstrap::root())) {
+            say(tr("Select another theme before deleting this one."), true);
+            return;
+        }
+        if (theme_delete_confirm_ != id) {
+            theme_delete_confirm_ = id;
+            say(tr("Press Square again to delete this inactive theme."));
+        } else {
+            theme_delete_confirm_.clear();
+            const bool deleted = switch_bootstrap::remove_installed(switch_bootstrap::root(), id);
+            if (deleted) {
+                refresh_switch_themes();
+                option_ = std::clamp(option_, 0, dialog_rows(Modal::theme) - 1);
+            }
+            say(deleted ? tr("Theme deleted.") : tr("Could not delete theme. It may contain other files."), !deleted);
+            cue(deleted ? Cue::saved : Cue::error);
+        }
+        return;
+    }
     if ((key == Key::up || key == Key::down) && rows > 1)
     {
         option_ = (option_ + (key == Key::down ? 1 : rows - 1)) % rows;
+        theme_delete_confirm_.clear();
         message_.clear();
         cue(Cue::focus);
         return;
@@ -440,10 +475,10 @@ void Launcher::press_dialog(Key key)
         return;
     if (modal_ == Modal::theme)
     {
-        // The look changes on the spot, and is kept for the next start.
-        if (!activate)
-            return;
-        const Theme &chosen = themes()[static_cast<std::size_t>(std::clamp(option_, 0, rows - 1))];
+        // Row zero is an actual network installer, not a placeholder.
+        if (!activate) return;
+        if (option_ == 0) return begin_switch_theme_import();
+        const Theme &chosen = themes()[static_cast<std::size_t>(std::clamp(option_ - 1, 0, rows - 2))];
         const std::string had = prefs_.theme;
         prefs_.theme = chosen.id;
         const bool saved = save_preferences(true);
@@ -630,33 +665,35 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
     const bool scrolls = modal == Modal::video || modal == Modal::performance;
     const ListView &rows_view = modal == Modal::performance ? performance_rows_ : video_rows_;
     const Rect &window = modal == Modal::performance ? kPerformanceWindow : kVideoWindow;
-    const int first = scrolls ? rows_view.first_row() : 0;
-    const int last = scrolls ? rows_view.last_row() : rows - 1;
+    const bool theme_scroll = modal == Modal::theme;
+    const int theme_first = theme_scroll ? std::clamp(option_ - 2, 0, std::max(0, rows - 4)) : 0;
+    const int first = scrolls ? rows_view.first_row() : theme_first;
+    const int last = scrolls ? rows_view.last_row() : theme_scroll ? std::min(rows - 1, theme_first + 3) : rows - 1;
     if (scrolls)
         list.push_clip({window.x - 24.0f, window.y - 6.0f, window.w + 48.0f, window.h + 12.0f});
     for (int row = first; row <= last; ++row)
     {
         list.push_opacity(scrolls ? rows_view.row_alpha(row, kVideoRowHeight) : 1.0f);
-        plate_rest(c, row_plate(), {592.0f, dialog_row_top(modal, row), 736.0f, 94.0f});
+        plate_rest(c, row_plate(), {592.0f, dialog_row_top(modal, theme_scroll ? row - theme_first : row), 736.0f, 94.0f});
         list.pop_opacity();
     }
     plate_focus(c, row_plate(),
                 {592.0f,
                  scrolls ? kVideoRowsTop + rows_view.cursor() - rows_view.scroll() :
-                           option_cursor_.value,
+                theme_scroll ? dialog_row_top(modal, option_ - theme_first) : option_cursor_.value,
                  736.0f, 94.0f},
                 1.0f);
 
     // A row's name takes what its control (`taken` wide, at the right) leaves of the row.
     const auto label = [&](int row, const char *value, float taken)
     {
-        text_shrink(c, value, 628.0f, baseline(dialog_row_top(modal, row), 94.0f, th().size_text),
+        text_shrink(c, value, 628.0f, baseline(dialog_row_top(modal, theme_scroll ? row - theme_first : row), 94.0f, th().size_text),
                     th().size_text, th().value, 664.0f - taken - 28.0f);
     };
     const auto choice = [&](int row, const std::string &value)
     {
         return chooser(c, value, 1296.0f,
-                       baseline(dialog_row_top(modal, row), 94.0f, th().size_text),
+                       baseline(dialog_row_top(modal, theme_scroll ? row - theme_first : row), 94.0f, th().size_text),
                        row == option_ ? 1.0f : 0.0f, th().accent_pale);
     };
     constexpr float kToggle = 64.0f;
@@ -716,7 +753,7 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
         const auto level_row = [&](int row, const char *name, const std::string &value, int level)
         {
             const float shown =
-                text(c, value, 1292.0f, baseline(dialog_row_top(modal, row), 94.0f, th().size_text),
+                text(c, value, 1292.0f, baseline(dialog_row_top(modal, theme_scroll ? row - theme_first : row), 94.0f, th().size_text),
                      th().size_text, th().accent_pale, Align::right);
             const float gap = std::max(96.0f, shown + 20.0f);
             level_bar(c, 1292.0f - gap, row_centre(row), 260.0f, static_cast<float>(level) / 100.0f,
@@ -812,21 +849,20 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
     }
     case Modal::theme:
     {
-        // Every theme this build has; the one in use carries the mark.
-        const std::span<const Theme> all = themes();
-        for (int row = 0; row < rows; ++row)
-        {
-            label(row, all[static_cast<std::size_t>(row)].name, 64.0f);
-            if (row != theme_index())
-                continue;
-            list.circle(1268.0f, row_centre(row), 17.0f, th().accent);
-            const bool contrast = look().high_contrast;
-            look().high_contrast = false;
-            icon(c, Icon::check, 1268.0f, row_centre(row), 22.0f, th().on_accent);
-            look().high_contrast = contrast;
+        const auto all = themes();
+        for (int row = first; row <= last; ++row) {
+            if (row == 0) label(row, tr("Install from Themezer Quick ID"), 64.0f);
+            else label(row, all[static_cast<std::size_t>(row - 1)].name, 64.0f);
+            if (row != theme_index() + 1) continue;
+            const float y = row_centre(row - theme_first);
+            list.circle(1268.0f, y, 17.0f, th().accent);
+            icon(c, Icon::check, 1268.0f, y, 22.0f, th().on_accent);
         }
-        text_block(c, tr(all[static_cast<std::size_t>(std::clamp(option_, 0, rows - 1))].summary), 592.0f,
-                   baseline(700.0f, 30.0f, th().size_small), th().size_small, 30.0f, th().meta, 736.0f, 2,
+        const std::string about = option_ == 0
+            ? "Enter a T... Home Menu ID. P... theme packs are not supported."
+            : all[static_cast<std::size_t>(std::clamp(option_ - 1, 0, static_cast<int>(all.size()) - 1))].summary;
+        text_block(c, about, 592.0f,
+                   baseline(820.0f, 30.0f, th().size_small), th().size_small, 30.0f, th().meta, 736.0f, 2,
                    kShrink);
         break;
     }
