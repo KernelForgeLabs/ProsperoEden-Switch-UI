@@ -870,7 +870,7 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
             icon(c, Icon::check, 1268.0f, y, 22.0f, th().on_accent);
         }
         const std::string about = option_ == 0
-            ? "Enter a T... Home Menu ID. P... theme packs are not supported."
+            ? "Enter a T... theme or P... theme-pack Quick ID. Packs can take longer to install."
             : all[static_cast<std::size_t>(std::clamp(option_ - 1, 0, static_cast<int>(all.size()) - 1))].summary;
         text_block(c, about, 592.0f,
                    baseline(820.0f, 30.0f, th().size_small), th().size_small, 30.0f, th().meta, 736.0f, 2,

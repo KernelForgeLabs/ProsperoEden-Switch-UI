@@ -207,7 +207,7 @@ enum class Icon : std::uint8_t
 void icon(Canvas &c, Icon which, float cx, float cy, float size, Color ink);
 // Filled, balanced symbols specifically for the Switch-inspired HOME row.
 void draw_switch_dock_glyph(Canvas &c, Icon which, float cx, float cy, float size,
-                            Color ink, Color cutout);
+                            Color ink);
 
 // ---- controller hints ----
 enum class Pad : std::uint8_t

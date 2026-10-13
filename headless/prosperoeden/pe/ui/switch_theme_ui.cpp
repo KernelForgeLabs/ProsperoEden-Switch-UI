@@ -30,7 +30,7 @@ void Launcher::update_switch_theme_import() {
         }
         if (code && !theme_stop_ && modal_ == Modal::theme) {
             theme_stop_ = false;
-            say(tr("Downloading Themezer wallpaper..."));
+            say(tr("Downloading Themezer theme or pack..."));
             try {
                 theme_download_ = std::async(std::launch::async, [this, code = *code] {
                     return switch_theme::install_quick_id(code, theme_stop_);

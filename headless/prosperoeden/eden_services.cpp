@@ -515,7 +515,7 @@ std::optional<std::string> EdenServices::room_text(int field, const std::string&
 
 std::optional<std::string> EdenServices::theme_id_text(const std::atomic<bool>& stop) {
     Eden::TextRequest request;
-    request.title = u"Themezer Home Menu Quick ID";
+    request.title = u"Themezer Theme / Pack Quick ID";
     request.max_length = 12;
     const auto answer = Eden::AskSystemKeyboard(request, stop);
     if (answer.outcome == Eden::TextOutcome::unavailable)
