@@ -91,8 +91,12 @@ void SoundBank::play(Mixer &mixer, Cue cue)
     PlayParams params;
     params.bus = Bus::ui;
     auto &set = sets_[index];
+    // Opening screens and dialogs used to bypass the softer HOME cues, which
+    // made Settings and Themes sound unlike moving between games.
     const bool soft_cue = soft_navigation_ &&
-        (cue == Cue::focus || cue == Cue::select || cue == Cue::back || cue == Cue::page);
+        (cue == Cue::focus || cue == Cue::select || cue == Cue::back ||
+         cue == Cue::page || cue == Cue::open || cue == Cue::modal_open ||
+         cue == Cue::modal_close || cue == Cue::toggle);
     if (!set.empty() && !soft_cue)
     {
         // +-3 % pitch keeps repeated sounds from feeling mechanical.
@@ -106,9 +110,28 @@ void SoundBank::play(Mixer &mixer, Cue cue)
     const CueInfo &info = kCues[index];
     Tone tone;
     tone.wave = soft_cue ? Wave::sine : info.wave;
-    tone.start_hz = soft_cue ? (cue == Cue::focus ? 880.0f : cue == Cue::back ? 490.0f : 740.0f) : info.start_hz;
-    tone.end_hz = soft_cue ? (cue == Cue::focus ? 950.0f : cue == Cue::back ? 420.0f : 880.0f) : info.end_hz;
-    tone.seconds = soft_cue ? (cue == Cue::focus ? 0.026f : 0.060f) : info.seconds;
+    float start_hz = info.start_hz;
+    float end_hz = info.end_hz;
+    float seconds = info.seconds;
+    if (soft_cue)
+    {
+        // Short original tones inspired by the restrained Switch UI feel.
+        // Distinguish navigation, confirmation, and opening a new page.
+        switch (cue)
+        {
+        case Cue::focus:       start_hz = 880.0f; end_hz = 950.0f; seconds = 0.026f; break;
+        case Cue::back:
+        case Cue::modal_close: start_hz = 520.0f; end_hz = 430.0f; seconds = 0.055f; break;
+        case Cue::open:
+        case Cue::modal_open:  start_hz = 690.0f; end_hz = 830.0f; seconds = 0.065f; break;
+        case Cue::page:        start_hz = 800.0f; end_hz = 900.0f; seconds = 0.046f; break;
+        case Cue::toggle:      start_hz = 710.0f; end_hz = 760.0f; seconds = 0.045f; break;
+        default:               start_hz = 740.0f; end_hz = 880.0f; seconds = 0.060f; break;
+        }
+    }
+    tone.start_hz = start_hz;
+    tone.end_hz = end_hz;
+    tone.seconds = seconds;
     tone.attack = std::min(0.006f, tone.seconds * 0.2f);
     tone.release = std::min(0.12f, tone.seconds * 0.5f);
     params.gain = soft_cue ? 0.16f : info.gain;

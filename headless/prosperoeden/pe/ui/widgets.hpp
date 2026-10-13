@@ -196,6 +196,7 @@ enum class Icon : std::uint8_t
     sync,
     language,
     theme,
+    gallery,
     about,
     docked,
     handheld,

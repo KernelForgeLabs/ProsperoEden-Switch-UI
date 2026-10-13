@@ -35,7 +35,7 @@ constexpr DockAction kDock[] = {
     {Icon::multiplayer, TR("Multiplayer")},
     {Icon::settings, TR("Settings")},
     {Icon::about, TR("About")},
-    {Icon::files, TR("Game Details")},
+    {Icon::gallery, TR("Themes")},
 };
 
 Rect cover_rect(int index, float scroll)
@@ -188,11 +188,14 @@ void Launcher::press_home(Key key)
             case 3:
                 go_section(4); // About
                 break;
+            case 4:
+                // Open the existing Themezer picker directly, not the Settings grid.
+                // Triangle remains the shortcut to the selected game's details.
+                open_modal(Modal::theme);
+                option_ = theme_index() + 1;
+                option_cursor_.snap(dialog_row_top(Modal::theme, option_));
+                break;
             default:
-                if (count > 0)
-                    open_game_settings_from_home(items[static_cast<std::size_t>(switch_home_index_)].file);
-                else
-                    cue(Cue::error);
                 break;
             }
         }

@@ -706,6 +706,12 @@ void icon(Canvas &c, Icon which, float cx, float cy, float size, Color ink)
         round(15.0f, 9.0f, 4.6f);
         round(12.0f, 14.6f, 4.6f);
         return;
+    case Icon::gallery:
+        // Original album/photo symbol: a framed landscape, not a copied asset.
+        box(3.0f, 5.0f, 18.0f, 14.0f, 2.0f);
+        dot(8.0f, 9.5f, 1.5f);
+        path({5.5f, 16.2f, 10.5f, 11.5f, 14.1f, 14.1f, 16.5f, 11.9f, 19.0f, 15.0f});
+        return;
     case Icon::about:
         round(12.0f, 12.0f, 8.5f);
         stroke(12.0f, 11.0f, 12.0f, 17.0f);
