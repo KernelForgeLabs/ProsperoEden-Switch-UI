@@ -329,9 +329,8 @@ void Launcher::draw_home(Canvas &c)
         // frame/plate is drawn over art; retain the useful clock alone.
         text(c, clock_, 1800.0f, baseline(124.0f, 48.0f, theme::kClock),
              theme::kClock, style.text, Align::right);
-        text(c, "Recently played  /  All installed games", 136.0f,
-             baseline(280.0f, 34.0f, theme::kText24),
-             theme::kText24, style.text);
+        // Switch Home v3.2: deliberately no games-row heading. The cover tiles
+        // and bottom controls identify the navigation without overlaying art.
 
         // Clip before drawing covers: off-screen games are not allowed to
         // spill into the margins. Their positions move on a critically damped spring.
