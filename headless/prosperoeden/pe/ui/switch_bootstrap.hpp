@@ -167,33 +167,60 @@ inline bool set_selected(const std::string &root_path, const std::string &id) {
     return !ec;
 }
 
-// Reject active and unexpected theme directories. Never recursively delete arbitrary data.
+// Safe deletion for both single NXThemes and multi-page packs. Every filename
+// is checked before any removal; unknown content or symlinks are never touched.
 inline bool remove_installed(const std::string &root_path, const std::string &id) {
     if (!valid_id(id) || id == "default" || id == "canopy" || id == "switch-dark" ||
         id == "legacy" || selected(root_path) == id) return false;
-    const fs::path home(root_path);
-    const fs::path folder = home / "installed" / id;
+    const fs::path folder = fs::path(root_path) / "installed" / id;
     const fs::path artwork = folder / "art";
+    const fs::path pages = artwork / "pages";
     if (!directory_without_links(folder) || !directory_without_links(artwork) ||
         !regular_without_links(folder / "palette.ini") || !usable(folder)) return false;
-    // Reject unexpected entries (including links), and allow only the importer format.
+    std::vector<fs::path> files;
     std::error_code ec;
     for (const auto &item : fs::directory_iterator(folder, ec)) {
-        if (ec || (item.path().filename() != "palette.ini" && item.path().filename() != "art"))
+        if (ec) return false;
+        const auto n = item.path().filename();
+        if (n == "art") continue;
+        if ((n != "palette.ini" && n != "pages.ini") || !regular_without_links(item.path()))
             return false;
+        files.push_back(item.path());
     }
     if (ec) return false;
+    bool has_pages = false;
     for (const auto &item : fs::directory_iterator(artwork, ec)) {
-        if (ec || (item.path().filename() != "backdrop.tga" &&
-                   item.path().filename() != "backdrop-blur.tga")) return false;
+        if (ec) return false;
+        const auto n = item.path().filename();
+        if (n == "pages") { has_pages = directory_without_links(pages); if (!has_pages) return false; continue; }
+        if ((n != "backdrop.tga" && n != "backdrop-blur.tga") ||
+            !regular_without_links(item.path())) return false;
+        files.push_back(item.path());
     }
     if (ec) return false;
-    for (const fs::path &item : {artwork / "backdrop.tga", artwork / "backdrop-blur.tga",
-                                 folder / "palette.ini", artwork, folder}) {
-        ec.clear();
-        if (!fs::remove(item, ec) || ec) return false;
+    if (has_pages) {
+        for (const auto &item : fs::directory_iterator(pages, ec)) {
+            if (ec || !regular_without_links(item.path())) return false;
+            const std::string n = item.path().filename().string();
+            bool permitted = false;
+            for (const std::string name : {"home", "all_apps", "settings", "user",
+                                           "player_select", "news", "lockscreen"}) {
+                if (n == name + ".tga" || n == name + "-blur.tga") {
+                    permitted = valid_tga(item.path()); break;
+                }
+            }
+            if (!permitted) return false;
+            files.push_back(item.path());
+        }
+        if (ec) return false;
     }
-    return true;
+    // All entries have been validated; do not follow links during removal.
+    for (const fs::path &p : files) {
+        ec.clear(); if (!fs::remove(p, ec) || ec) return false;
+    }
+    if (has_pages) { ec.clear(); if (!fs::remove(pages, ec) || ec) return false; }
+    ec.clear(); if (!fs::remove(artwork, ec) || ec) return false;
+    ec.clear(); return fs::remove(folder, ec) && !ec;
 }
 
 } // namespace pe::ui::switch_bootstrap

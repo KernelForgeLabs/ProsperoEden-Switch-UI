@@ -23,7 +23,7 @@ constexpr float kCoverTop = 332.0f;
 constexpr float kCoverSize = switch_home::kCoverWidth;
 constexpr float kCoverStep = switch_home::kCoverStep;
 constexpr float kDockY = 827.0f;
-constexpr float kDockRadius = 48.0f;
+constexpr float kDockRadius = 45.0f;
 
 struct DockAction
 {
@@ -256,22 +256,31 @@ void Launcher::draw_home(Canvas &c)
     }
     list.pop_clip();
 
-    // No additional dock plate: leave the wallpaper visible beneath the icons.
+    // Dedicated HOME dock painter: cohesive filled pictograms and distinct
+    // focus rings, rather than the line icons used inside Settings.
     for (int i = 0; i < 5; ++i)
     {
         const bool focused = switch_home_dock_ && !rail_focus_ && switch_home_action_ == i;
         const float x = dock_x(i);
-        const Color face = focused ? t.accent : t.panel.with_alpha(0.79f);
-        const Color ink = focused ? t.on_accent : t.title;
+        const Color face = focused ? Color::rgb(0xf8fafc) : Color::rgb(0xe2e5eb).with_alpha(0.93f);
+        const Color ink = Color::rgb(0x292e38);
         list.circle(x, kDockY, kDockRadius, face);
+        list.ring(x, kDockY, kDockRadius, 1.2f, Color::rgb(0x364052).with_alpha(0.52f));
         if (focused)
-            list.bordered_rect({x - kDockRadius - 4.0f, kDockY - kDockRadius - 4.0f,
-                                2.0f * kDockRadius + 8.0f, 2.0f * kDockRadius + 8.0f},
-                               kDockRadius + 4.0f, Color{0.0f, 0.0f, 0.0f, 0.0f},
-                               2.4f, t.title);
-        icon(c, kDock[i].icon, x, kDockY, 45.0f, ink);
-        text_shrink(c, tr(kDock[i].label), x, baseline(kDockY + 64.0f, 33.0f, t.size_small),
-                    t.size_small, t.title, 186.0f, Align::center);
+        {
+            list.ring(x, kDockY, kDockRadius + 6.0f, 3.5f, t.accent);
+            list.ring(x, kDockY, kDockRadius + 10.0f, 1.0f, Color::rgb(0xffffff).with_alpha(0.6f));
+        }
+        draw_switch_dock_glyph(c, kDock[i].icon, x, kDockY, 46.0f, ink);
+        if (focused)
+        {
+            // Selected label stays legible on both pale and dark wallpapers.
+            list.rounded_rect({x - 94.0f, kDockY + 54.0f, 188.0f, 33.0f}, 13.0f,
+                              Color::rgb(0x111621).with_alpha(0.84f));
+        }
+        text_shrink(c, tr(kDock[i].label), x, baseline(kDockY + 58.0f, 30.0f, t.size_small),
+                    t.size_small, focused ? Color::rgb(0xffffff) : t.title,
+                    178.0f, Align::center);
     }
 
     // The official glyph painter keeps the hints consistent across screens.

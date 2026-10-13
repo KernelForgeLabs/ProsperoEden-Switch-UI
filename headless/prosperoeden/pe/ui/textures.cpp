@@ -5,6 +5,7 @@
 #include "pe/ui/textures.hpp"
 
 #include "pe/ui/theme.hpp"
+#include "pe/ui/switch_pages.hpp"
 
 #include "pe/core/log.hpp"
 
@@ -69,6 +70,46 @@ bool Textures::load_art(const std::string &directory)
     backdrop_blur_ = blur;
     brand_ = brand;
     controller_ = controller;
+    art_directory_ = directory;
+    loaded_page_ = "base";
+    last_theme_page_.clear();
+    return true;
+}
+
+bool Textures::select_page_art(std::string_view page)
+{
+    // Call only on the render thread, where the OpenGL context is current.
+    const std::string key = std::string(th().id) + ":" + std::string(page);
+    if (key == last_theme_page_) return true; // no filesystem work on unchanged frames
+    const auto art = switch_pages::lookup(switch_bootstrap::root(), th().id, page);
+    const std::string desired = art.main.empty() ? "base" : art.main;
+    if (loaded_page_ == desired) {
+        last_theme_page_ = key;
+        return true;
+    }
+    if (art.main.empty()) {
+        if (art_directory_.empty()) return false;
+        if (!load_art(art_directory_)) return false;
+        last_theme_page_ = key;
+        return true;
+    }
+    gfx::Image main_image, blur_image;
+    if (!gfx::load_tga(art.main, &main_image) || !gfx::load_tga(art.blur, &blur_image))
+        return false;
+    const std::uint32_t main = create(main_image);
+    const std::uint32_t blur = create(blur_image);
+    if (main == 0 || blur == 0)
+    {
+        if (main != 0) batch_.delete_texture(main);
+        if (blur != 0) batch_.delete_texture(blur);
+        return false; // never discard the old wallpaper if decoding fails
+    }
+    batch_.delete_texture(backdrop_);
+    batch_.delete_texture(backdrop_blur_);
+    backdrop_ = main;
+    backdrop_blur_ = blur;
+    loaded_page_ = desired;
+    last_theme_page_ = key;
     return true;
 }
 

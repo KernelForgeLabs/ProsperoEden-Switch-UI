@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -35,6 +36,8 @@ class Textures
 
     // The background art, its blurred copy (frosted panels) and the app icon.
     bool load_art(const std::string &directory);
+    // Page-specific artwork from a theme pack, on the renderer thread only.
+    bool select_page_art(std::string_view page);
     // The picture the console shows while the app starts (sce_sys/pic0.dds), for the opening:
     // the launcher's first frame is that picture, so the app appears without a cut.
     bool load_splash(const std::string &path);
@@ -100,6 +103,9 @@ class Textures
     std::vector<std::string> queue_;
     std::uint64_t frame_ = 0;
     float output_scale_ = 1.0f;
+    std::string art_directory_;
+    std::string loaded_page_;
+    std::string last_theme_page_;
 };
 
 } // namespace pe::ui

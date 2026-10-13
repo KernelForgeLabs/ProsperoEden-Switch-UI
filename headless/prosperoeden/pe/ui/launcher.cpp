@@ -624,6 +624,24 @@ void Launcher::draw_opening(Canvas &c)
 
 void Launcher::draw(gfx::DrawList &list)
 {
+    // Resolve backgrounds by screen role. Missing pack assets use the pack Home
+    // image, then the original single-wallpaper theme. No downloads at draw time.
+    std::string_view page_role = "home";
+    switch (screen_)
+    {
+    case Screen::home: page_role = "home"; break;
+    case Screen::library: page_role = "library"; break;
+    case Screen::multiplayer: page_role = room_page_ == RoomPage::choice ? "multiplayer" : "rooms"; break;
+    case Screen::settings: page_role = "settings"; break;
+    case Screen::files: page_role = "settings"; break;
+    case Screen::language: page_role = "settings"; break;
+    case Screen::about: page_role = "about"; break;
+    }
+    if (modal_shown_ == Modal::theme) page_role = "themes";
+    else if (modal_shown_ == Modal::profiles) page_role = "profiles";
+    else if (modal_shown_ == Modal::game || modal_shown_ == Modal::game_options)
+        page_role = "game_details";
+    (void)textures_.select_page_art(page_role);
     Canvas c{list, fonts_, textures_, backdrop_, time_};
     backdrop_.draw(list, textures_, 0.0f);
     draw_scrims(c);

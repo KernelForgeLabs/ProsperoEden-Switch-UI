@@ -732,6 +732,69 @@ void icon(Canvas &c, Icon which, float cx, float cy, float size, Color ink)
     }
 }
 
+// ---------------------------------------------------------------- Switch-inspired HOME pictograms
+// Their optical weight, geometry and filled treatment are deliberately
+// independent of the lighter line icons in other ProsperoEden screens.
+void draw_switch_dock_glyph(Canvas &c, Icon which, float cx, float cy, float size, Color ink)
+{
+    auto &d = c.list;
+    const float u = size / 48.0f;
+    const auto X = [&](float p) { return cx + (p - 24.0f) * u; };
+    const auto Y = [&](float p) { return cy + (p - 24.0f) * u; };
+    const auto rect = [&](float x, float y, float w, float h, float r) {
+        d.rounded_rect({X(x), Y(y), w*u, h*u}, r*u, ink);
+    };
+    const auto disk = [&](float x, float y, float r) { d.circle(X(x), Y(y), r*u, ink); };
+    const auto line = [&](float x, float y, float xx, float yy, float w) {
+        d.line(X(x), Y(y), X(xx), Y(yy), w*u, ink);
+    };
+    switch (which)
+    {
+    case Icon::library:
+        for (int y = 0; y < 2; ++y)
+            for (int x = 0; x < 2; ++x)
+                rect(9.0f + x*17.0f, 9.0f + y*17.0f, 13.0f, 13.0f, 2.5f);
+        return;
+    case Icon::multiplayer:
+        disk(18.0f, 16.0f, 6.0f);
+        disk(33.0f, 19.0f, 4.5f);
+        d.rounded_rect({X(7.0f), Y(25.5f), 23.0f*u, 12.0f*u}, 6.0f*u, ink);
+        d.rounded_rect({X(28.0f), Y(27.0f), 13.0f*u, 10.0f*u}, 5.0f*u, ink);
+        return;
+    case Icon::settings:
+        // A gear with a solid hub and eight precisely balanced teeth.
+        for (int i=0;i<8;++i)
+        {
+            const float a = static_cast<float>(i)*0.78539816339f;
+            line(24.0f + 12.5f*std::cos(a), 24.0f + 12.5f*std::sin(a),
+                 24.0f + 19.0f*std::cos(a), 24.0f + 19.0f*std::sin(a), 5.4f);
+        }
+        disk(24.0f, 24.0f, 13.1f);
+        d.circle(X(24.0f), Y(24.0f), 5.5f*u, Color::rgb(0xe8eaf0));
+        return;
+    case Icon::about:
+        disk(24.0f, 24.0f, 18.0f);
+        d.circle(X(24.0f), Y(24.0f), 14.4f*u, Color::rgb(0xe8eaf0));
+        disk(24.0f, 15.0f, 2.3f);
+        rect(22.1f, 21.0f, 3.8f, 14.0f, 1.8f);
+        return;
+    case Icon::gallery:
+        // A small double-photo stack, filled horizon and sun.
+        d.bordered_rect({X(9.0f),Y(7.0f),34.0f*u,29.0f*u}, 4.2f*u,
+                        Color{0.0f,0.0f,0.0f,0.0f},3.4f*u,ink);
+        d.bordered_rect({X(5.0f),Y(12.0f),34.0f*u,29.0f*u}, 4.2f*u,
+                        Color{0.0f,0.0f,0.0f,0.0f},3.0f*u,ink);
+        disk(16.0f, 21.0f, 3.6f);
+        line(10.0f,33.0f,20.0f,25.0f,3.5f);
+        line(20.0f,25.0f,26.0f,30.0f,3.5f);
+        line(26.0f,30.0f,32.0f,24.0f,3.5f);
+        return;
+    default:
+        icon(c, which, cx, cy, size, ink);
+        return;
+    }
+}
+
 // ---------------------------------------------------------------- controller hints
 
 float pad_width(Pad button, float size)

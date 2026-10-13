@@ -12,6 +12,8 @@
 #include <vector>
 #include <string>
 #include <cstdint>
+#include <filesystem>
+#include <fstream>
 
 namespace pe::ui
 {
@@ -148,6 +150,33 @@ bool &ready()
 } // namespace
 
 namespace {
+// Themezer pack palettes can optionally control focus accent in our HOME dock.
+// A malformed palette leaves the bundled Switch Dark colours intact.
+void apply_palette(Theme &theme, const std::string &folder)
+{
+    const auto file = std::filesystem::path(folder) / "palette.ini";
+    if (!switch_bootstrap::regular_without_links(file)) return;
+    std::error_code ec;
+    if (std::filesystem::file_size(file, ec) > 4096 || ec) return;
+    std::ifstream in(file);
+    std::string line;
+    while (std::getline(in, line)) {
+        if (line.rfind("accent=#", 0) != 0 || line.size() != 14) continue;
+        std::uint32_t value = 0;
+        bool good = true;
+        for (std::size_t i = 8; i < 14; ++i) {
+            const char ch = line[i];
+            const int nibble = (ch >= '0' && ch <= '9') ? ch - '0' :
+                               (ch >= 'a' && ch <= 'f') ? ch - 'a' + 10 :
+                               (ch >= 'A' && ch <= 'F') ? ch - 'A' + 10 : -1;
+            if (nibble < 0) { good = false; break; }
+            value = (value << 4) | static_cast<unsigned>(nibble);
+        }
+        if (good) theme.accent = Color::rgb(value);
+        break;
+    }
+}
+
 void append_installed(Store &s) {
     for (const auto &item : switch_bootstrap::installed(switch_bootstrap::root())) {
         auto name = std::make_unique<ExternalNames>();
@@ -157,6 +186,8 @@ void append_installed(Store &s) {
         name->backdrop = item.art + "/backdrop.tga";
         name->blur = item.art + "/backdrop-blur.tga";
         Theme theme = switch_dark();
+        apply_palette(theme, (std::filesystem::path(switch_bootstrap::root()) /
+                              "installed" / item.id).string());
         theme.id = name->id.c_str();
         theme.name = name->name.c_str();
         theme.summary = name->summary.c_str();
