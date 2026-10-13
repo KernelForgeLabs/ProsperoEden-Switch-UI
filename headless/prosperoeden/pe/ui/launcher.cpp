@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "pe/ui/launcher.hpp"
+#include "pe/ui/switch_home_model.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -301,6 +302,15 @@ void Launcher::update(float dt)
         modal_shown_ = Modal::none;
     dim_.target = screen_ == Screen::home ? 0.0f : 1.0f;
     dim_.update(dt, 8.0f);
+
+    // Show four full covers and the leading half of a fifth, with soft scrolling.
+    const int switch_count = static_cast<int>(switch_home_games().size());
+    switch_home_index_ = switch_count > 0 ? std::clamp(switch_home_index_, 0, switch_count - 1) : 0;
+    switch_home_scroll_.target = switch_home::scroll_target(switch_home_index_);
+    if (look().reduce_motion)
+        switch_home_scroll_.snap(switch_home_scroll_.target);
+    else
+        switch_home_scroll_.update(dt, 12.0f);
 
     const Theme &t = th();
     for (std::size_t i = 0; i < home_springs_.size(); ++i)

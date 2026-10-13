@@ -164,7 +164,7 @@ class Launcher
     void press_home(Key key);
     void update_controllers(float dt);
     void draw_home(Canvas &c);
-    void draw_controllers(Canvas &c);
+    std::vector<Recent> switch_home_games() const;
     // A game's settings from the home screen (the game to continue, or a recent one): its page
     // opens over the Library at that game, and closing it comes back to the home screen.
     void open_game_settings_from_home(const std::string &file);
@@ -425,6 +425,11 @@ class Launcher
     std::array<tween::Spring, 4> controller_lit_{};
     std::array<float, 4> controller_pop_{}; // 1 when a controller appears, then decays
     int home_focus_ = 0;
+    // Switch HOME focus and independently animated horizontal game row.
+    int switch_home_index_ = 0;
+    bool switch_home_dock_ = false;
+    int switch_home_action_ = 0;
+    tween::Spring switch_home_scroll_;
     std::array<tween::Spring, 10> home_springs_{};
     float intro_ = 0.0f;
     bool first_start_ = true;
