@@ -2,19 +2,22 @@
   <img src="sce_sys/icon0.png" width="128" alt="ProsperoEden icon">
 </p>
 
-<h1 align="center">ProsperoEden</h1>
+<h1 align="center">ProsperoEden — Switch UI Edition</h1>
 
 <p align="center">
-  <strong>An unofficial Eden emulator port for PlayStation 5 homebrew</strong>
+  <strong>A Switch-inspired PS5 launcher edition of ProsperoEden</strong>
 </p>
 
-**ProsperoEden is an unofficial PlayStation 5 port of [Eden](https://github.com/eden-emulator/mirror)** - an accurate, high-performance emulator. All credit for the emulator core belongs to the Eden project and its contributors. ProsperoEden is not affiliated with or endorsed by the Eden team or Sony.
+**ProsperoEden Switch UI Edition** is an independently maintained interface edition of [BlackBearReloaded's ProsperoEden](https://github.com/blackbearreloaded/ProsperoEden), the unofficial PS5 port of [Eden](https://github.com/eden-emulator/mirror). The original PS5 port and its many dependencies remain the work of their respective developers. Switch UI modifications are provided by **KernelForgeX**. This project is not affiliated with or endorsed by Nintendo, Sony, Eden, or BlackBearReloaded.
 
-This is an early alpha. Video, audio, controller input, and saves have been confirmed working. Compatibility and performance will vary between games. The current release is **v1.001.000**.
+> [!IMPORTANT]
+> **Release candidate — not yet a public stable release.** Switch UI v6.0 RC2 has been tested on PS5. Its provisional home-screen title ID is `PPSA99186`, separate from the original ProsperoEden title `PPSA99008`. Both use `/data/prosperoeden/` for data; back up configuration and saves before alternating versions, and do not run both at once. Public distribution is pending audio-rights review, title-ID reservation, updater qualification, and clean-install verification. See [RC installation and testing](docs/SWITCH_UI_V6_RC.md) and [release-readiness checklist](docs/SWITCH_UI_RELEASE_READINESS.md).
+
+The Switch UI launcher is based on ProsperoEden **v1.001.000**; compatibility and performance vary by game. The newer upstream ProsperoEden releases should not be confused with this separate edition.
 
 ## Source code
 
-The complete ProsperoEden source is in this repository: the PS5 frontend and launcher in `headless/`, and the build and packaging tools in `tools/`. To build it yourself, run `make` on Linux (Ubuntu 26.04; WSL works). It fetches every dependency at its pinned revision and writes the release files to `dist/`; `make help` lists the other targets. See [docs/BUILDING.md](docs/BUILDING.md). A release ZIP built by GitHub Actions can be checked with `gh attestation verify <ZIP> -R blackbearreloaded/ProsperoEden` (GitHub CLI); this covers releases built from now on (after v1.000.090), not earlier ones.
+The complete ProsperoEden source is in this repository: the PS5 frontend and launcher in `headless/`, and the build and packaging tools in `tools/`. To build it yourself, run `make` on Linux (Ubuntu 26.04; WSL works). It fetches every dependency at its pinned revision and writes the release files to `dist/`; `make help` lists the other targets. See [docs/BUILDING.md](docs/BUILDING.md). A release ZIP built by this fork’s GitHub Actions can be checked with `gh attestation verify <ZIP> -R KernelForgeX/ProsperoEden` (GitHub CLI). After any repository transfer to an organization, use its new repository owner. This describes CI-built artifacts, not binaries built by the upstream repository.
 
 Local-wireless multiplayer through Eden rooms is new in v1.000.110 and experimental. See the
 [setup guide and current limitations](docs/MULTIPLAYER.md) and the
@@ -65,7 +68,7 @@ Local-wireless multiplayer through Eden rooms is new in v1.000.110 and experimen
 - **Shader cache** - shaders compiled in earlier sessions are loaded when a game starts, so an effect stutters only the first time it appears.
 - **In-game shortcuts** - a performance overlay (Touchpad + R1), and Touchpad + L1 to end the game and return to the library. Leaving takes ten seconds at most, also while a game is still loading.
 - **Settings in one place** - a single JSON file under `/data/prosperoeden`, with game volume, mute, and detailed logging options. Logs keep the previous session.
-- **Updates from the menu** - when a newer release is listed on [homebrew.page](https://homebrew.page/ps5), ProsperoEden offers to install it each time it opens; **Skip** keeps the current version; see [Updating](#updating).
+- **Updates from the menu** - the original update infrastructure consults [homebrew.page](https://homebrew.page/) using the installed title ID. Automatic install/update for Switch UI is **not yet qualified** for public release; see [release readiness](docs/SWITCH_UI_RELEASE_READINESS.md).
 - **Crash reports** - if ProsperoEden stops because of an error, it saves a report with that session's logs, starts again and shows where the report is.
 - **Controllers, audio, and saves** - up to four DualSense controllers (one per signed-in PS5 user) with rumble and motion controls, game audio, and save data work out of the box. A game that gives a player a single Joy-Con is played with the whole DualSense: the shapes are that Joy-Con's four buttons, the D-pad and either stick are its stick, and L1/R1 and L2/R2 are its shoulder buttons. When the game has the Joy-Con held sideways, the DualSense is still held as usual: the stick, the buttons and the motion sensors are turned to match.
 - **Controller type per game** - some games take a Pro Controller and then only work with another controller. In **Library > Game settings > Controls**, **Controller type** gives the game a Pro Controller, the Handheld controller, Dual Joy-Cons, a Left Joy-Con or a Right Joy-Con. Left on **Automatic**, the game gets what it takes, a Pro Controller first.
@@ -77,7 +80,7 @@ Local-wireless multiplayer through Eden rooms is new in v1.000.110 and experimen
 > **Use [ShadowMountPlus 1.7beta4](https://github.com/drakmor/ShadowMountPlus/releases/tag/1.7beta4) or newer.** It mounts ProsperoEden from the folder (or drive) you copy it to, and it also mounts `/data` and USB and extended storage drives into the app's sandbox, so ProsperoEden reaches its data and your game files with nothing else to load. With an older ShadowMountPlus, ProsperoEden falls back to its bundled [Lapy](https://github.com/blackbearreloaded/PS5-Lapy-JB-Daemon) helper (see [Elevation credits](#elevation-credits)).
 
 1. Download and extract the release ZIP.
-2. Copy the included `PPSA99008` folder to `/data/homebrew/PPSA99008` on the PS5 (or to another folder ShadowMountPlus scans, such as `/mnt/usb0/homebrew/PPSA99008`).
+2. For this **Switch UI release candidate**, copy the included `PPSA99186` folder to `/data/homebrew/PPSA99186` on the PS5 (or another folder ShadowMountPlus scans, such as `/mnt/usb0/homebrew/PPSA99186`). Do **not** replace or rename the original `PPSA99008` app folder.
 3. Make sure your jailbreak environment's local ELF loader is listening on TCP port 9021 (most setups have it). [Updates from the menu](#updating) use it, and with a ShadowMountPlus older than 1.7beta4 ProsperoEden sends its bundled Lapy helper through it.
 4. Put your own legally dumped keys, firmware, and games in a **game files folder** (layout below). It can be anywhere the PS5 can read: internal storage, an M.2 or external drive, or a USB device.
 5. Launch **ProsperoEden**, open **Settings > Game files**, browse to that folder and select it. The default is `/data/prosperoeden`.
@@ -357,6 +360,13 @@ The launcher follows the language the PS5 is set to: Arabic, Chinese (simplified
 ### Upgrading from an earlier alpha
 
 Earlier versions read everything from `/data/homebrew/PPSA99008/assets/`. That folder keeps working until you choose a game files folder, and settings are migrated automatically on first launch. To move to the new layout, move `assets/keys`, `assets/firmware` and `assets/roms` into any folder, then select it in **Settings > Game files**. The release ZIP contains no user files, so copy its app files over your installation without deleting your own data.
+
+## Changes in v6.000.000
+
+- **Independent Switch UI Edition.** Switch-inspired HOME, All Software grid, Settings, Themezer themes, navigation and feedback, and separate PS5 home-screen application identity (`PPSA99186`, provisional until catalog reservation).
+- **Themezer wallpapers.** Built-in Switch Dark theme and Quick ID download/import for Themezer themes and packs; first-run theme folders are created automatically.
+- **Settings refinement.** Flat Downloads and Save Sync lists, consistent selection treatment, dialogs that dim the Settings interface while preserving the theme wallpaper.
+- **Attribution.** About screen identifies Switch UI as provided by KernelForgeX while preserving Eden and BlackBearReloaded credits.
 
 ## Changes in v1.001.000
 

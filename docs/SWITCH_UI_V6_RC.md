@@ -56,5 +56,21 @@ the catalog maintainer, before public distribution.
   attribution without establishing the current sound files' origin and rights.
 
 The initial v6.0 RC successfully launched on PS5 under PPSA99186, found and
-launched existing games, and did not offer an original-app update. RC2's
-visual changes must still be tested on console.
+launched existing games, and did not offer an original-app update.
+
+## RC2 hardware results (2026-10-14)
+
+**Passed on a PS5 using the RC2 `eboot.bin`**: Settings > Downloads flat list;
+Settings > Save Sync list; dimmed Settings panels/dialogs; About-screen version
+and attribution; ordinary menu navigation and game browsing/launch stability.
+
+**Passed with a missing theme library**: after backing up and renaming
+`/data/prosperoeden/themes/`, a subsequent launch recreated the folder structure
+(`installed/`, `active/`, `current.txt`). A Themezer Quick ID was then
+successfully downloaded, installed, and activated using the fresh theme library.
+
+**Not yet tested**: a complete first-time installation with an otherwise empty
+`/data/prosperoeden/` root; data migration between different emulator core
+versions; catalog-driven update installation, rollback, and recovery.
+
+For the remaining release gates, see [SWITCH_UI_RELEASE_READINESS.md](SWITCH_UI_RELEASE_READINESS.md).
