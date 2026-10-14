@@ -1,93 +1,72 @@
-# Themes
+# Themes — ProsperoEden Switch UI Edition
 
-The launcher's look is a theme. This build has one, **Canopy** (a tropical dusk, dark green
-glass and lime), and it is the one in use. **Settings > Theme** lists the themes a build has; the
-choice is kept in the settings file as `"launcher": { "theme": "canopy" }`.
+The Switch UI Edition uses **Switch Dark** as its only built-in theme.
+Additional wallpapers and optional accent colours come from individually
+installed Themezer themes and packs. **Canopy is not included in the theme
+selector or used as the fallback for Themezer assets.**
 
-A theme is data. It says what the screens are painted with, and nothing about where things are.
+Select the theme in **Settings > Themes**. The built-in theme and all installed
+Themezer themes appear in the same selector. A first run with an empty
+theme library is fully usable offline.
 
-## What a theme sets
+## Theme storage
 
-Everything below is one structure, `pe::ui::Theme` in
-[`headless/prosperoeden/pe/ui/theme.hpp`](../headless/prosperoeden/pe/ui/theme.hpp).
+The app creates and manages the following persistent paths automatically:
 
-| Part | What it holds |
-| --- | --- |
-| Identity | `id` (in the settings file), `name` (as Settings shows it), `summary` (one line about it), `kit` (the recipe it starts from), `contract` (the version of the structure it was made for) |
-| Colour: surfaces | `base`, `scrim`, `glass`, `panel`, `panel_edge`, `row`, `row_edge`, `row_focus` |
-| Colour: accent | `accent`, `accent_deep`, `accent_pale`, `on_accent` (text on an accent fill), `highlight` (light in the artwork) |
-| Colour: text | `text`, `title`, `value`, `body`, `copy`, `meta`, `label`, `muted`, `faint`, `warning`, `rule` |
-| Type | the sizes of the hero title, a screen's title, rows, captions; how much heavier titles are drawn; the spacing of the small capital headings |
-| Shape | corner radii for rows, cards and panels; whether chips are pills; hairline and focus ring widths; how far the focus ring's light reaches; whether panels are glass |
-| Motion | the springs of the focus, the highlight and scrolling; how long a screen change and a game's start take; the delay between the parts of a screen as it arrives; the focus glow's pulse |
-| Artwork | the backdrop, its blurred copy (behind glass panels) and the app's mark, as files in `ui/art`; where the artwork's light is |
-| Ambient light | how many motes of light rise over the artwork, and how far the artwork drifts |
-| Sound | a folder of `ui/sounds` with its own cues (none: the launcher's own) |
+```text
+/data/prosperoeden/themes/
+  installed/       # Themezer wallpapers, packs and palettes
+  active/          # preserved for compatible legacy theme imports
+  current.txt      # selected theme ID; defaults to switch-dark
+```
 
-The screen shown while a game loads is drawn by the emulator, not by the launcher, and takes
-four of these colours with it: `accent`, `accent_pale`, `accent_deep` and `base`
-(`Eden::Loading::Palette` in `headless/hud.h`). Everything else on it is the game's own cover.
+The theme library lives outside the Switch UI app package and survives app
+updates. When `/data/prosperoeden/themes` is missing, the next launch
+automatically recreates it; Themezer Quick ID imports and activation have
+been tested on PS5 in this state.
 
-## What a theme does not set
+Older installations whose `current.txt` still names `canopy` are migrated
+to `switch-dark`. The other persisted themes and files are left in place.
+If a selected theme does not exist, the launcher falls back to Switch Dark.
 
-- **Where things are.** The rail, the home screen's hero, the Library's covers and the Settings
-  tiles are the launcher's, the same in every theme. A theme that moved them would be code, and
-  would have to be tested as a launcher of its own.
-- **Text.** The words and their translations are the launcher's.
-- **Accessibility.** Larger text, High contrast and Reduce motion lie over whatever theme is in
-  use (`pe::ui::Look`). A theme cannot turn them off.
+## How the built-in theme works
 
-## Three rules
+The visual style is defined by `switch_dark()` in
+[`pe/ui/theme.cpp`](../headless/prosperoeden/pe/ui/theme.cpp), including
+all surface, focus, accent, text and warning colours. It uses bundled
+`switch-dark-backdrop.tga` artwork and is the sole colour baseline for
+installed Themezer wallpapers.
 
-1. **Roles, not hues.** A screen asks for `th().accent`, never for a green. A colour written as a
-   number in a screen would stay that colour in every theme, so the build fails on one
-   (`tools/check-launcher-theme.py`).
-2. **Canopy is the fallback.** It is compiled in. A theme starts as a copy of a complete one, so a
-   part it does not set has a value; a theme named in the settings file that the build does not
-   have leaves the first theme in use.
-3. **A warning is marked, not only coloured.** `warning` always comes with its mark (the "!" in a
-   ring), so a theme whose warning colour is close to another colour still reads.
+The launcher is still based on the open-source ProsperoEden drawing and
+accessibility framework and the pinned
+[`ps5-homebrew-ui`](https://github.com/blackbearreloaded/ps5-homebrew-ui)
+theme kit; removing a theme does not replace the underlying licensed UI
+engine. Authors and licenses remain in
+[`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md).
 
-## Where a theme starts: a recipe of the UI kit
+## What a theme controls
 
-The launcher draws with its own engine (`headless/prosperoeden/pe`: it shapes Arabic and Thai,
-reads the console's fonts for Japanese, Korean, Chinese and Greek, and fits translated text to its
-place). Its themes start from the theme recipes of
-[ps5-homebrew-ui](https://github.com/blackbearreloaded/ps5-homebrew-ui), the UI kit: the kit's
-theme table is fetched at a pinned commit when the launcher is built (`ui-kit` in
-`tools/deps.json`) and compiled in.
+The [`pe/ui/theme.hpp`](../headless/prosperoeden/pe/ui/theme.hpp)
+structure controls colour roles, typography, rounded edges, focus glow,
+motion values, backdrop filenames, optional audio folder and artwork drift.
+It does not change the interface layout, emulator performance, game files
+or accessibility preferences. **Larger text**, **High contrast** and
+**Reduce motion** still override theme presentation.
 
-`theme_from_kit("acrylic", &theme)` (`pe/ui/theme_kit.cpp`) fills a launcher theme from a kit
-theme:
+Each Themezer import is validated before it is shown; an optional
+`palette.ini` can set focus-accent colour, without altering saved game data.
 
-- every colour role from the kit's page, surface, text, primary, accent and outline colours;
-- the corners from the kit's radii, at this launcher's larger sizes;
-- the focus ring from the kit's focus width and shadow blur;
-- glass panels when the kit theme's surfaces are glass;
-- the springs from the kit's.
+## Testing for a release
 
-Canopy starts from the kit's **Acrylic** (frosted glass, soft shadows, a ring of light as the
-focus) and then sets its own colours, corners and artwork over it.
+1. Check Settings > Themes shows **Switch Dark** and all installed Themezer
+   themes, without a selectable Canopy.
+2. With `current.txt` set to `canopy` by a previous version, check the next
+   launch selects Switch Dark and updates `current.txt` to `switch-dark`.
+3. Switch between Switch Dark and a Themezer wallpaper, including Settings
+   and its background-dimming dialogs.
+4. Confirm installed Themezer wallpapers persist after an app update.
+5. Test an empty theme root via safe folder **rename**, not deletion of
+   personal themes. Restore the backup afterward.
 
-## Adding a theme
-
-1. In `pe/ui/theme.cpp`, write a function like `canopy()`: start from a kit recipe with
-   `theme_from_kit`, then set what the theme wants of its own. Give it an `id` of lower-case
-   letters, digits and hyphens (the settings file takes nothing else).
-2. Add it to the table in `Store` there (its size is the number of themes).
-3. Put its artwork in `headless/prosperoeden/ui/art`: a backdrop of 2048 by 1152 (the screen plus
-   room to drift), the same picture blurred at a quarter of that size, and a square mark. Name the
-   files in the theme.
-4. Look at it: `tools/launcher/preview.sh` draws every screen on a PC. Run it once more with
-   `PE_LOOK=large,contrast,calm` (the accessibility settings) and in a language with long words
-   (`PE_LANG=de-DE`).
-5. Text on a surface needs a contrast of 4.5 to 1 (3 to 1 from 24 pixels up); check `text`,
-   `copy` and `meta` on `panel` and `row`, and `on_accent` on `accent`.
-
-Changing the theme in Settings shows in the next frame for colours, corners and motion; artwork
-is read when the launcher opens.
-
-## The contract's version
-
-`contract` is 1. A change that adds a part with a default keeps it; a change that old themes
-cannot follow raises it, and a theme made for a lower one is completed from Canopy.
+For the historical upstream Canopy theme documentation, refer to
+[BlackBearReloaded's original ProsperoEden](https://github.com/blackbearreloaded/ProsperoEden).

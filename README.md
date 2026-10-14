@@ -53,7 +53,7 @@ Local-wireless multiplayer through Eden rooms is new in v1.000.110 and experimen
 - **Folder browser** - pick the game files folder in **Settings > Game files**. It shows how many keys, firmware files, and games each folder holds. Hold L1/R1 to page quickly.
 - **Library** - your games as covers, with the selected game's details beside them. The home screen has **Continue Playing** and **Recently Played**, which keep working after you move your files.
 - **Launcher** - an animated interface drawn with OpenGL, with sound effects (their level is in **Settings > Audio**) and a loading screen that shows the game's cover while it starts. It opens from the console's own launch picture without a cut: the mark appears over the picture and goes to its place as the menu arrives (any button skips it). Its five sections (Home, Library, Multiplayer, Settings, About) are on a rail at the left: L1 and R1 go from one to the next, and Left from a screen's edge opens the rail. The home screen shows which controllers are connected.
-- **Themes** - the launcher's look is a theme, chosen in **Settings > Theme**. It comes with one, Canopy; [docs/THEMES.md](docs/THEMES.md) says what a theme is made of.
+- **Themes** - the Switch UI launcher includes **Switch Dark** and supports downloadable Themezer wallpapers/packs in **Settings > Themes**. The original Canopy theme has been removed from this edition, including its fallback palette; see [docs/THEMES.md](docs/THEMES.md).
 - **Profiles** - everyone who plays has their own save data, settings and recently played games: **Settings > Profiles**; see [Profiles](#profiles).
 - **Settings per game** - a game can differ from Settings in its video, performance, audio, controls and language, and has its own Handheld / Docked mode (Triangle in the Library); see [Settings per game](#settings-per-game).
 - **Button mapping** - choose which DualSense button presses each of the game's buttons, for every controller, in **Settings > Controls**, or for one game in its settings; see [Button mapping](#button-mapping).
@@ -370,6 +370,8 @@ Earlier versions read everything from `/data/homebrew/PPSA99008/assets/`. That f
 - **Themezer wallpapers.** Built-in Switch Dark theme and Quick ID download/import for Themezer themes and packs; first-run theme folders are created automatically.
 - **Settings refinement.** Flat Downloads and Save Sync lists, consistent selection treatment, dialogs that dim the Settings interface while preserving the theme wallpaper.
 - **Attribution.** About screen identifies Switch UI as provided by KernelForgeX while preserving Eden and BlackBearReloaded credits.
+- **Original low-volume UI audio.** The independently synthesized Tactile Leaf v3 set replaces the inherited menu sounds. Ticks are restrained, while page changes and game launching use quiet, soft slides.
+- **Switch-only themes.** Canopy no longer appears in Settings > Themes or supplies fallback colours; Switch Dark is the only bundled theme and the basis for downloaded Themezer wallpapers. Previous Canopy selections migrate safely to Switch Dark.
 
 The release history below is retained from the original ProsperoEden project and may refer to its different title ID, menu, paths, and theme choices. It describes the upstream base, not the Switch UI modifications above.
 

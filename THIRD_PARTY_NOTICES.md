@@ -77,11 +77,12 @@ builds on the following projects, each under its own license.
   domain (`tools/launcher/stb`). `stb_truetype` bakes the launcher's font and,
   in the app, reads the console's system fonts for the scripts Montserrat does
   not have. `stb_image_write` saves the PC previews and is not part of the app.
-- **Soft Orbit UI sound pack (Switch UI Edition)**: 20 independently
+- **Tactile Leaf v3 UI sound pack (Switch UI Edition)**: 20 independently
   synthesized oscillator/noise WAV effects created specifically for this
-  edition; no third-party recordings or Nintendo samples. These original
-  clips replace the earlier bundled audio in this edition's package.
-  See [docs/SOFT_ORBIT_AUDIO.md](docs/SOFT_ORBIT_AUDIO.md).
+  edition, with soft slide transitions and low UI playback gain.
+  No third-party recordings or Nintendo samples were used. These original
+  clips replace all previously bundled UI WAVs for this edition.
+  See [docs/TACTILE_LEAF_AUDIO.md](docs/TACTILE_LEAF_AUDIO.md).
 - `third_party/ps5_pad.hpp` and `third_party/native_audio.hpp` are this
   project's own platform declarations, GPL-3.0-or-later.
 

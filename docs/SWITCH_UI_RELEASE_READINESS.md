@@ -27,24 +27,39 @@ The original app uses `/data/homebrew/PPSA99008/`.
 Both access `/data/prosperoeden/`; do not run both simultaneously and back up
 `config/` and `user/` before cross-version tests.
 
-## Audio provenance — replacements integrated; PS5 test pending
+## Original audio — Tactile Leaf v3 integrated; PS5 regression pending
 
-The RC2 branch inherited all 20 upstream WAVs, which were attributed to
-ElevenLabs. **The release-prep branch replaces all 20 filenames with the
-original, independently synthesized `Soft Orbit` set approved for trial by
-the Switch UI maintainer.** No Nintendo samples, copied jingles, or third-party
-audio recordings were used to construct the new samples.
+The RC2 branch inherited 20 upstream WAV files with unclear audio
+redistribution provenance. The release-prep branch first replaced them with
+independently synthesized Soft Orbit test cues, then approved Tactile Leaf v3.
+The Tactile Leaf sound set is **20 independently synthesized WAVs**, with
+**18 unchanged from Tactile Leaf v2** and the page and launch cues softened
+in v3. None of the old upstream WAVs are included in the current source
+audio directory.
 
-`headless/prosperoeden/pe/audio/sounds.cpp` now prefers the installed WAVs
-even when soft-navigation mode is enabled; synthesized C++ tones remain as
-fallback only if the corresponding WAV is unavailable. The packaging script
-checks the **exact SHA-256 hashes** and 48 kHz PCM16 format of all 20 approved
-WAVs; a stale/altered source file fails the build. Former ElevenLabs attribution
-is replaced in `THIRD_PARTY_NOTICES.md` with accurate Soft Orbit attribution.
+`headless/prosperoeden/pe/audio/sounds.cpp` now prefers recordings for all
+UI navigation and uses a dedicated **0.45 gain (≈ −6.9 dB)** on the WAV
+player; synthesized fallback tones are quieter too. The user UI-volume
+control remains available. `tools/check-tactile-leaf-audio.py` verifies the
+exact SHA-256 hashes and WAV formats of all 20 files at packaging time.
+`THIRD_PARTY_NOTICES.md` identifies Tactile Leaf rather than the former
+upstream audio.
 
-See [SOFT_ORBIT_AUDIO.md](SOFT_ORBIT_AUDIO.md) for provenance and the exact
-audio test procedure. **On-console audio regression is still pending; do not
-declare final public-release readiness based solely on desktop previews.**
+See [TACTILE_LEAF_AUDIO.md](TACTILE_LEAF_AUDIO.md) for provenance and
+the on-console sound test. **PS5 volume, balance and rapid-navigation
+tests are still pending; the audio integration is not yet hardware-qualified.**
+
+## Theme list — Canopy removed; regression pending
+
+`switch_dark()` is now a self-contained palette: **Canopy is not registered
+or consulted as a visual fallback**, and Themezer imports inherit Switch
+Dark's colours. The Settings selector has one built-in option, Switch Dark,
+plus Themezer themes installed by the user. Legacy `current.txt` selections
+of `canopy` migrate to `switch-dark` without removing other themes.
+
+Test selector enumeration, migration, Themezer persistence, and UI background
+dimming on the next PS5 build. The earlier first-run Themezer tests were
+conducted before Canopy removal, so they do not qualify this revision.
 
 ## Title identity and catalog
 
@@ -93,8 +108,10 @@ retesting is required if a different ID is chosen or assigned.
 
 ## Required final gates
 
-- [ ] Finish PS5 playback testing of the 20 new Soft Orbit WAVs, verify
-      default/soft-navigation behavior, and check the finished release ZIP.
+- [ ] Finish PS5 playback testing of all 20 Tactile Leaf v3 WAVs at the
+      new restrained volume, default/soft-navigation behavior, and packaging.
+- [ ] Check Canopy no longer appears in Themes, legacy Canopy selection safely
+      migrates, and existing Themezer imports/palettes and dialogs still work.
 - [ ] Choose the long-term GitHub owner, then reserve `PPSA99186` with the
       catalog under the appropriate submitting account.
 - [ ] Fully clean-test installation and initial data directory creation on
@@ -110,6 +127,7 @@ retesting is required if a different ID is chosen or assigned.
 - [ ] Record a final PS5 regression pass and obtain explicit go-ahead before
       pushing a release tag or submitting a public listing.
 
-Keep the verified RC2 revision available for fallback. The new sound assets,
-player preference for WAVs, and package-level sound verification are isolated
-to release-prep; the PS5 title ID and shared game-data root are unchanged.
+Keep the verified RC2 revision available for fallback. Tactile Leaf v3 audio,
+restrained gain, Switch Dark-only base theme, and package-level sound
+verification are isolated to release-prep; the PS5 title ID and shared
+game-data root are unchanged.

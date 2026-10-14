@@ -26,44 +26,45 @@ Color rgb(std::uint32_t hex, float alpha = 1.0f)
     return Color::rgb(hex, alpha);
 }
 
-// Canopy: a tropical dusk, dark green glass and lime. ProsperoEden's own look, and the one a
-// part missing from any other theme falls back to.
-Theme canopy()
+// Switch Dark is the independent built-in colour and artwork baseline for
+// the Switch UI edition. Themezer themes inherit from this, never from Canopy.
+// It works offline when the persistent theme library is empty or unwritable.
+Theme switch_dark()
 {
     Theme t;
-    // The kit's frosted glass: translucent panels over the artwork, soft shadows, a ring of light
-    // for the focus, movement that settles without a bounce.
-    theme_from_kit("acrylic", &t);
-    t.id = "canopy";
-    t.name = "Canopy";
-    t.summary = TR("Tropical dusk, dark green glass and lime.");
+    (void)theme_from_kit("acrylic", &t);
+    t.id = "switch-dark";
+    t.name = "Switch Dark";
+    t.summary = "Dark minimalist HOME theme, included with the app.";
 
-    t.base = rgb(0x06090a);
-    t.scrim = rgb(0x010806);
-    t.glass = rgb(0x16221d);
-    t.panel = rgb(0x0b1713);
-    t.panel_edge = rgb(0x768e75);
-    t.row = rgb(0x17241e);
-    t.row_edge = rgb(0x6a8267);
-    t.row_focus = rgb(0x294433);
+    // Explicitly define all visible colour roles; do not inherit the former
+    // ProsperoEden Canopy palette or its green/tropical fallback values.
+    t.base        = rgb(0x0b1019);
+    t.scrim       = rgb(0x060910);
+    t.glass       = rgb(0x141c28);
+    t.panel       = rgb(0x141a24);
+    t.panel_edge  = rgb(0x526070);
+    t.row         = rgb(0x202a38);
+    t.row_edge    = rgb(0x4c5b70);
+    t.row_focus   = rgb(0x31465b);
 
-    t.accent = rgb(0xa9db63);
-    t.accent_deep = rgb(0x245d4a);
-    t.accent_pale = rgb(0xdfe8a6);
-    t.on_accent = rgb(0x0b1713);
-    t.highlight = rgb(0xffd76a);
+    t.accent      = rgb(0x66cdfb);
+    t.accent_deep = rgb(0x315c83);
+    t.accent_pale = rgb(0xc9edfd);
+    t.on_accent   = rgb(0x07121c);
+    t.highlight   = rgb(0x639dc7);
 
-    t.text = rgb(0xf0f5f2);
-    t.title = rgb(0xfffcef);
-    t.value = rgb(0xf2f4e9);
-    t.body = rgb(0xe2e8d7);
-    t.copy = rgb(0xc5d0bd);
-    t.meta = rgb(0xb7c6b5);
-    t.label = rgb(0xaebdaa);
-    t.muted = rgb(0xaab8ac);
-    t.faint = rgb(0x8c9e90);
-    t.warning = rgb(0xe8b39a);
-    t.rule = rgb(0x536b55);
+    t.text        = rgb(0xf5f7fb);
+    t.title       = rgb(0xf8fafc);
+    t.value       = rgb(0xeaf0f8);
+    t.body        = rgb(0xe5edf5);
+    t.copy        = rgb(0xc4d1df);
+    t.meta        = rgb(0xb9c6d4);
+    t.label       = rgb(0xafc0d0);
+    t.muted       = rgb(0x9bacc0);
+    t.faint       = rgb(0x8b9aad);
+    t.warning     = rgb(0xe8b39a);
+    t.rule        = rgb(0x425061);
 
     t.radius_row = 18.0f;
     t.radius_card = 22.0f;
@@ -72,53 +73,15 @@ Theme canopy()
     t.focus_width = 2.0f;
     t.focus_glow = 30.0f;
     t.glass_panels = true;
-
     t.focus_spring = 20.0f;
     t.cursor_spring = 26.0f;
     t.scroll_spring = 16.0f;
 
-    t.backdrop = "backdrop.tga";
-    t.backdrop_blur = "backdrop-blur.tga";
-    t.brand = "brand.tga";
-    t.light_x = 0.710f;
-    t.light_y = 0.391f;
-    t.motes = 26;
-    t.drift = 1.0f;
-    return t;
-}
-
-// Dark is self-contained in the release, so a fresh install works offline even when
-// /data/prosperoeden/themes is empty or unwritable.
-Theme switch_dark()
-{
-    Theme t = canopy();
-    t.id = "switch-dark";
-    t.name = "Switch Dark";
-    t.summary = "Dark minimalist HOME theme, included with the app.";
-    t.base = rgb(0x0b1019);
-    t.scrim = rgb(0x060910);
-    t.glass = rgb(0x141c28);
-    t.panel = rgb(0x141a24);
-    t.panel_edge = rgb(0x526070);
-    t.row = rgb(0x202a38);
-    t.row_edge = rgb(0x4c5b70);
-    t.row_focus = rgb(0x31465b);
-    t.accent = rgb(0x66cdfb);
-    t.accent_deep = rgb(0x315c83);
-    t.accent_pale = rgb(0xc9edfd);
-    t.on_accent = rgb(0x07121c);
-    t.highlight = rgb(0x639dc7);
-    t.title = rgb(0xf8fafc);
-    t.text = rgb(0xf5f7fb);
-    t.body = rgb(0xe5edf5);
-    t.copy = rgb(0xc4d1df);
-    t.meta = rgb(0xb9c6d4);
-    t.faint = rgb(0x8b9aad);
-    t.rule = rgb(0x425061);
-    t.motes = 0;
-    t.drift = 0.0f;
     t.backdrop = "switch-dark-backdrop.tga";
     t.backdrop_blur = "switch-dark-backdrop-blur.tga";
+    t.brand = "brand.tga";
+    t.motes = 0;
+    t.drift = 0.0f;
     return t;
 }
 
@@ -132,7 +95,7 @@ struct Store
     std::vector<std::unique_ptr<ExternalNames>> names;
     int index = 0;
     Theme active;
-    Store() : all{switch_dark(), canopy()}, active(all[0]) {}
+    Store() : all{switch_dark()}, active(all[0]) {}
 };
 
 Store &store()
@@ -217,7 +180,6 @@ void refresh_switch_themes() {
     s.index = 0;
     s.all.clear();
     s.all.push_back(switch_dark());
-    s.all.push_back(canopy());
     s.names.clear();
     append_installed(s);
     (void)use_theme(active);
@@ -229,6 +191,12 @@ std::string startup_switch_theme(std::string_view preference)
 {
     initialize_switch_themes();
     const std::string stored = switch_bootstrap::selected(switch_bootstrap::root());
+    // Migrate a previously selected upstream-only theme without touching
+    // installed Themezer artwork or other persistent application data.
+    if (stored == "canopy") {
+        (void)switch_bootstrap::set_selected(switch_bootstrap::root(), "switch-dark");
+        return "switch-dark";
+    }
     const auto available = [](std::string_view id) {
         for (const Theme &t : themes()) if (id == t.id) return true;
         return false;

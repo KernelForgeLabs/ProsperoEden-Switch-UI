@@ -92,7 +92,7 @@ void SoundBank::play(Mixer &mixer, Cue cue)
     params.bus = Bus::ui;
     auto &set = sets_[index];
     // The soft-navigation option chooses the gentler synthesized *fallback*
-    // only when no recording is installed. Soft Orbit clips must be used for
+    // only when no recording is installed. Tactile Leaf clips are used for
     // all UI actions, including Settings / Themes / modal navigation.
     const bool soft_cue = soft_navigation_ &&
         (cue == Cue::focus || cue == Cue::select || cue == Cue::back ||
@@ -105,6 +105,10 @@ void SoundBank::play(Mixer &mixer, Cue cue)
         params.pitch = 0.97f + 0.06f * static_cast<float>(jitter_state_ >> 8) / 16777216.0f;
         const Sound &sound = *set[next_[index] % set.size()];
         next_[index] = (next_[index] + 1) % set.size();
+        // Soft UI feedback should sit below the content, never dominate it.
+        // Gain 0.45 = approx. -6.9 dB before the existing user UI-volume bus.
+        // The WAVs themselves stay byte-for-byte identical to the approved set.
+        params.gain = 0.45f;
         mixer.play_clip(&sound.clip, params);
         return;
     }
@@ -135,7 +139,8 @@ void SoundBank::play(Mixer &mixer, Cue cue)
     tone.seconds = seconds;
     tone.attack = std::min(0.006f, tone.seconds * 0.2f);
     tone.release = std::min(0.12f, tone.seconds * 0.5f);
-    params.gain = soft_cue ? 0.16f : info.gain;
+    // Keep synthesized fallbacks in the same restrained volume range.
+    params.gain = (soft_cue ? 0.16f : info.gain) * 0.45f;
     mixer.play_tone(tone, params);
 }
 
