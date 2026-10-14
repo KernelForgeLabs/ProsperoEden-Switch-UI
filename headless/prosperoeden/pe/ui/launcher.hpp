@@ -264,6 +264,9 @@ class Launcher
     std::future<switch_theme::ImportResult> theme_download_;
     std::atomic<bool> theme_stop_{false};
     std::string theme_delete_confirm_;
+    bool theme_mapping_open_ = false;
+    std::string theme_mapping_id_;
+    int theme_mapping_row_ = 0;
 
     // ---- a newer release of the app (update.cpp) ----
     // Takes the update check's answer when it comes, and opens the dialog once the menu is free.

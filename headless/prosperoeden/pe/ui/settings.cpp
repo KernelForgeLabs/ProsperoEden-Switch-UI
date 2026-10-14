@@ -4,6 +4,7 @@
 
 #include "pe/ui/launcher.hpp"
 #include "pe/ui/switch_bootstrap.hpp"
+#include "pe/ui/switch_pages.hpp"
 
 #include <algorithm>
 #include <string>
@@ -651,8 +652,10 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
         copy = tr("Make the menu easier to see and follow.");
         break;
     case Modal::theme:
-        title = tr("Themes");
-        copy = tr("Choose a wallpaper or enter a Themezer code.");
+        title = theme_mapping_open_ ? tr("Screen backgrounds") : tr("Themes");
+        copy = theme_mapping_open_ ?
+            tr("Pick a screen, then change its wallpaper. Background updates are previewed.") :
+            tr("Cross: apply   Triangle: customize active pack   Square: delete inactive theme");
         break;
     default:
         title = tr("Diagnostics");
@@ -664,14 +667,16 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
     text_shrink(c, copy, 592.0f, baseline(291.0f, 32.0f, th().size_small), th().size_small,
                 th().copy, 736.0f);
 
-    const int rows = dialog_rows(modal);
+    const int rows = modal == Modal::theme && theme_mapping_open_ ?
+        static_cast<int>(switch_pages::kEditableRoles.size()) : dialog_rows(modal);
     // Video's rows scroll in a window of five and Performance's in one of four; the other dialogs
     // show all of theirs.
     const bool scrolls = modal == Modal::video || modal == Modal::performance;
     const ListView &rows_view = modal == Modal::performance ? performance_rows_ : video_rows_;
     const Rect &window = modal == Modal::performance ? kPerformanceWindow : kVideoWindow;
     const bool theme_scroll = modal == Modal::theme;
-    const int theme_first = theme_scroll ? std::clamp(option_ - 2, 0, std::max(0, rows - 4)) : 0;
+    const int theme_selected = theme_mapping_open_ && modal == Modal::theme ? theme_mapping_row_ : option_;
+    const int theme_first = theme_scroll ? std::clamp(theme_selected - 2, 0, std::max(0, rows - 4)) : 0;
     const int first = scrolls ? rows_view.first_row() : theme_first;
     const int last = scrolls ? rows_view.last_row() : theme_scroll ? std::min(rows - 1, theme_first + 3) : rows - 1;
     if (scrolls)
@@ -688,7 +693,7 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
     }
     const Rect focus_row{592.0f,
                          scrolls ? kVideoRowsTop + rows_view.cursor() - rows_view.scroll() :
-                         theme_scroll ? dialog_row_top(modal, option_ - theme_first) : option_cursor_.value,
+                         theme_scroll ? dialog_row_top(modal, theme_selected - theme_first) : option_cursor_.value,
                          736.0f, 94.0f};
     if (theme_scroll)
         list.bordered_rect(focus_row, 8.0f, th().row_focus.with_alpha(0.88f), 2.5f, th().accent_pale);
@@ -860,21 +865,45 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
     }
     case Modal::theme:
     {
-        const auto all = themes();
-        for (int row = first; row <= last; ++row) {
-            if (row == 0) label(row, tr("Install from Themezer Quick ID"), 64.0f);
-            else label(row, all[static_cast<std::size_t>(row - 1)].name, 64.0f);
-            if (row != theme_index() + 1) continue;
-            const float y = row_centre(row - theme_first);
-            list.circle(1268.0f, y, 17.0f, th().accent);
-            icon(c, Icon::check, 1268.0f, y, 22.0f, th().on_accent);
+        if (theme_mapping_open_) {
+            static constexpr std::array<const char*,8> labels = {
+                "HOME", "Library", "Settings", "Themes", "Profiles", "Multiplayer", "Public Rooms", "About"};
+            for (int row = first; row <= last; ++row) {
+                const auto role=switch_pages::kEditableRoles[static_cast<std::size_t>(row)];
+                const std::string asset=switch_pages::override_for(
+                    switch_bootstrap::root(),theme_mapping_id_,role);
+                label(row,labels[static_cast<std::size_t>(row)],292.0f);
+                const std::string label_name = asset == "auto" ? "Auto (pack default)" :
+                    asset == "all_apps" ? "All Apps" :
+                    asset == "player_select" ? "Player Selection" :
+                    asset == "lockscreen" ? "Lock Screen" :
+                    asset == "home" ? "Home Menu" :
+                    asset == "user" ? "User Page" :
+                    asset == "news" ? "News" : "Settings";
+                text_shrink(c,label_name,
+                    1292.0f,baseline(dialog_row_top(modal,row-theme_first),94.0f,th().size_text),
+                    th().size_text,th().accent_pale,270.0f,Align::right);
+            }
+            text_block(c, "The highlighted screen is previewed behind this dialog. Auto uses the pack's default mapping; missing artwork falls back to HOME.",
+                592.0f,baseline(820.0f,30.0f,th().size_small),th().size_small,30.0f,
+                th().meta,736.0f,2,kShrink);
+        } else {
+            const auto all = themes();
+            for (int row = first; row <= last; ++row) {
+                if (row == 0) label(row, tr("Install from Themezer Quick ID"), 64.0f);
+                else label(row, all[static_cast<std::size_t>(row - 1)].name, 64.0f);
+                if (row != theme_index() + 1) continue;
+                const float y = row_centre(row - theme_first);
+                list.circle(1268.0f, y, 17.0f, th().accent);
+                icon(c, Icon::check, 1268.0f, y, 22.0f, th().on_accent);
+            }
+            const std::string about = option_ == 0
+                ? "Enter a T... theme or P... theme-pack Quick ID. Packs can take longer to install."
+                : all[static_cast<std::size_t>(std::clamp(option_ - 1, 0, static_cast<int>(all.size()) - 1))].summary;
+            text_block(c, about, 592.0f,
+                       baseline(820.0f, 30.0f, th().size_small), th().size_small, 30.0f, th().meta, 736.0f, 2,
+                       kShrink);
         }
-        const std::string about = option_ == 0
-            ? "Enter a T... theme or P... theme-pack Quick ID. Packs can take longer to install."
-            : all[static_cast<std::size_t>(std::clamp(option_ - 1, 0, static_cast<int>(all.size()) - 1))].summary;
-        text_block(c, about, 592.0f,
-                   baseline(820.0f, 30.0f, th().size_small), th().size_small, 30.0f, th().meta, 736.0f, 2,
-                   kShrink);
         break;
     }
     default:
@@ -926,6 +955,18 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
     {
         notice(c, message_, 592.0f, foot + 7.0f, th().size_small,
                message_warning_ ? th().warning : th().accent_pale, 736.0f, message_warning_);
+    }
+    else if (modal == Modal::theme && theme_mapping_open_)
+    {
+        static constexpr Hint kMapHints[] = {{Pad::updown, TR("Screen")}, {Pad::leftright, TR("Artwork")},
+                                              {Pad::square, TR("Auto")}, {Pad::circle, TR("Back")}};
+        draw_hints(c, kMapHints, 4, 592.0f, foot, th().copy, 736.0f);
+    }
+    else if (modal == Modal::theme)
+    {
+        static constexpr Hint kThemeHints[] = {{Pad::cross, TR("Apply")}, {Pad::triangle, TR("Customize")},
+                                                {Pad::square, TR("Delete")}, {Pad::circle, TR("Back")}};
+        draw_hints(c, kThemeHints, 4, 592.0f, foot, th().copy, 736.0f);
     }
     else if (modal == Modal::controls && option_ == 1)
     {

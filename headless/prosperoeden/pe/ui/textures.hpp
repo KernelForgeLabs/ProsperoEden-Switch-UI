@@ -38,6 +38,7 @@ class Textures
     bool load_art(const std::string &directory);
     // Page-specific artwork from a theme pack, on the renderer thread only.
     bool select_page_art(std::string_view page);
+    void invalidate_page_art() { last_theme_page_.clear(); }
     // The picture the console shows while the app starts (sce_sys/pic0.dds), for the opening:
     // the launcher's first frame is that picture, so the app appears without a cut.
     bool load_splash(const std::string &path);

@@ -4,6 +4,7 @@
 
 #include "pe/ui/launcher.hpp"
 #include "pe/ui/switch_home_model.hpp"
+#include "pe/ui/switch_pages.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -101,6 +102,7 @@ void Launcher::open(Screen screen, bool forward)
 void Launcher::open_modal(Modal modal)
 {
     modal_ = modal_shown_ = modal;
+    theme_mapping_open_ = false;
     option_ = 0;
     option_cursor_.snap(dialog_row_top(modal, 0));
     message_.clear();
@@ -134,6 +136,8 @@ std::array<bool, 7> Launcher::switch_states(Modal modal) const
 void Launcher::close_modal()
 {
     modal_ = Modal::none;
+    theme_mapping_open_ = false;
+    textures_.invalidate_page_art();
     message_.clear();
     cue(Cue::modal_close);
 }
@@ -637,7 +641,10 @@ void Launcher::draw(gfx::DrawList &list)
     case Screen::language: page_role = "settings"; break;
     case Screen::about: page_role = "about"; break;
     }
-    if (modal_shown_ == Modal::theme) page_role = "themes";
+    if (modal_shown_ == Modal::theme)
+        page_role = theme_mapping_open_ ?
+            switch_pages::kEditableRoles[static_cast<std::size_t>(theme_mapping_row_)] :
+            std::string_view("themes");
     else if (modal_shown_ == Modal::profiles) page_role = "profiles";
     else if (modal_shown_ == Modal::game || modal_shown_ == Modal::game_options)
         page_role = "game_details";
