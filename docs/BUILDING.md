@@ -129,8 +129,19 @@ The tools that made them are in `tools/launcher`:
   and on every translation (needs `libicu-dev`).
 
 What the PS5's home screen shows for the app is in `sce_sys/`, as it goes into the package:
-`param.json` (title, ID, version, and the 120 Hz output declaration), `icon0.png`, `pic0.dds`,
-`pic1.dds` and `snd0.at9`. The pictures' sources are beside them.
+`param.json` (title, ID, version, and 120 Hz declaration), `icon0.png`, `pic0.dds` and
+`pic1.dds`. In Switch UI v5.8.1, the PS5 home screen is **silent**: `snd0.at9` is
+intentionally omitted from the release package. In-app navigation sounds are unchanged.
+
+During packaging, `tools/launcher/build-ps5-branding.py` generates the 512x512 icon
+and two 3840x2160 BC7 DDS images from `sce_sys/branding-source.webp.b64`.
+It needs Pillow and NumPy on the Linux build machine (installed by the CI runner).
+The old binary assets in the source repository remain as upstream references, but
+the release always uses regenerated branding assets.
+
+For PS5 upgrades, replace all three `sce_sys` images, **not only `eboot.bin`**, and
+delete the previous `/data/homebrew/PPSA99008/sce_sys/snd0.at9` if it exists.
+If old artwork persists, remove the stale home-screen tile and relaunch ShadowMount+.
 
 ## Host tools
 

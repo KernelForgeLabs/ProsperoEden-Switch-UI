@@ -17,7 +17,7 @@ if 'EDEN_PACKAGE_DIR' in os.environ:
 OUT = ROOT / 'build/headless-native'
 BASE_REQUIRED = {'eboot.bin', 'core-homebrew.nro', 'sce_module/libc.prx',
             'sce_sys/param.json', 'sce_sys/icon0.png', 'sce_sys/pic0.dds', 'sce_sys/pic1.dds',
-            'sce_sys/snd0.at9', 'lapy.elf', 'lapy-manifest.json', 'licenses/Lapy-MIT.txt',
+            'lapy.elf', 'lapy-manifest.json', 'licenses/Lapy-MIT.txt',
             'self-updater.elf'}
 REQUIRED = set(BASE_REQUIRED)
 REQUIRED.update(p.relative_to(APP).as_posix() for p in (APP / 'ui').rglob('*') if p.is_file())
@@ -62,8 +62,18 @@ def check():
     assert lapy['protocol_sha256'] == LAPY_PROTOCOL_SHA256
     assert lapy['elf_sha256'] == digest(APP / 'lapy.elf')
     assert (APP / 'lapy.elf').read_bytes()[:6] == b'\x7fELF\x02\x01'
-    sound = (APP / 'sce_sys/snd0.at9').read_bytes()
-    assert len(sound) <= 2 * 1024 * 1024 and sound[:4] == b'RIFF' and sound[8:12] == b'WAVE'
+    # Validate the exact PS5 launcher formats. Music is intentionally omitted.
+    tile = (APP / 'sce_sys/icon0.png').read_bytes()
+    assert tile[:8] == b'\x89PNG\r\n\x1a\n' and len(tile) < 2 * 1024 * 1024
+    assert int.from_bytes(tile[16:20], 'big') == 512
+    assert int.from_bytes(tile[20:24], 'big') == 512
+    for name in ('pic0.dds', 'pic1.dds'):
+        dds = (APP / 'sce_sys' / name).read_bytes()
+        assert len(dds) == 8294548 and dds[:4] == b'DDS ' and dds[84:88] == b'DX10'
+        assert int.from_bytes(dds[12:16], 'little') == 2160
+        assert int.from_bytes(dds[16:20], 'little') == 3840
+        assert int.from_bytes(dds[128:132], 'little') == 98  # BC7_UNORM
+    assert not (APP / 'sce_sys/snd0.at9').exists()
     fixture((APP / 'core-homebrew.nro').read_bytes())
     runpy.run_path(str(ROOT / 'tools/load_alignment.py'))['check_load_alignment']((APP / 'eboot.bin').read_bytes())
     imports = (OUT / 'imports.txt').read_text()

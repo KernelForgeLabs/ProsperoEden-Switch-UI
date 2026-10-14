@@ -57,7 +57,11 @@ make -s -C "$root/headless/self_update_helper" PS5_PAYLOAD_SDK="$template/.deps/
     OUTPUT="$root/build/self-update/self-updater.elf"
 python3 "$root/tools/validate-loader-elf.py" "$root/build/self-update/self-updater.elf"
 cp "$root/build/self-update/self-updater.elf" "$app/self-updater.elf"
-cp "$root/sce_sys/"{param.json,icon0.png,pic0.dds,pic1.dds,snd0.at9} "$app/sce_sys/"
+# Switch UI v5.8.1: produce 4K BC7 DDS branding and the 512px tile at build time.
+# The PS5 home-screen soundtrack is deliberately absent; in-app sounds remain.
+cp "$root/sce_sys/param.json" "$app/sce_sys/"
+python3 -B "$root/tools/launcher/build-ps5-branding.py" \
+    --source "$root/sce_sys/branding-source.webp.b64" --out "$app/sce_sys"
 rm -rf "$app/ui"
 cp -a "$root/headless/prosperoeden/ui" "$app/ui"
 # The switches the runner reads from the app folder (headless/main.cpp). Only a development
@@ -112,5 +116,4 @@ PY
 llvm-readobj-18 --dyn-symbols --needed-libs "$out/llvm-pie.elf" > "$out/imports.txt"
 "$builder" self --inspect --file "$app/eboot.bin" > "$out/fself-inspection.txt"
 sha256sum "$app/eboot.bin" "$app/core-homebrew.nro" "$app/sce_module/libc.prx" \
-    "$app/sce_sys/param.json" "$app/sce_sys/icon0.png" "$app/sce_sys/pic0.dds" "$app/sce_sys/pic1.dds" \
-    "$app/sce_sys/snd0.at9"
+    "$app/sce_sys/param.json" "$app/sce_sys/icon0.png" "$app/sce_sys/pic0.dds" "$app/sce_sys/pic1.dds"
