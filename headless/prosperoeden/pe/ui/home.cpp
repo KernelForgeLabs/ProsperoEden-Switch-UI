@@ -275,17 +275,32 @@ void Launcher::draw_home(Canvas &c)
                     178.0f, Align::center);
     }
 
-    // The official glyph painter keeps the hints consistent across screens.
+    // Switch-style footer: only the actions that need explaining.  Keep the
+    // two controller hints flush right, not under the game carousel.
     static constexpr Hint hints[] = {
         {Pad::cross, TR("Select")},
-        {Pad::leftright, TR("Browse")},
-        {Pad::updown, TR("Games / Menu")},
         {Pad::triangle, TR("Game settings")},
     };
-    // Avoid a permanent "N games installed / Firmware ready" label. Only report
-    // an actionable missing-setup warning, never a success/status counter.
-    draw_footer(c, hints, 4,
-                home_.setup_ready ? std::string_view{} : std::string_view{home_.system_status});
+    constexpr float glyph = 28.0f;
+    constexpr float gap = 10.0f;
+    constexpr float between = 34.0f;
+    const float hint_width = pad_width(hints[0].button, glyph) + gap +
+        text_width(c, tr(hints[0].label), t.size_small) + between +
+        pad_width(hints[1].button, glyph) + gap +
+        text_width(c, tr(hints[1].label), t.size_small);
+    const float x = layout::kRight - hint_width;
+    draw_hints(c, hints, 2, x, layout::kFooter, t.copy);
+
+    // Only a missing-firmware/setup warning belongs on the left. A temporary
+    // action message takes precedence; never show a redundant ready counter.
+    const float line = layout::kFooter + t.size_small * 0.35f;
+    if (!message_.empty() && modal_shown_ == Modal::none)
+        text_shrink(c, message_, layout::kLeft, line, t.size_small,
+                    message_warning_ ? t.warning : t.accent_pale,
+                    std::max(240.0f, x - layout::kLeft - 48.0f));
+    else if (!home_.setup_ready && !home_.system_status.empty())
+        text_shrink(c, home_.system_status, layout::kLeft, line, t.size_small,
+                    t.warning, std::max(240.0f, x - layout::kLeft - 48.0f));
 }
 
 } // namespace pe::ui

@@ -184,10 +184,18 @@ void Launcher::draw_scrims(Canvas &c)
     const float home = 1.0f - away;
     // Switch HOME uses an unobstructed wallpaper. The old left-to-right
     // launcher scrim covered large portions of Themezer artwork.
-    // Non-HOME screens keep the upstream's readable, even background scrim.
+    // Keep the pack artwork readable on system pages. About is deliberately
+    // lighter than Settings; other operational pages retain their old shade.
+    // Respect the accessibility setting even over bright Themezer wallpapers.
     (void)home;
+    const float strength = look().high_contrast ? 0.54f :
+        screen_ == Screen::about ? 0.22f :
+        (screen_ == Screen::settings || screen_ == Screen::files ||
+         screen_ == Screen::language) ? 0.32f : 0.48f;
     if (away > 0.01f)
-        list.hgradient_rect(kScreen, 0.0f, shade.with_alpha(0.48f * away), shade.with_alpha(0.42f * away));
+        list.hgradient_rect(kScreen, 0.0f,
+                            shade.with_alpha(strength * away),
+                            shade.with_alpha((strength - 0.04f) * away));
 }
 
 void Launcher::draw_rail(Canvas &c)

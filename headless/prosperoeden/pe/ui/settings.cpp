@@ -252,9 +252,18 @@ void Launcher::draw_settings(Canvas &c)
     {
         const Rect r = tile_rect(i);
         const bool selected = i == settings_.selected && !rail_focus_;
-        const Color fill = selected ? t.row_focus.with_alpha(0.87f) : t.panel.with_alpha(0.59f);
-        const Color edge = selected ? t.accent_pale : t.rule.with_alpha(0.35f);
-        list.bordered_rect(r, 9.0f, fill, selected ? 2.5f : 1.0f, edge);
+        // Switch-inspired list: a selected row, not twelve floating cards.
+        // Inactive rows use a very quiet translucent strip without an outline.
+        const Color fill = selected ? t.row_focus.with_alpha(0.77f) :
+                                      t.panel.with_alpha(0.31f);
+        if (look().high_contrast)
+            list.bordered_rect(r, 6.0f, selected ? t.row_focus : t.panel,
+                               selected ? 2.5f : 1.0f,
+                               selected ? t.accent_pale : t.rule);
+        else if (selected)
+            list.bordered_rect(r, 6.0f, fill, 2.5f, t.accent_pale);
+        else
+            list.rounded_rect(r, 5.0f, fill);
         icon(c, kIcons[i], r.x + 36.0f, r.y + r.h * 0.5f, 27.0f,
              selected ? t.accent_pale : t.copy);
         text_shrink(c, tr(kCategories[i]), r.x + 72.0f,
@@ -267,8 +276,10 @@ void Launcher::draw_settings(Canvas &c)
 
     // Secondary details live in the right column, rather than in a row of
     // oversized tiles or a horizontal strip across the entire screen.
-    list.bordered_rect(kStrip, 13.0f, t.panel.with_alpha(0.74f), 1.0f,
-                       t.rule.with_alpha(0.43f));
+    if (look().high_contrast)
+        list.bordered_rect(kStrip, 7.0f, t.panel, 1.5f, t.rule);
+    else
+        list.rounded_rect(kStrip, 7.0f, t.panel.with_alpha(0.43f));
     const int selected = std::clamp(settings_.selected, 0, kCategoryCount - 1);
     icon(c, kIcons[selected], kStrip.x + 62.0f, kStrip.y + 70.0f, 52.0f, t.accent_pale);
     {
@@ -548,6 +559,7 @@ void Launcher::press_dialog(Key key)
             const bool deleted = switch_bootstrap::remove_installed(switch_bootstrap::root(), id);
             if (deleted) {
                 refresh_switch_themes();
+                textures_.clear_theme_previews();
                 option_ = std::clamp(option_, 0, dialog_rows(Modal::theme) - 1);
             }
             say(deleted ? tr("Theme deleted.") : tr("Could not delete theme. It may contain other files."), !deleted);
@@ -713,8 +725,10 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
                         (1.0f - open) * 26.0f * motion());
     // Flat, Switch-like system dialog.  Preserve all existing modal coordinates
     // and interaction semantics, including Quick IDs and safe delete confirmation.
-    list.bordered_rect(kDialog, 13.0f, th().panel.with_alpha(0.97f), 1.5f,
-                       th().rule.with_alpha(0.75f));
+    const Rect frame = modal == Modal::theme ?
+        Rect{550.0f, 180.0f, 1210.0f, 720.0f} : kDialog;
+    list.bordered_rect(frame, 10.0f, th().panel.with_alpha(0.94f), 1.0f,
+                       th().rule.with_alpha(0.55f));
 
     const char *title = "";
     const char *copy = "";
@@ -979,8 +993,28 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
         } else {
             const auto all = themes();
             for (int row = first; row <= last; ++row) {
-                if (row == 0) label(row, tr("Install from Themezer Quick ID"), 64.0f);
-                else label(row, all[static_cast<std::size_t>(row - 1)].name, 64.0f);
+                if (row == 0) {
+                    icon(c, Icon::downloads, 656.0f,
+                         dialog_row_top(modal, row - theme_first) + 47.0f,
+                         31.0f, th().accent_pale);
+                    text_shrink(c, tr("Install from Themezer Quick ID"), 720.0f,
+                        baseline(dialog_row_top(modal, row - theme_first), 94.0f, th().size_text),
+                        th().size_text, th().value, 530.0f);
+                } else {
+                    const Theme &entry = all[static_cast<std::size_t>(row - 1)];
+                    const auto preview = c.textures.theme_preview(entry.id, entry.backdrop, row <= 2);
+                    const Rect thumb{610.0f,
+                                     dialog_row_top(modal, row - theme_first) + 12.0f,
+                                     120.0f, 68.0f};
+                    if (preview != 0)
+                        list.rounded_image(preview, thumb, {0.0f,0.0f,1.0f,1.0f}, 5.0f,
+                                           gfx::Color{1.0f,1.0f,1.0f,1.0f});
+                    else
+                        list.rounded_rect(thumb, 5.0f, th().row_focus);
+                    text_shrink(c, entry.name, 750.0f,
+                        baseline(dialog_row_top(modal, row - theme_first), 94.0f, th().size_text),
+                        th().size_text, th().value, 468.0f);
+                }
                 if (row != theme_index() + 1) continue;
                 const float y = row_centre(row - theme_first);
                 list.circle(1268.0f, y, 17.0f, th().accent);
@@ -992,6 +1026,51 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
             text_block(c, about, 592.0f,
                        baseline(820.0f, 30.0f, th().size_small), th().size_small, 30.0f, th().meta, 736.0f, 2,
                        kShrink);
+        }
+        // Thumbnail gallery detail pane. Full pack previews come from the
+        // installed artwork, not the currently active wallpaper.
+        const Rect large{1374.0f, 375.0f, 352.0f, 198.0f};
+        const auto all = themes();
+        const bool editor = theme_mapping_open_;
+        const int selected_index = editor ? theme_index() : option_ - 1;
+        text(c, editor ? tr("SCREEN PREVIEW") : tr("THEME PREVIEW"),
+             1374.0f, baseline(328.0f, 32.0f, th().size_small),
+             th().size_small, th().accent_pale);
+        std::uint32_t preview = 0;
+        if (editor)
+            preview = c.textures.backdrop();
+        else if (selected_index >= 0 && selected_index < static_cast<int>(all.size()))
+        {
+            const Theme &entry = all[static_cast<std::size_t>(selected_index)];
+            preview = c.textures.theme_preview(entry.id, entry.backdrop, selected_index < 2);
+        }
+        if (preview != 0)
+            list.rounded_image(preview, large, {0.0f,0.0f,1.0f,1.0f}, 7.0f,
+                               gfx::Color{1.0f,1.0f,1.0f,1.0f});
+        else
+            list.rounded_rect(large, 7.0f, th().row.with_alpha(0.9f));
+        if (!editor && selected_index >= 0 && selected_index < static_cast<int>(all.size()))
+        {
+            const Theme &entry = all[static_cast<std::size_t>(selected_index)];
+            text_shrink(c, entry.name, 1374.0f,
+                baseline(596.0f, 44.0f, th().size_heading),
+                th().size_heading, th().title, 352.0f);
+            text_shrink(c, entry.id, 1374.0f,
+                baseline(648.0f, 34.0f, th().size_small),
+                th().size_small, th().meta, 352.0f);
+            text_block(c, entry.summary, 1374.0f,
+                baseline(701.0f, 30.0f, th().size_small), th().size_small,
+                32.0f, th().copy, 352.0f, 3, kShrink);
+        }
+        else if (editor)
+        {
+            const auto role = switch_pages::kEditableRoles[static_cast<std::size_t>(theme_mapping_row_)];
+            text_shrink(c, std::string(role), 1374.0f,
+                baseline(596.0f, 44.0f, th().size_heading), th().size_heading,
+                th().title, 352.0f);
+            text_block(c, tr("Change artwork with Left/Right; Square restores Auto."),
+                1374.0f, baseline(665.0f, 30.0f, th().size_small),
+                th().size_small, 32.0f, th().copy, 352.0f, 3, kShrink);
         }
         break;
     }

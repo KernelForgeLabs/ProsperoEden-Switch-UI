@@ -10,6 +10,7 @@
 #include "pe/core/log.hpp"
 
 #include <algorithm>
+#include <filesystem>
 
 namespace pe::ui
 {
@@ -113,6 +114,44 @@ bool Textures::select_page_art(std::string_view page)
     return true;
 }
 
+std::uint32_t Textures::theme_preview(std::string_view id, std::string_view art, bool bundled)
+{
+    // A preview is read only from the trusted bundle or a validated installed
+    // theme folder; external metadata is never used as a filesystem path.
+    if (!bundled && !switch_bootstrap::valid_id(std::string(id))) return 0;
+    const std::string key(id);
+    if (const auto it = theme_previews_.find(key); it != theme_previews_.end())
+        return it->second;
+    // Cap GL memory and prevent stale previews if a removed theme is reinstalled.
+    if (theme_previews_.size() >= 16) clear_theme_previews();
+    std::filesystem::path path;
+    if (bundled)
+        path = std::filesystem::path(art_directory_) / "art" / std::string(art);
+    else
+        path = std::filesystem::path(switch_bootstrap::root()) /
+               "installed" / key / "art" / "backdrop.tga";
+    std::uint32_t texture = 0;
+    if (!path.empty() && (bundled || switch_bootstrap::valid_tga(path)))
+    {
+        gfx::Image image;
+        if (gfx::load_tga(path.string(), &image))
+        {
+            while (image.width > 384 && image.height > 128)
+                image = gfx::halve(image);
+            texture = create(image);
+        }
+    }
+    theme_previews_.emplace(key, texture); // Cache missing art too.
+    return texture;
+}
+
+void Textures::clear_theme_previews()
+{
+    for (const auto &[id, texture] : theme_previews_)
+        if (texture != 0) batch_.delete_texture(texture);
+    theme_previews_.clear();
+}
+
 bool Textures::load_splash(const std::string &path)
 {
     drop_splash();
@@ -136,6 +175,7 @@ void Textures::drop_splash()
 
 void Textures::release()
 {
+    clear_theme_previews();
     drop_splash();
     for (std::uint32_t *texture : {&backdrop_, &backdrop_blur_, &brand_, &controller_})
     {

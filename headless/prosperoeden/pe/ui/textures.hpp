@@ -39,6 +39,10 @@ class Textures
     // Page-specific artwork from a theme pack, on the renderer thread only.
     bool select_page_art(std::string_view page);
     void invalidate_page_art() { last_theme_page_.clear(); }
+    // Theme Gallery: lazily load small previews, never an entire second set of
+    // full-resolution pack images. All operations occur on the GL thread.
+    std::uint32_t theme_preview(std::string_view id, std::string_view art, bool bundled);
+    void clear_theme_previews();
     // The picture the console shows while the app starts (sce_sys/pic0.dds), for the opening:
     // the launcher's first frame is that picture, so the app appears without a cut.
     bool load_splash(const std::string &path);
@@ -107,6 +111,7 @@ class Textures
     std::string art_directory_;
     std::string loaded_page_;
     std::string last_theme_page_;
+    std::unordered_map<std::string, std::uint32_t> theme_previews_;
 };
 
 } // namespace pe::ui

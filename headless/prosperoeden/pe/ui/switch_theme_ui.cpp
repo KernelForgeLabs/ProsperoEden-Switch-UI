@@ -47,6 +47,7 @@ void Launcher::update_switch_theme_import() {
         catch (const std::exception&) { result.message = "Themezer importer failed."; }
         if (result.success) {
             refresh_switch_themes();
+            textures_.clear_theme_previews();
             say(result.message);
             cue(audio::Cue::saved);
         } else {
