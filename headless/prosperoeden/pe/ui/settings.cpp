@@ -424,6 +424,95 @@ void Launcher::press_dialog(Key key)
         }
         return;
     }
+    // v5.6.1: Handle the page editor before the regular Themes dialog keys.
+    // The v5.6 artwork/drawing changes alone did not wire up Triangle or
+    // dispatch the editor's directional, reset and back controls.
+    if (modal_ == Modal::theme && theme_mapping_open_)
+    {
+        if (key == Key::circle)
+        {
+            theme_mapping_open_ = false;
+            theme_mapping_id_.clear();
+            textures_.invalidate_page_art();
+            message_.clear();
+            cue(Cue::back);
+            return;
+        }
+        if (key == Key::up || key == Key::down)
+        {
+            const int count = static_cast<int>(switch_pages::kEditableRoles.size());
+            theme_mapping_row_ = (theme_mapping_row_ + (key == Key::down ? 1 : count - 1)) % count;
+            textures_.invalidate_page_art();
+            message_.clear();
+            cue(Cue::focus);
+            return;
+        }
+        if (key != Key::left && key != Key::right && key != Key::cross && key != Key::square)
+            return;
+
+        const std::string root = switch_bootstrap::root();
+        const std::string_view role =
+            switch_pages::kEditableRoles[static_cast<std::size_t>(theme_mapping_row_)];
+        std::string next = "auto";
+        if (key != Key::square)
+        {
+            std::vector<std::string> choices{"auto"};
+            const auto installed = switch_pages::available_assets(root, theme_mapping_id_);
+            choices.insert(choices.end(), installed.begin(), installed.end());
+            const std::string current = switch_pages::override_for(root, theme_mapping_id_, role);
+            const auto found = std::find(choices.begin(), choices.end(), current);
+            const int position = found == choices.end() ? 0 : static_cast<int>(found - choices.begin());
+            const int count = static_cast<int>(choices.size());
+            const int direction = key == Key::left ? -1 : 1; // Cross advances, too.
+            next = choices[static_cast<std::size_t>((position + count + direction) % count)];
+        }
+        if (switch_pages::set_override(root, theme_mapping_id_, role, next))
+        {
+            textures_.invalidate_page_art(); // Reread edited page even when its role is unchanged.
+            message_.clear();
+            cue(Cue::toggle);
+        }
+        else
+        {
+            say(tr("Could not save that screen background."), true);
+            cue(Cue::error);
+        }
+        return;
+    }
+    if (modal_ == Modal::theme && key == Key::triangle)
+    {
+        const auto all = themes();
+        const int index = option_ - 1; // First dialog entry installs new themes.
+        if (index < 0 || index >= static_cast<int>(all.size()))
+        {
+            say(tr("Highlight an installed theme pack to customize it."), true);
+            cue(Cue::error);
+            return;
+        }
+        const std::string id = all[static_cast<std::size_t>(index)].id;
+        if (id != th().id)
+        {
+            say(tr("Apply this pack first, then press Triangle to customize it."), true);
+            cue(Cue::error);
+            return;
+        }
+        const std::string root = switch_bootstrap::root();
+        if (!switch_pages::pack_directory(root, id) ||
+            switch_pages::available_assets(root, id).empty())
+        {
+            say(tr("Only installed full Themezer packs can be customized."), true);
+            cue(Cue::error);
+            return;
+        }
+        theme_mapping_id_ = id;
+        theme_mapping_row_ = 0;
+        theme_mapping_open_ = true;
+        theme_delete_confirm_.clear();
+        textures_.invalidate_page_art();
+        message_.clear();
+        cue(Cue::modal_open);
+        return;
+    }
     if (key == Key::circle)
     {
         theme_delete_confirm_.clear();
