@@ -157,6 +157,98 @@ std::string archive_title(mz_zip_archive& zip)
     return {};
 }
 
+// Themezer's official Switch client resolves P Quick IDs using the public
+// GraphQL lookup. Ask for only the name so a failed metadata request never
+// prevents the (separately downloaded) artwork from installing.
+std::string encode_url(std::string_view input)
+{
+    constexpr char hex[] = "0123456789ABCDEF";
+    std::string result;
+    result.reserve(input.size() * 3);
+    for (unsigned char ch : input)
+    {
+        if (std::isalnum(ch) || ch == '-' || ch == '_' || ch == '.' || ch == '~')
+            result.push_back(static_cast<char>(ch));
+        else
+        {
+            result.push_back('%');
+            result.push_back(hex[ch >> 4]);
+            result.push_back(hex[ch & 15]);
+        }
+    }
+    return result;
+}
+
+std::string lookup_pack_name(const std::string& id, const std::atomic<bool>& stop)
+{
+    if (id.empty() || id.front() != 'P' || stop.load()) return {};
+    constexpr std::string_view query =
+        "query LookupByQuickId($quickId:String!){switch{lookupByQuickId(quickId:$quickId)"
+        "{__typename ... on SwitchPack{name}}}}";
+    const std::string variables = "{\"quickId\":\"" + id + "\"}";
+    const std::string url = "https://api.themezer.net/graphql?query=" +
+        encode_url(query) + "&variables=" + encode_url(variables);
+    Sink sink{};
+    sink.stop = &stop;
+    sink.limit = 12u * 1024u;
+    remote_http_request req{};
+    req.url = url.c_str();
+    req.https_only = 1;
+    req.timeout_ms = 12000; // Metadata is optional; don't hang the importer.
+    req.raw = 1;
+    req.sink = receive;
+    req.begin = start_body;
+    req.stop = cancelled;
+    req.user = &sink;
+    remote_http_result result{};
+    if (remote_http_get(&req, &result) != 0 || result.status != 200 || stop.load())
+        return {};
+    const std::string json(sink.bytes.begin(), sink.bytes.end());
+    if (field_value(json, "__typename") != "SwitchPack") return {};
+    return field_value(json, "name"); // Bounded, printable, never used as a path.
+}
+
+// Update only the display name of an already-installed P pack. Retain its
+// artwork, accent, pages.ini overrides, and active selection. Reject links,
+// nonstandard palettes and unexpected on-disk state.
+bool refresh_installed_pack_name(const std::string& id, const std::string& name)
+{
+    namespace fs = std::filesystem;
+    if (name.empty() || id.empty() || id.front() != 'P') return false;
+    const fs::path directory = fs::path(switch_bootstrap::root()) / "installed" / id;
+    const fs::path palette = directory / "palette.ini";
+    const fs::path staged = directory / "palette.ini.tmp";
+    if (!switch_bootstrap::usable(directory) ||
+        !switch_bootstrap::regular_without_links(palette)) return false;
+    std::error_code ec;
+    if (fs::exists(staged, ec) || ec) return false;
+    std::ifstream input(palette, std::ios::binary);
+    if (!input) return false;
+    std::string line, content;
+    bool replaced = false;
+    while (std::getline(input, line))
+    {
+        if (content.size() + line.size() + 1 > 8192) return false;
+        if (line.rfind("name=", 0) == 0)
+        {
+            if (replaced) return false;
+            line = "name=" + name;
+            replaced = true;
+        }
+        content += line + "\n";
+    }
+    if (input.bad() || !replaced) return false;
+    {
+        std::ofstream output(staged, std::ios::binary | std::ios::trunc);
+        if (!output) return false;
+        output << content;
+        if (!output.good()) { output.close(); fs::remove(staged, ec); return false; }
+    }
+    fs::rename(staged, palette, ec);
+    if (ec) fs::remove(staged, ec);
+    return !ec;
+}
+
 // Center crop and bilinear resizing; preserves the original wallpaper's framing.
 std::vector<unsigned char> resize(const unsigned char* input, int sw, int sh, int dw, int dh)
 {
@@ -423,11 +515,12 @@ bool copy_exact(const std::string& src, const std::string& dst)
 // Atomic install into our own private directory. If any page is unsupported,
 // we skip it; HOME is mandatory. Existing installations are never overwritten.
 ImportResult unpack_pack(const std::string& id, const std::vector<unsigned char>& bytes,
-                         const std::atomic<bool>& stop)
+                         const std::atomic<bool>& stop, const std::string& remote_title)
 {
     mz_zip_archive pack{};
     if (!mz_zip_reader_init_mem(&pack,bytes.data(),bytes.size(),0))
         return failed("Themezer pack is not a supported ZIP archive.");
+    const std::string embedded_title = archive_title(pack);
     const mz_uint entries=mz_zip_reader_get_num_files(&pack);
     if (entries == 0 || entries > 96)
     { mz_zip_reader_end(&pack); return failed("Themezer pack has too many files."); }
@@ -491,7 +584,8 @@ ImportResult unpack_pack(const std::string& id, const std::vector<unsigned char>
         out << content;
         return out.good();
     };
-    const std::string title="Themezer pack "+id;
+    const std::string title = !remote_title.empty() ? remote_title :
+        (!embedded_title.empty() ? embedded_title : "Themezer pack " + id);
     ok=ok && write("palette.ini","name="+title+"\naccent=#60d5db\n") &&
        write("pages.ini",
              "home=home\nlibrary=all_apps\nsettings=settings\nthemes=settings\n"
@@ -534,9 +628,21 @@ ImportResult install_quick_id(std::string input, const std::atomic<bool>& stop)
     const std::string id=normalize_quick_id(input);
     if (id.empty()) return failed("Enter a Themezer T theme or P pack Quick ID.");
     if (stop.load()) return failed("Download cancelled.");
-    if (switch_bootstrap::usable(std::filesystem::path(switch_bootstrap::root()) / "installed" / id))
-        return failed("This theme or pack is already installed.");
     const bool pack=id.front()=='P';
+    if (switch_bootstrap::usable(std::filesystem::path(switch_bootstrap::root()) / "installed" / id))
+    {
+        if (!pack) return failed("This theme is already installed.");
+        const std::string current = switch_bootstrap::name_from_ini(
+            std::filesystem::path(switch_bootstrap::root()) / "installed" / id / "palette.ini", id);
+        const std::string placeholder = "Themezer pack " + id;
+        if (current != placeholder && current != id)
+            return {false, id, "Pack already installed as " + current + "."};
+        const std::string title = lookup_pack_name(id, stop);
+        if (title.empty()) return failed("Could not retrieve the pack title. No files changed.");
+        if (!refresh_installed_pack_name(id, title))
+            return failed("Could not update the pack title. No artwork changed.");
+        return {true, id, "Updated pack name to " + title + "."};
+    }
     const std::string url="https://api.themezer.net/switch/" +
             std::string(pack ? "packs/" : "themes/") + id.substr(1) +
             "/download?src=webapp";
@@ -554,6 +660,8 @@ ImportResult install_quick_id(std::string input, const std::atomic<bool>& stop)
     }
     if (sink.bytes.size()<22 || sink.bytes.size()>sink.limit)
         return failed("Downloaded theme or pack is empty or oversized.");
-    return pack ? unpack_pack(id,sink.bytes,stop) : unpack(id,sink.bytes,stop);
+    const std::string pack_title = pack ? lookup_pack_name(id, stop) : std::string{};
+    if (stop.load()) return failed("Download cancelled.");
+    return pack ? unpack_pack(id,sink.bytes,stop,pack_title) : unpack(id,sink.bytes,stop);
 }
 } // namespace pe::ui::switch_theme

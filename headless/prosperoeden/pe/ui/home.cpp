@@ -22,7 +22,9 @@ constexpr float kClipRight = switch_home::kCarouselRight;
 constexpr float kCoverTop = 332.0f;
 constexpr float kCoverSize = switch_home::kCoverWidth;
 constexpr float kCoverStep = switch_home::kCoverStep;
-constexpr float kDockY = 827.0f;
+// Position the entire HOME dock 18 UI pixels lower, nearer to the
+// navigation area painted into many full-pack Home backgrounds.
+constexpr float kDockY = 845.0f;
 constexpr float kDockRadius = 45.0f;
 
 struct DockAction
