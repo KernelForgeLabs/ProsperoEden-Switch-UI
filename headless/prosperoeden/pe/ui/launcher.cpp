@@ -657,6 +657,17 @@ void Launcher::draw(gfx::DrawList &list)
     const float zoom =
         launching ? 1.0f + 0.045f * tween::cubic_in_out(launch_.progress()) * motion() : 1.0f;
     list.push_transform(zoom, 960.0f, 540.0f, 0.0f, 0.0f);
+    // v5.9.1: Fade only the underlying *UI*, not the theme wallpaper.  This
+    // leaves the artwork visible under Settings and Themes without the HOME
+    // covers, dock, or Settings labels showing through the active dialog.
+    // Other overlays retain their existing behavior and focus routing.
+    const float opened = tween::clamp01(modal_open_.value);
+    const bool wallpaper_sheet = modal_shown_ == Modal::theme ||
+        modal_shown_ == Modal::video || modal_shown_ == Modal::performance ||
+        modal_shown_ == Modal::audio || modal_shown_ == Modal::controls ||
+        modal_shown_ == Modal::accessibility || modal_shown_ == Modal::diagnostics;
+    if (wallpaper_sheet)
+        list.push_opacity(1.0f - opened);
     if (transition_.running)
     {
         // The old screen leaves toward the rail as the new one arrives from the other side. The
@@ -680,9 +691,11 @@ void Launcher::draw(gfx::DrawList &list)
         draw_screen(c, screen_);
     }
 
+    if (wallpaper_sheet)
+        list.pop_opacity();
+
     // A game's settings are a page of their own over the Library, beside the rail; its button
     // mapping is a dialog over that page.
-    const float opened = tween::clamp01(modal_open_.value);
     const bool mapping_of_game = modal_shown_ == Modal::mapping && mapping_for_game_;
     const bool page = modal_shown_ == Modal::game || modal_shown_ == Modal::mods ||
                       modal_shown_ == Modal::game_options || mapping_of_game;
@@ -694,7 +707,10 @@ void Launcher::draw(gfx::DrawList &list)
     draw_clock(c);
     if (modal_shown_ != Modal::none && (!page || mapping_of_game))
     {
-        list.rounded_rect(kScreen, 0.0f, th().scrim.with_alpha(0.72f * opened));
+        // The theme wallpaper is now the only background under these sheets,
+        // so a lighter scrim is sufficient for the title and controls.
+        const float scrim = wallpaper_sheet ? 0.53f : 0.72f;
+        list.rounded_rect(kScreen, 0.0f, th().scrim.with_alpha(scrim * opened));
         if (modal_shown_ == Modal::mapping)
             draw_mapping(c, opened);
         else if (modal_shown_ == Modal::profiles)

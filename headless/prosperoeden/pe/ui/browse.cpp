@@ -26,6 +26,33 @@ constexpr Rect kDetailPanel{980.0f, 188.0f, 820.0f, 720.0f};
 constexpr Rect kWindow{138.0f, 292.0f, 760.0f, 518.0f};
 constexpr float kRowHeight = 78.0f;
 
+// Shared v5.9.1 list treatment for Files and Language: a continuous surface,
+// subtle dividers, and a single strong focus outline.  Leave scroll offsets,
+// row pitches, clipping and all controller handlers unchanged.
+void draw_flat_browser_panels(Canvas &c)
+{
+    const Color left = look().high_contrast ? th().panel : th().panel.with_alpha(0.40f);
+    const Color right = look().high_contrast ? th().panel : th().panel.with_alpha(0.30f);
+    c.list.rounded_rect(kListPanel, 3.0f, left);
+    c.list.rounded_rect(kDetailPanel, 3.0f, right);
+    c.list.rounded_rect({952.0f, 204.0f, 1.0f, 674.0f}, 0.0f,
+                        th().rule.with_alpha(0.50f));
+}
+
+void draw_flat_browser_row(Canvas &c, Rect row)
+{
+    c.list.rounded_rect({row.x + 20.0f, row.y + row.h + 4.0f,
+                         row.w - 40.0f, 1.0f}, 0.0f,
+                        th().rule.with_alpha(look().high_contrast ? 0.66f : 0.35f));
+}
+
+void draw_flat_browser_focus(Canvas &c, Rect row)
+{
+    c.list.bordered_rect(row, 3.0f,
+        look().high_contrast ? th().row_focus : th().row_focus.with_alpha(0.66f),
+        2.0f, th().accent_pale);
+}
+
 std::string join_path(const std::string &directory, const std::string &name)
 {
     return directory == "/" ? "/" + name : directory + "/" + name;
@@ -176,7 +203,7 @@ void Launcher::draw_files(Canvas &c)
     c.list.push_transform(kFit, 0.0f, 0.0f, kFitX, kFitY);
 
     // ---- folders ----
-    glass(c, kListPanel, th().radius_panel, th().panel.with_alpha(0.80f), th().panel_edge.with_alpha(0.55f));
+    draw_flat_browser_panels(c);
     text(c, tr("FOLDERS"), 138.0f, baseline(208.0f, 28.0f, th().size_small), th().size_small,
          th().accent_pale, Align::left, 3.0f);
     text(c, short_path(browse_dir_, 52), 138.0f, baseline(246.0f, 28.0f, th().size_small),
@@ -197,12 +224,11 @@ void Launcher::draw_files(Canvas &c)
         for (int row = files_.first_row(); row <= files_.last_row(); ++row)
         {
             list.push_opacity(files_.row_alpha(row, kRowHeight));
-            plate_rest(c, list_plate(), row_rect(row));
+            draw_flat_browser_row(c, row_rect(row));
             list.pop_opacity();
         }
-        plate_focus(c, list_plate(),
-                    {kWindow.x, kWindow.y + files_.cursor() - files_.scroll(), kWindow.w, kRowHeight},
-                    1.0f);
+        draw_flat_browser_focus(c,
+            {kWindow.x, kWindow.y + files_.cursor() - files_.scroll(), kWindow.w, kRowHeight});
         for (int row = files_.first_row(); row <= files_.last_row(); ++row)
         {
             const std::string &entry = browse_entries_[static_cast<std::size_t>(row)];
@@ -226,8 +252,7 @@ void Launcher::draw_files(Canvas &c)
          th().accent_pale, Align::right);
 
     // ---- what the folder shown holds ----
-    glass(c, kDetailPanel, th().radius_panel, th().panel.with_alpha(0.80f),
-          th().panel_edge.with_alpha(0.55f));
+    // Detail panel drawn once by draw_flat_browser_panels above.
     text(c, tr("THIS FOLDER"), 1016.0f, baseline(210.0f, 28.0f, th().size_small), th().size_small,
          th().accent_pale, Align::left, 3.0f);
     text_block(c, browse_dir_, 1016.0f, baseline(250.0f, 42.0f, th().size_heading), th().size_heading,
@@ -348,7 +373,7 @@ void Launcher::draw_language(Canvas &c)
     draw_frame(c, tr("Language"), tr("Choose the language games use"));
     c.list.push_transform(kFit, 0.0f, 0.0f, kFitX, kFitY);
 
-    glass(c, kListPanel, th().radius_panel, th().panel.with_alpha(0.80f), th().panel_edge.with_alpha(0.55f));
+    draw_flat_browser_panels(c);
     text(c, tr("LANGUAGES"), 138.0f, baseline(208.0f, 28.0f, th().size_small), th().size_small,
          th().accent_pale, Align::left, 3.0f);
     list.push_clip({kWindow.x - 24.0f, kWindow.y - 6.0f, kWindow.w + 48.0f, kWindow.h + 12.0f});
@@ -360,13 +385,11 @@ void Launcher::draw_language(Canvas &c)
     for (int row = language_.first_row(); row <= language_.last_row(); ++row)
     {
         list.push_opacity(language_.row_alpha(row, kRowHeight));
-        plate_rest(c, list_plate(), row_rect(row));
+        draw_flat_browser_row(c, row_rect(row));
         list.pop_opacity();
     }
-    plate_focus(c, list_plate(),
-                {kWindow.x, kWindow.y + language_.cursor() - language_.scroll(), kWindow.w,
-                 kRowHeight},
-                1.0f);
+    draw_flat_browser_focus(c,
+        {kWindow.x, kWindow.y + language_.cursor() - language_.scroll(), kWindow.w, kRowHeight});
     for (int row = language_.first_row(); row <= language_.last_row(); ++row)
     {
         const Rect r = row_rect(row);
@@ -393,8 +416,7 @@ void Launcher::draw_language(Canvas &c)
     text(c, list_position(language_.selected + 1, count), 898.0f, baseline(866.0f, 28.0f, th().size_small), th().size_small,
          th().accent_pale, Align::right);
 
-    glass(c, kDetailPanel, th().radius_panel, th().panel.with_alpha(0.80f),
-          th().panel_edge.with_alpha(0.55f));
+    // Detail panel drawn once by draw_flat_browser_panels above.
     text(c, tr("SELECTED"), 1016.0f, baseline(210.0f, 28.0f, th().size_small), th().size_small,
          th().accent_pale, Align::left, 3.0f);
     const auto label_at = [&](int index) -> std::string
