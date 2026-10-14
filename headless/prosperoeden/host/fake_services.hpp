@@ -132,7 +132,7 @@ class FakeServices final : public ui::Services
         "during the loading screen is fixed.\n- Saves are written to a temporary file first, so a power loss "
         "while saving no longer damages them.\n- Better text fitting in Greek, Hungarian and Finnish.\n\n"
         "Note: Your settings, saves and profiles stay where they are; nothing needs to be moved.\n\n"
-        "Upgrading\nCopy the PPSA99008 folder from the ZIP over the one you have, or install it from the "
+        "Upgrading\nCopy the PPSA99186 folder from the ZIP over the one you have, or install it from the "
         "update dialog. See the README for every step: "
         "https://github.com/blackbearreloaded/ProsperoEden/blob/main/README.md#updating\n\n"
         "Thanks\nThank you to everyone who tested this release and reported what they found.";

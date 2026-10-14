@@ -224,10 +224,10 @@ jobs:
           with zipfile.ZipFile(archive) as z:
               assert z.testzip() is None, "damaged entry"
               names = z.namelist()
-              assert "PPSA99008/eboot.bin" in names, "no eboot.bin"
+              assert "PPSA99186/eboot.bin" in names, "no eboot.bin"
               wrong = [i.filename for i in z.infolist() if (i.external_attr >> 16) & 0o777 != 0o777]
               assert not wrong, f"entries not stored as 0777: {wrong[:3]}"
-              version = json.loads(z.read("PPSA99008/sce_sys/param.json"))["contentVersion"]
+              version = json.loads(z.read("PPSA99186/sce_sys/param.json"))["contentVersion"]
               assert archive == f"ProsperoEden-v{version.removeprefix('0')}.zip", (archive, version)
               print(f"{archive}: {len(names)} entries, all 0777, version {version}")
           PY
@@ -278,7 +278,7 @@ jobs:
           if ! assets=$(gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' 2>/dev/null); then
             # No release yet: this run makes it.
             gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --prerelease \
-              --title "ProsperoEden $GITHUB_REF_NAME" --notes-file dist/release-notes.md \
+              --title "ProsperoEden Switch UI $GITHUB_REF_NAME" --notes-file dist/release-notes.md \
               "dist/ProsperoEden-$GITHUB_REF_NAME.zip" dist/SHA256SUMS
           elif grep -qi '\.zip$' <<< "$assets"; then
             # A published ZIP is never replaced or deleted: the catalog at homebrew.page records
