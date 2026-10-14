@@ -136,7 +136,7 @@ public:
 // and caches) into /data/prosperoeden. Only folders that do not exist yet are filled, and the
 // sandbox copy stays, so an older ProsperoEden still finds its data.
 static void MigrateSandboxData() {
-    const std::filesystem::path sandbox{"/mnt/sandbox/PPSA99008_000/download0"};
+    const std::filesystem::path sandbox{"/mnt/sandbox/PPSA99186_000/download0"};
     const std::pair<std::filesystem::path, std::string> moves[] = {
         {sandbox / "eden-headless-g7/user", Eden::UserDir()},
         {sandbox / "prosperoeden/covers", Eden::CoversDir()},
@@ -305,7 +305,7 @@ int main(int argc, char** argv) {
         Eden::Crash::Install(Eden::LogsDir(), Eden::kAppVersion, last_crash.restarted);
         Eden::BootTrace::Ready(Eden::LogsDir(), Eden::FilesystemAccess());
         Eden::BootTrace::Line("logs and crash handler ready (%s)", Eden::LogsDir().c_str());
-        for (const char* folder : {"/app0", Eden::kMountedAppDir, Eden::kInstallDir, "/mnt/sandbox/PPSA99008_000/app0"})
+        for (const char* folder : {"/app0", Eden::kMountedAppDir, Eden::kInstallDir, "/mnt/sandbox/PPSA99186_000/app0"})
             Eden::BootTrace::Line("app folder candidate %s: eboot %s, font %s", folder,
                                   Eden::FileExists(std::string{folder} + "/eboot.bin") ? "yes" : "no",
                                   Eden::FileExists(std::string{folder} + "/ui/fonts/montserrat-medium.pefont") ? "yes" : "no");

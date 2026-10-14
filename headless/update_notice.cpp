@@ -21,7 +21,7 @@
 extern "C" const char* eden_self_update_path(int which) {
     static const std::string helper = Eden::AppFile("self-updater.elf");
     static const std::string param = Eden::AppFile("sce_sys/param.json");
-    static const std::string sequence = Eden::ConfigFile("self-update-sequence");
+    static const std::string sequence = Eden::ConfigFile("self-update-sequence-PPSA99186");
     return which == 0 ? helper.c_str() : which == 1 ? param.c_str() : sequence.c_str();
 }
 
