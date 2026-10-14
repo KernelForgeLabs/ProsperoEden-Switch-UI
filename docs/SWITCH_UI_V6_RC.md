@@ -1,0 +1,43 @@
+# ProsperoEden Switch UI Edition — v6.0 release candidate
+
+This is a **separate-title development build**, not an update for original ProsperoEden.
+The PS5 app identity is provisionally `PPSA99186` (not yet reserved in the catalog).
+`PPSA99008` remains the upstream application's title ID and must not be replaced.
+
+## Installation layout
+
+- Switch UI app: `/data/homebrew/PPSA99186/`
+- Original app, unchanged: `/data/homebrew/PPSA99008/`
+- Shared application resources and game data: `/data/prosperoeden/`
+- Existing Themezer packs: `/data/prosperoeden/themes/`
+- Switch UI diagnostics: `/data/prosperoeden/logs/switch-ui/`
+
+**Caution:** Both installations can access the same emulator preferences and user saves.
+Do not run them simultaneously or alternate between incompatible versions without
+backing up `/data/prosperoeden/config/` and `/data/prosperoeden/user/`.
+No automatic migration or independent save isolation has been implemented yet.
+The new build does not erase or move the existing data root.
+
+## Release candidate validation
+
+1. Confirm the original `PPSA99008` installation still launches.
+2. Build this branch with GitHub Actions **Release build**, workflow dispatch (no tag).
+3. Confirm the ZIP's top-level folder is exactly `PPSA99186/`, containing the
+   recompiled title-scoped `lapy.elf` and `sce_sys/param.json` with `PPSA99186`.
+4. Back up the shared data directory before installing the new title.
+5. Copy the new folder to `/data/homebrew/PPSA99186/`; register with ShadowMountPlus.
+6. Launch the two apps independently; verify themes, games, save sync, and no cross-title
+   updates are offered.
+7. Inspect the new edition's logs if the title-specific privilege helper fails.
+
+## Update policy
+
+The updater's catalog query reads `titleId` from this package's
+`sce_sys/param.json`; `PPSA99186` therefore never requests original
+`PPSA99008` update offers. The on-console **install update** action remains
+disabled during release-candidate testing until the new listing, signing,
+rollback and data-compatibility checks have been verified on hardware.
+
+Do not publish/tag this experimental branch as a stable release.
+The ID must be reserved, and any future organization transfer coordinated with
+the catalog maintainer, before public distribution.
