@@ -27,9 +27,9 @@ namespace
 constexpr int kColumns = 6;
 constexpr float kCover = 236.0f;
 constexpr float kCellPitchX = kCover + 30.0f;
-constexpr float kCellPitchY = 346.0f; // cover, title, metadata, spacing
-constexpr float kGridTop = 152.0f;
-constexpr float kGridBottom = 972.0f;
+constexpr float kCellPitchY = 316.0f; // two uncluttered rows of Switch-style square covers
+constexpr float kGridTop = 204.0f;
+constexpr float kGridBottom = 846.0f;
 constexpr float kGridWidth = kCellPitchX * (kColumns - 1) + kCover;
 
 
@@ -483,7 +483,12 @@ void Launcher::draw_library(Canvas &c)
     const Theme &t = th();
     const int count = static_cast<int>(games_.size());
     const float left = layout::kLeft;
-    draw_frame(c, tr("Library"), count > 0 ? fill(tr("{0} games"), {std::to_string(count)}).c_str() : "");
+    draw_frame(c, tr("All software"), count > 0 ?
+               fill(tr("{0} games"), {std::to_string(count)}).c_str() : "");
+    // The Switch All Software grid sits below a fine separator, with no game
+    // details card competing with the wallpaper or the covers.
+    list.rounded_rect({left, 138.0f, kGridWidth, 1.0f}, 0.0f,
+                      t.rule.with_alpha(0.45f));
 
     // ---- the covers ----
     if (count == 0)
@@ -509,12 +514,13 @@ void Launcher::draw_library(Canvas &c)
             // How much of the gliding highlight lies on this cover.
             const float near = tween::clamp01(1.0f - (std::fabs(r.x - ring.x) + std::fabs(r.y - ring.y)) / 150.0f);
             const float f = rail_focus_ ? 0.0f : near;
-            const float scale = 1.0f + (0.04f * f - 0.035f * press_ * f) * motion();
+            const float scale = 1.0f + (0.012f * f - 0.012f * press_ * f) * motion();
             const float here = arrive(i - first, 0.022f);
             list.push_opacity(here);
             list.push_transform(1.0f, 0.0f, 0.0f, 0.0f, (1.0f - here) * 20.0f);
             list.push_transform(scale, r.x + r.w * 0.5f, r.y + r.h, 0.0f, 0.0f);
-            focus_ring(c, r, t.radius_card, f);
+            // A single crisp focus outline is drawn over the entire grid below;
+            // individual covers should not each have their own halo.
             if (game.remote)
                 remote_cover(c, game.cover, r, t.radius_card, 0.5f + 0.7f * f);
             else
@@ -535,31 +541,45 @@ void Launcher::draw_library(Canvas &c)
                 progress_bar(c, {r.x + 20.0f, r.y + r.h - 28.0f, r.w - 40.0f, 8.0f}, done);
             }
             list.pop_transform();
-            // Its name on up to two lines (real names are long), and a line about it under that.
-            const float line = look().large_text ? 32.0f : 28.0f;
-            const int name_lines = text_block(c, game.name, r.x, baseline(r.y + kCover + 12.0f, line, 22.0f), 22.0f,
-                                              line, gfx::mix(t.body, t.title, f), kCover, 2);
-            const float under = r.y + kCover + 12.0f + line * static_cast<float>(std::max(1, name_lines));
-            if (game.remote)
-            {
-                Color tone = t.meta;
-                const std::string state = remote_state(game, &tone);
-                text_shrink(c, state, r.x, baseline(under, 24.0f, 18.0f), 18.0f, tone, kCover);
-            }
-            else
-            {
-                text_shrink(c, game.format + "  /  " + game.size, r.x, baseline(under, 24.0f, 18.0f), 18.0f,
-                            gfx::mix(t.faint, t.accent_pale, f), kCover);
-            }
             list.pop_transform();
             list.pop_opacity();
         }
+        // A single, thin selection frame moves with the existing grid springs.
+        if (!rail_focus_)
+            list.bordered_rect({ring.x - 5.0f, ring.y - 5.0f,
+                                ring.w + 10.0f, ring.h + 10.0f},
+                               5.0f, t.row_focus.with_alpha(0.03f),
+                               3.0f, t.accent_pale);
         list.pop_clip();
         // More rows wait under the window: it fades out over them.
         if (grid_rows_.count > grid_rows_.visible && !look().high_contrast)
             list.gradient_rect({left - 30.0f, kGridBottom - 140.0f, kGridWidth + 60.0f, 140.0f}, 0.0f,
                                t.base.with_alpha(0.0f), t.base.with_alpha(0.92f));
         scrollbar(c, grid_rows_, left + kGridWidth + 22.0f, kGridTop, kGridBottom - kGridTop - 152.0f);
+    }
+
+    // Only the highlighted game's title and state appear below the grid;
+    // repeating long names under all six covers makes this page feel unlike
+    // Switch All Software and hides the pack artwork.
+    if (count > 0)
+    {
+        const Game &selected_game = games_[static_cast<std::size_t>(library_.selected)];
+        list.rounded_rect({left, 867.0f, kGridWidth, 1.0f}, 0.0f,
+                          t.rule.with_alpha(0.42f));
+        text_shrink(c, selected_game.name, left + 4.0f,
+                    baseline(879.0f, 46.0f, t.size_heading), t.size_heading,
+                    t.title, kGridWidth - 240.0f);
+        Color tone = t.meta;
+        const std::string state = selected_game.remote ?
+            remote_state(selected_game, &tone) :
+            selected_game.format + "  /  " + selected_game.size;
+        text_shrink(c, state, left + 4.0f,
+                    baseline(928.0f, 30.0f, t.size_small), t.size_small,
+                    tone, kGridWidth - 260.0f);
+        text_shrink(c, std::to_string(library_.selected + 1) + " / " +
+                    std::to_string(count), left + kGridWidth - 4.0f,
+                    baseline(906.0f, 36.0f, t.size_small), t.size_small,
+                    t.meta, 225.0f, Align::right);
     }
 
     // The grid is the complete Library view. Cross launches, Triangle opens the

@@ -42,15 +42,15 @@ constexpr const char *kCategories[kCategoryCount] = {
 constexpr Icon kIcons[kCategoryCount] = {
     Icon::profile, Icon::video, Icon::performance, Icon::audio, Icon::controls, Icon::accessibility,
     Icon::diagnostics, Icon::files, Icon::downloads, Icon::sync, Icon::language, Icon::theme};
-// Switch-style Settings: a scroll-free, vertical category list on the left,
-// and a detail/description pane on the right. Actions stay in press_settings().
+// v5.8: Switch-like continuous settings navigation and a flat details pane.
+// Preserve category indices and row order: press_settings() owns all actions.
 constexpr int kTileColumns = 1;
 constexpr int kTileRows = kCategoryCount;
-constexpr float kTileGap = 7.0f;
-constexpr float kTileWidth = 622.0f;
-constexpr float kTileHeight = 58.0f;
-constexpr float kTilesTop = 145.0f;
-constexpr Rect kStrip{824.0f, 196.0f, 964.0f, 632.0f};
+constexpr float kTileGap = 0.0f;
+constexpr float kTileWidth = 602.0f;
+constexpr float kTileHeight = 64.0f;
+constexpr float kTilesTop = 146.0f;
+constexpr Rect kStrip{836.0f, 152.0f, 954.0f, 770.0f};
 Rect tile_rect(int index)
 {
     return {layout::kLeft, kTilesTop + (kTileHeight + kTileGap) * static_cast<float>(index),
@@ -246,58 +246,68 @@ void Launcher::draw_settings(Canvas &c)
         pick(services_.language_labels(), prefs_.language),
         t.name,
     };
-    // The selected row gets a crisp thin outline rather than an animated
-    // acrylic tile. Every category remains at the same index and has the same action.
+    // A single continuous navigation surface, not a grid of translucent cards.
+    // The art remains visible between the category list and the details pane.
+    const Rect navigation{layout::kLeft, kTilesTop, kTileWidth,
+                          kTileHeight * static_cast<float>(kCategoryCount)};
+    list.rounded_rect(navigation, 3.0f,
+                      look().high_contrast ? t.panel : t.panel.with_alpha(0.37f));
     for (int i = 0; i < kCategoryCount; ++i)
     {
         const Rect r = tile_rect(i);
         const bool selected = i == settings_.selected && !rail_focus_;
-        // Switch-inspired list: a selected row, not twelve floating cards.
-        // Inactive rows use a very quiet translucent strip without an outline.
-        const Color fill = selected ? t.row_focus.with_alpha(0.77f) :
-                                      t.panel.with_alpha(0.31f);
-        if (look().high_contrast)
-            list.bordered_rect(r, 6.0f, selected ? t.row_focus : t.panel,
-                               selected ? 2.5f : 1.0f,
-                               selected ? t.accent_pale : t.rule);
-        else if (selected)
-            list.bordered_rect(r, 6.0f, fill, 2.5f, t.accent_pale);
-        else
-            list.rounded_rect(r, 5.0f, fill);
-        icon(c, kIcons[i], r.x + 36.0f, r.y + r.h * 0.5f, 27.0f,
+        // Quiet section separators keep the left side readable over vivid wallpapers.
+        if (i != kCategoryCount - 1)
+            list.rounded_rect({r.x + 26.0f, r.y + r.h - 1.0f,
+                               r.w - 52.0f, 1.0f}, 0.0f,
+                              t.rule.with_alpha(look().high_contrast ? 0.65f : 0.27f));
+        if (selected)
+        {
+            const Rect focus{r.x + 3.0f, r.y + 2.0f, r.w - 6.0f, r.h - 4.0f};
+            list.bordered_rect(focus, 3.0f,
+                               look().high_contrast ? t.row_focus :
+                                                      t.row_focus.with_alpha(0.76f),
+                               2.5f, t.accent_pale);
+            list.rounded_rect({r.x + 5.0f, r.y + 11.0f, 4.0f, r.h - 22.0f},
+                              1.0f, t.accent_pale);
+        }
+        icon(c, kIcons[i], r.x + 40.0f, r.y + r.h * 0.5f, 23.0f,
              selected ? t.accent_pale : t.copy);
-        text_shrink(c, tr(kCategories[i]), r.x + 72.0f,
+        text_shrink(c, tr(kCategories[i]), r.x + 79.0f,
                     baseline(r.y, r.h, 26.0f), 26.0f,
-                    selected ? t.title : t.body, r.w - 122.0f);
-        // The chevron means the whole row is selectable, just like Switch Settings.
-        text(c, ">", r.x + r.w - 27.0f, baseline(r.y, r.h, 24.0f), 24.0f,
-             selected ? t.accent_pale : t.faint, Align::center);
+                    selected ? t.title : t.body, r.w - 112.0f);
     }
 
-    // Secondary details live in the right column, rather than in a row of
-    // oversized tiles or a horizontal strip across the entire screen.
+    // A quiet, unframed content surface echoes Switch Settings. Keep a stronger
+    // surface in high-contrast mode rather than letting text disappear into art.
     if (look().high_contrast)
-        list.bordered_rect(kStrip, 7.0f, t.panel, 1.5f, t.rule);
+        list.rounded_rect(kStrip, 2.0f, t.panel);
     else
-        list.rounded_rect(kStrip, 7.0f, t.panel.with_alpha(0.43f));
+        list.rounded_rect(kStrip, 2.0f, t.panel.with_alpha(0.23f));
+    list.rounded_rect({kStrip.x - 19.0f, kStrip.y + 8.0f, 1.0f,
+                       kStrip.h - 16.0f}, 0.0f,
+                      t.rule.with_alpha(0.58f));
     const int selected = std::clamp(settings_.selected, 0, kCategoryCount - 1);
-    icon(c, kIcons[selected], kStrip.x + 62.0f, kStrip.y + 70.0f, 52.0f, t.accent_pale);
+    icon(c, kIcons[selected], kStrip.x + 66.0f, kStrip.y + 70.0f, 44.0f,
+         t.accent_pale);
     {
         const Heavy heavy(c);
         text_shrink(c, tr(kCategories[selected]), kStrip.x + 112.0f,
-                    baseline(kStrip.y + 38.0f, 62.0f, t.size_lead), t.size_lead,
-                    t.title, kStrip.w - 162.0f);
+                    baseline(kStrip.y + 38.0f, 66.0f, t.size_lead), t.size_lead,
+                    t.title, kStrip.w - 160.0f);
     }
-    list.rounded_rect({kStrip.x + 44.0f, kStrip.y + 134.0f,
-                       kStrip.w - 88.0f, 1.0f}, 0.0f, t.rule.with_alpha(0.6f));
-    text_shrink(c, tr("CURRENT SETTING"), kStrip.x + 44.0f,
-                baseline(kStrip.y + 161.0f, 30.0f, t.size_small),
-                t.size_small, t.meta, kStrip.w - 88.0f);
-    text_shrink(c, summaries[selected], kStrip.x + 44.0f,
-                baseline(kStrip.y + 205.0f, 44.0f, t.size_heading),
-                t.size_heading, t.accent_pale, kStrip.w - 88.0f);
-    list.rounded_rect({kStrip.x + 44.0f, kStrip.y + 282.0f,
-                       kStrip.w - 88.0f, 1.0f}, 0.0f, t.rule.with_alpha(0.6f));
+    list.rounded_rect({kStrip.x + 40.0f, kStrip.y + 133.0f,
+                       kStrip.w - 80.0f, 1.0f}, 0.0f,
+                      t.rule.with_alpha(0.52f));
+    text_shrink(c, tr("CURRENT SETTING"), kStrip.x + 40.0f,
+                baseline(kStrip.y + 158.0f, 30.0f, t.size_small),
+                t.size_small, t.meta, kStrip.w - 80.0f);
+    text_shrink(c, summaries[selected], kStrip.x + 40.0f,
+                baseline(kStrip.y + 204.0f, 48.0f, t.size_heading),
+                t.size_heading, t.title, kStrip.w - 80.0f);
+    list.rounded_rect({kStrip.x + 40.0f, kStrip.y + 295.0f,
+                       kStrip.w - 80.0f, 1.0f}, 0.0f,
+                      t.rule.with_alpha(0.38f));
     const char *about = "";
     switch (settings_.selected)
     {
@@ -340,12 +350,12 @@ void Launcher::draw_settings(Canvas &c)
     default:
         break;
     }
-    text_block(c, about, kStrip.x + 44.0f,
-               baseline(kStrip.y + 323.0f, 36.0f, t.size_text),
-               t.size_text, 40.0f, t.copy, kStrip.w - 88.0f, 4, kShrink);
-    text_shrink(c, version_, kStrip.x + 44.0f,
-                baseline(kStrip.y + kStrip.h - 75.0f, 30.0f, t.size_small),
-                t.size_small, t.faint, kStrip.w - 88.0f);
+    text_block(c, about, kStrip.x + 40.0f,
+               baseline(kStrip.y + 326.0f, 38.0f, t.size_text),
+               t.size_text, 42.0f, t.copy, kStrip.w - 80.0f, 5, kShrink);
+    text_shrink(c, version_, kStrip.x + 40.0f,
+                baseline(kStrip.y + kStrip.h - 52.0f, 30.0f, t.size_small),
+                t.size_small, t.faint, kStrip.w - 80.0f);
 
     static constexpr Hint kHints[] = {
         {Pad::cross, TR("Select")}, {Pad::circle, TR("Back")}, {Pad::l1, TR("Sections"), Pad::r1}};
