@@ -135,20 +135,23 @@ ProsperoEden keeps its own data in `/data/prosperoeden`, separately from the gam
 ├── backup/save-sync/                   # save data the save sync replaced, the last three per game
 ├── covers/                             # cached game covers
 ├── logs/                               # current and previous session logs, crash reports
-├── previous-version/PPSA99008-backup/  # the version the last self-update replaced
+├── previous-version/PPSA99186-backup/  # Switch UI's previous self-updated version (once qualified)
 └── user/                               # every profile's saves, and emulator user data
     └── lossless/Lossless.dll           # optional: your copy, for frame generation
 ```
 
-The app itself stays in `/data/homebrew/PPSA99008`; see [Updating](#updating).
+The Switch UI app itself stays in `/data/homebrew/PPSA99186`; the original ProsperoEden app, if installed, remains under `/data/homebrew/PPSA99008`.
 
 ProsperoEden does not include keys, firmware, games, or other copyrighted console data. Dump these files from hardware and software you own. Do not download or redistribute them.
 
 This is the only place it keeps them. If ProsperoEden cannot get access to the console's storage when it starts, the home screen says so and no game can be started; your data is untouched, and closing ProsperoEden and opening it again is the first thing to try. Earlier versions kept a second set of settings and saves in the app's own sandbox in that case, which made saves and settings seem to disappear on consoles where access came and went.
 
-Keys, firmware and games that an early version kept inside the app's folder (`/data/homebrew/PPSA99008/assets`) are moved to `/data/prosperoeden` the first time this version starts, so that replacing the app cannot remove them.
+If an early upstream ProsperoEden installation has user files under `/data/homebrew/PPSA99008/assets`, keep a backup and select the correct game files folder in Switch UI. Do not remove the original application's data as part of installing this separate edition.
 
 ### Updating
+
+> [!CAUTION]
+> **Switch UI RC2's automatic update installation has not been qualified.** The following describes the inherited update mechanism, not an assurance that catalog updates already work for this new title. For RC testing use the [separate-title instructions](docs/SWITCH_UI_V6_RC.md), and back up data first.
 
 Close ProsperoEden first. Your settings, saves, covers and logs are in `/data/prosperoeden`, outside the app, so an update keeps them. Afterwards the About screen shows the version that is running.
 
@@ -160,14 +163,14 @@ Once each time it opens, ProsperoEden asks [homebrew.page](https://homebrew.page
 
 If the download or the unpacking fails, the dialog says why and offers **Try again**; the app stays as it was. Without a network, or without an answer, nothing is shown. When ProsperoEden cannot install the release itself (no payload loader, or an install it cannot find), the menu says **Update available** at the top right for ten seconds instead, and the steps below still work:
 
-- **Folder install.** Copy the `PPSA99008` folder from the new release ZIP over `/data/homebrew/PPSA99008`, replacing the files it has, then start ProsperoEden. Files you put there yourself, such as `language.txt`, stay.
+- **Folder install.** Copy the `PPSA99186` folder from a verified new **Switch UI** release ZIP over `/data/homebrew/PPSA99186`, replacing only files for that separate title, then start the Switch UI edition. Files you put there yourself, such as `language.txt`, stay.
 
 ### Going back to the previous version
 
-When ProsperoEden updates itself, the files of the version it replaces are kept in `/data/prosperoeden/previous-version/PPSA99008-backup`, until the next update replaces them in turn. If a new version misbehaves, you can put the previous one back:
+When the Switch UI edition eventually uses its qualified updater, the version it replaces is kept in `/data/prosperoeden/previous-version/PPSA99186-backup`, until the next update replaces it in turn. If a new version misbehaves, you can put the previous one back:
 
 1. Close ProsperoEden.
-2. Copy everything inside `/data/prosperoeden/previous-version/PPSA99008-backup` over the app's folder (`/data/homebrew/PPSA99008`), replacing the files it has, for example over FTP.
+2. Copy everything inside `/data/prosperoeden/previous-version/PPSA99186-backup` over the Switch UI app's folder (`/data/homebrew/PPSA99186`), replacing the files it has, for example over FTP.
 3. Start ProsperoEden. The About screen shows the version that is running.
 
 The update will be offered again the next time ProsperoEden opens; choose **Skip** to stay on the version you put back. Settings, saves and game files are not part of this: they stay as they are. An update done by hand, by copying a release over the app's folder, keeps no previous version.
@@ -368,6 +371,8 @@ Earlier versions read everything from `/data/homebrew/PPSA99008/assets/`. That f
 - **Settings refinement.** Flat Downloads and Save Sync lists, consistent selection treatment, dialogs that dim the Settings interface while preserving the theme wallpaper.
 - **Attribution.** About screen identifies Switch UI as provided by KernelForgeX while preserving Eden and BlackBearReloaded credits.
 
+The release history below is retained from the original ProsperoEden project and may refer to its different title ID, menu, paths, and theme choices. It describes the upstream base, not the Switch UI modifications above.
+
 ## Changes in v1.001.000
 
 - **A new launcher.** The menu was rebuilt. Five sections sit on a rail at the left (Home, Library, Multiplayer, Settings, About): L1 and R1 go from one to the next, and Left from a screen's edge opens the rail. Home is built around the game to continue, with its cover and what it runs with. The Library shows your games as covers, with the chosen game's details beside them. A game's settings are a page of their own, and Settings is a board of tiles.
@@ -550,7 +555,7 @@ The touchpad is pressed as a button. On its own, a tap of the touchpad presses t
 
 ## Issues and reports
 
-Problems and ideas go to [GitHub issues](https://github.com/blackbearreloaded/ProsperoEden/issues). Reports about a particular game are welcome: name the game, and say what happens and where.
+For **Switch UI edition** problems and suggestions, use [KernelForgeX's GitHub issues](https://github.com/KernelForgeX/ProsperoEden/issues). For problems specific to the unmodified original port, see [BlackBearReloaded's upstream issues](https://github.com/blackbearreloaded/ProsperoEden/issues). Reports about a particular game are welcome: name the game, and say what happens and where.
 
 A report that can be acted on has:
 
