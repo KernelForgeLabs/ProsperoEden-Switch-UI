@@ -444,9 +444,9 @@ void Launcher::draw_about(Canvas &c)
     // A quiet, borderless surface instead of the upstream frosted-glass card.
     // Preserve a solid high-contrast alternative for accessibility.
     if (look().high_contrast)
-        glass(c, kListPanel, 8.0f, th().panel, th().panel_edge);
+        list.rounded_rect(kListPanel, 2.0f, th().panel);
     else
-        list.rounded_rect(kListPanel, 7.0f, th().panel.with_alpha(0.36f));
+        list.rounded_rect(kListPanel, 2.0f, th().panel.with_alpha(0.30f));
     text(c, tr("PROJECT CREDITS"), 144.0f, baseline(210.0f, 28.0f, th().size_small), th().size_small,
          th().accent_pale, Align::left, 3.0f);
     text_shrink(c, tr("Powered by Eden"), 144.0f, baseline(250.0f, 54.0f, th().size_lead),
@@ -473,16 +473,14 @@ void Launcher::draw_about(Canvas &c)
     text_shrink(c, tr("Menu sound effects made with ElevenLabs."), 144.0f,
                 baseline(788.0f, 30.0f, th().size_small), th().size_small, th().meta, 748.0f);
     // Supplement rather than replace Eden / PS5 port attribution.
-    text_shrink(c, "Switch UI redesign v5.7  |  Based on ProsperoEden v1.001.000",
+    text_shrink(c, "Switch UI v5.9  |  Based on ProsperoEden " + version_,
                 144.0f, baseline(826.0f, 28.0f, th().size_small),
                 th().size_small, th().accent_pale, 748.0f);
-    text(c, version_, 892.0f, baseline(866.0f, 28.0f, th().size_small), th().size_small,
-         th().accent_pale, Align::right);
 
     if (look().high_contrast)
-        glass(c, kDetailPanel, 8.0f, th().panel, th().panel_edge);
+        list.rounded_rect(kDetailPanel, 2.0f, th().panel);
     else
-        list.rounded_rect(kDetailPanel, 7.0f, th().panel.with_alpha(0.36f));
+        list.rounded_rect(kDetailPanel, 2.0f, th().panel.with_alpha(0.30f));
     text(c, tr("GETTING STARTED"), 1016.0f, baseline(210.0f, 28.0f, th().size_small), th().size_small,
          th().accent_pale, Align::left, 3.0f);
     text_shrink(c, tr("Supply your own files"), 1016.0f, baseline(262.0f, 54.0f, th().size_lead),

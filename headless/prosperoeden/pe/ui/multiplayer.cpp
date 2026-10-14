@@ -246,7 +246,12 @@ void Launcher::draw_public_rooms(Canvas& c, const Rect& pane) {
         fill(tr("{0} public rooms"), {std::to_string(room_directory_.rooms.size())}),
         pane.x, baseline(pane.y, 30, t.size_small), t.size_small, t.accent_pale, pane.w);
     const Rect nick{pane.x, pane.y + 46, pane.w, 72};
-    plate(c, row_plate(), nick, room_row_ == 0 ? 1.0f : 0.0f);
+    if (room_row_ == 0)
+        c.list.bordered_rect(nick, 3.0f, t.row_focus.with_alpha(0.62f),
+                             2.0f, t.accent_pale);
+    else
+        c.list.rounded_rect({nick.x + 18.0f, nick.y + nick.h, nick.w - 36.0f, 1.0f},
+                            0.0f, t.rule.with_alpha(0.35f));
     icon(c, Icon::profile, nick.x + 40, nick.y + 36, 30, room_row_ == 0 ? t.accent_pale : t.label);
     text_fit(c, fill(tr("Nickname: {0}"), {room_connection_.nickname}), nick.x + 72, baseline(nick.y, 72, t.size_text),
              t.size_text, t.title, nick.w - 96);
@@ -258,7 +263,12 @@ void Launcher::draw_public_rooms(Canvas& c, const Rect& pane) {
         const Rect row{pane.x, top, pane.w, 76};
         const bool on = room_row_ == first + i + 1;
         c.list.push_opacity(room.compatible ? 1.0f : 0.55f);
-        plate(c, row_plate(), row, on ? 1.0f : 0.0f);
+        if (on)
+            c.list.bordered_rect(row, 3.0f, t.row_focus.with_alpha(0.62f),
+                                 2.0f, t.accent_pale);
+        else
+            c.list.rounded_rect({row.x + 18.0f, row.y + row.h, row.w - 36.0f, 1.0f},
+                                0.0f, t.rule.with_alpha(0.35f));
         if (room.password) icon(c, Icon::lock, row.x + 40, row.y + 38, 28, t.label);
         else icon(c, Icon::multiplayer, row.x + 40, row.y + 38, 28, on ? t.accent_pale : t.label);
         // Who is in it: a pip for each place, lit for each player (up to sixteen places shown).
@@ -297,7 +307,9 @@ void Launcher::draw_public_rooms(Canvas& c, const Rect& pane) {
 // The room joined, or that there is none: at the right of every page.
 void Launcher::draw_room_panel(Canvas& c, const Rect& pane) {
     const Theme& t = th();
-    glass(c, pane, t.radius_panel, t.panel.with_alpha(0.90f), t.panel_edge.with_alpha(0.42f), 1.2f);
+    // Member/status details use the same calm surfaces as v5.8 Settings.
+    c.list.rounded_rect(pane, 3.0f,
+        look().high_contrast ? t.panel : t.panel.with_alpha(0.36f));
     const float x = pane.x + 36;
     const float width = pane.w - 72;
     const bool connected = room_status_.phase == Phase::Connected;
@@ -352,13 +364,19 @@ void Launcher::draw_multiplayer(Canvas& c) {
         const char* descriptions[]{TR("Browse the public directory and choose a room."),
                                    TR("Connect using a room address, port and password.")};
         const Icon icons[]{Icon::multiplayer, Icon::lock};
+        c.list.rounded_rect({x, kPane.y + 96.0f, 998.0f, 226.0f}, 3.0f,
+                            look().high_contrast ? t.panel : t.panel.with_alpha(0.34f));
         for (int i = 0; i < 2; ++i) {
             const Rect row{x, kPane.y + 96.0f + i * 122.0f, 998.0f, 104.0f};
             const bool selected = own && room_row_ == i;
-            c.list.bordered_rect(row, 10.0f,
-                selected ? t.row_focus.with_alpha(0.88f) : t.panel.with_alpha(0.70f),
-                selected ? 2.5f : 1.0f,
-                selected ? t.accent_pale : t.rule.with_alpha(0.44f));
+            if (selected)
+                c.list.bordered_rect(row, 3.0f,
+                    t.row_focus.with_alpha(look().high_contrast ? 1.0f : 0.60f),
+                    2.0f, t.accent_pale);
+            if (i == 0)
+                c.list.rounded_rect({row.x + 22.0f, row.y + row.h + 8.0f,
+                                     row.w - 44.0f, 1.0f}, 0.0f,
+                                    t.rule.with_alpha(0.42f));
             icon(c, icons[i], row.x + 58.0f, row.y + 52.0f, 43.0f,
                  selected ? t.accent_pale : t.body);
             {
@@ -373,8 +391,8 @@ void Launcher::draw_multiplayer(Canvas& c) {
         }
         // Compact connection status without an oversized frosted column.
         const Rect status{1215.0f, kPane.y + 96.0f, 566.0f, 226.0f};
-        c.list.bordered_rect(status, 10.0f, t.panel.with_alpha(0.72f), 1.0f,
-                             t.rule.with_alpha(0.44f));
+        c.list.rounded_rect(status, 3.0f,
+                            look().high_contrast ? t.panel : t.panel.with_alpha(0.34f));
         text_shrink(c, tr("CONNECTION"), status.x + 28.0f,
                     baseline(status.y + 23.0f, 28.0f, t.size_small), t.size_small,
                     t.meta, status.w - 56.0f);

@@ -733,12 +733,15 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
     list.push_opacity(open);
     list.push_transform(1.0f - 0.03f * (1.0f - open) * motion(), 960.0f, 540.0f, 0.0f,
                         (1.0f - open) * 26.0f * motion());
-    // Flat, Switch-like system dialog.  Preserve all existing modal coordinates
-    // and interaction semantics, including Quick IDs and safe delete confirmation.
+    // v5.9: Flat settings sheet.  Only the active row gets a focus outline;
+    // high-contrast mode retains a fully opaque backdrop for readability.
+    // Preserve all modal and row coordinates so controller navigation is unchanged.
     const Rect frame = modal == Modal::theme ?
         Rect{550.0f, 180.0f, 1210.0f, 720.0f} : kDialog;
-    list.bordered_rect(frame, 10.0f, th().panel.with_alpha(0.94f), 1.0f,
-                       th().rule.with_alpha(0.55f));
+    list.rounded_rect(frame, 3.0f, look().high_contrast ? th().panel :
+                      th().panel.with_alpha(modal == Modal::theme ? 0.80f : 0.73f));
+    list.rounded_rect({frame.x + 40.0f, 319.0f, frame.w - 80.0f, 1.0f},
+                      0.0f, th().rule.with_alpha(0.42f));
 
     const char *title = "";
     const char *copy = "";
@@ -798,20 +801,22 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
     {
         list.push_opacity(scrolls ? rows_view.row_alpha(row, kVideoRowHeight) : 1.0f);
         const Rect r{592.0f, dialog_row_top(modal, theme_scroll ? row - theme_first : row), 736.0f, 94.0f};
-        if (theme_scroll)
-            list.bordered_rect(r, 8.0f, th().row.with_alpha(0.72f), 1.0f, th().rule.with_alpha(0.4f));
-        else
-            plate_rest(c, row_plate(), r);
+        // No individual frosted cards: a quiet rule separates neighboring rows.
+        if (row < last)
+            list.rounded_rect({r.x + 24.0f, r.y + r.h + 2.0f,
+                               r.w - 48.0f, 1.0f}, 0.0f,
+                              th().rule.with_alpha(look().high_contrast ? 0.62f : 0.35f));
         list.pop_opacity();
     }
     const Rect focus_row{592.0f,
                          scrolls ? kVideoRowsTop + rows_view.cursor() - rows_view.scroll() :
                          theme_scroll ? dialog_row_top(modal, theme_selected - theme_first) : option_cursor_.value,
                          736.0f, 94.0f};
-    if (theme_scroll)
-        list.bordered_rect(focus_row, 8.0f, th().row_focus.with_alpha(0.88f), 2.5f, th().accent_pale);
-    else
-        plate_focus(c, row_plate(), focus_row, 1.0f);
+    // One crisp Switch-style selection rectangle for every settings subpage.
+    list.bordered_rect(focus_row, 3.0f,
+                       look().high_contrast ? th().row_focus :
+                                                th().row_focus.with_alpha(0.56f),
+                       2.0f, th().accent_pale);
 
     // A row's name takes what its control (`taken` wide, at the right) leaves of the row.
     const auto label = [&](int row, const char *value, float taken)
@@ -912,7 +917,7 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
         {
             const float top = 366.0f + 78.0f * static_cast<float>(i);
             const Rect cap{592.0f, top, 186.0f, 54.0f};
-            list.bordered_rect(cap, 14.0f, th().row.with_alpha(0.9f), 1.0f, th().row_edge.with_alpha(0.6f));
+            list.rounded_rect(cap, 3.0f, th().row.with_alpha(0.42f));
             constexpr float kButton = 38.0f;
             constexpr float kPlus = 28.0f;
             const float cy = cap.y + cap.h * 0.5f;
@@ -1033,9 +1038,9 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
             const std::string about = option_ == 0
                 ? "Enter a T or P Quick ID. Re-enter an installed P code to refresh its pack name; your artwork stays intact."
                 : all[static_cast<std::size_t>(std::clamp(option_ - 1, 0, static_cast<int>(all.size()) - 1))].summary;
-            text_block(c, about, 592.0f,
-                       baseline(820.0f, 30.0f, th().size_small), th().size_small, 30.0f, th().meta, 736.0f, 2,
-                       kShrink);
+            // The selected theme's summary is already shown in the preview column.
+            // Keeping a second description at the bottom made it overlap the hints.
+            (void)about;
         }
         // Thumbnail gallery detail pane. Full pack previews come from the
         // installed artwork, not the currently active wallpaper.
@@ -1059,6 +1064,17 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
                                gfx::Color{1.0f,1.0f,1.0f,1.0f});
         else
             list.rounded_rect(large, 7.0f, th().row.with_alpha(0.9f));
+        if (!editor && selected_index < 0)
+        {
+            text_shrink(c, tr("Install from Themezer Quick ID"), 1374.0f,
+                        baseline(596.0f, 44.0f, th().size_heading),
+                        th().size_heading, th().title, 352.0f);
+            text_block(c,
+                "Use a T code for one theme or a P code for a full pack. "
+                "Re-enter an installed P code to refresh its name.",
+                1374.0f, baseline(654.0f, 30.0f, th().size_small),
+                th().size_small, 32.0f, th().copy, 352.0f, 4, kShrink);
+        }
         if (!editor && selected_index >= 0 && selected_index < static_cast<int>(all.size()))
         {
             const Theme &entry = all[static_cast<std::size_t>(selected_index)];
@@ -1121,7 +1137,9 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
 
     // Under the rows: Video's five, and Performance's four with their line of text, end lower
     // than the other dialogs' three.
-    const float foot = scrolls ? 848.0f : 811.0f;
+    // Themes uses the lower inside edge for hints, separate from the preview
+    // and the fourth installed-theme row (which ends near y=770).
+    const float foot = modal == Modal::theme ? 842.0f : (scrolls ? 848.0f : 811.0f);
     if (!message_.empty() && scrolls)
     {
         // Two lines, placed as a game's own settings place theirs: what a Video choice costs
