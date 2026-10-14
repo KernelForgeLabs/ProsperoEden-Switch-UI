@@ -91,13 +91,14 @@ void SoundBank::play(Mixer &mixer, Cue cue)
     PlayParams params;
     params.bus = Bus::ui;
     auto &set = sets_[index];
-    // Opening screens and dialogs used to bypass the softer HOME cues, which
-    // made Settings and Themes sound unlike moving between games.
+    // The soft-navigation option chooses the gentler synthesized *fallback*
+    // only when no recording is installed. Soft Orbit clips must be used for
+    // all UI actions, including Settings / Themes / modal navigation.
     const bool soft_cue = soft_navigation_ &&
         (cue == Cue::focus || cue == Cue::select || cue == Cue::back ||
          cue == Cue::page || cue == Cue::open || cue == Cue::modal_open ||
          cue == Cue::modal_close || cue == Cue::toggle);
-    if (!set.empty() && !soft_cue)
+    if (!set.empty())
     {
         // +-3 % pitch keeps repeated sounds from feeling mechanical.
         jitter_state_ = jitter_state_ * 1664525u + 1013904223u;

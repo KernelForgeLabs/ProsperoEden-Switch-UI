@@ -77,8 +77,11 @@ builds on the following projects, each under its own license.
   domain (`tools/launcher/stb`). `stb_truetype` bakes the launcher's font and,
   in the app, reads the console's system fonts for the scripts Montserrat does
   not have. `stb_image_write` saves the PC previews and is not part of the app.
-- The launcher's sound effects were generated with
-  [ElevenLabs](https://elevenlabs.io) and edited for this project.
+- **Soft Orbit UI sound pack (Switch UI Edition)**: 20 independently
+  synthesized oscillator/noise WAV effects created specifically for this
+  edition; no third-party recordings or Nintendo samples. The former upstream
+  ElevenLabs WAVs have been replaced in this edition's packaged UI assets.
+  See [docs/SOFT_ORBIT_AUDIO.md](docs/SOFT_ORBIT_AUDIO.md).
 - `third_party/ps5_pad.hpp` and `third_party/native_audio.hpp` are this
   project's own platform declarations, GPL-3.0-or-later.
 

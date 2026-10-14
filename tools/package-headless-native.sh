@@ -64,6 +64,9 @@ python3 -B "$root/tools/launcher/build-ps5-branding.py" \
     --source "$root/sce_sys/branding-source.webp.b64" --out "$app/sce_sys"
 rm -rf "$app/ui"
 cp -a "$root/headless/prosperoeden/ui" "$app/ui"
+# Refuse stale upstream / ElevenLabs WAVs and unreviewed replacements in a build.
+# Keep this immediately after copying UI assets, not merely in the CI workflow.
+python3 -B "$root/tools/check-soft-orbit-audio.py" "$app/ui/sounds"
 # The switches the runner reads from the app folder (headless/main.cpp). Only a development
 # package gets them: the profile title otherwise takes its timed input replay instead of the
 # controller, and a release build never parses the file.

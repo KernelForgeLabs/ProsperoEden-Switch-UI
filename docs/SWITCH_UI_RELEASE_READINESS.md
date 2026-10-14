@@ -27,32 +27,24 @@ The original app uses `/data/homebrew/PPSA99008/`.
 Both access `/data/prosperoeden/`; do not run both simultaneously and back up
 `config/` and `user/` before cross-version tests.
 
-## Audio provenance — unresolved publication gate
+## Audio provenance — replacements integrated; PS5 test pending
 
-All **20** WAV files beneath `headless/prosperoeden/ui/sounds/` in the RC2
-tree have **identical Git blob SHAs and sizes** to files at the same paths in
-`blackbearreloaded/ProsperoEden` on its `main` branch as checked on
-2026-10-14. Merely changing the UI's look did **not** replace these files.
+The RC2 branch inherited all 20 upstream WAVs, which were attributed to
+ElevenLabs. **The release-prep branch replaces all 20 filenames with the
+original, independently synthesized `Soft Orbit` set approved for trial by
+the Switch UI maintainer.** No Nintendo samples, copied jingles, or third-party
+audio recordings were used to construct the new samples.
 
-`THIRD_PARTY_NOTICES.md` attributes the sound effects to ElevenLabs. The
-original generation account/plan, generation date, permission chain, and
-redistribution rights have **not** been verified. ElevenLabs' sound-effects
-terms distinguish uses embedded in productions from standalone delivery of
-individual samples. The release ships individual WAV files in `ui/sounds/`,
-so we must not assume that retaining attribution alone resolves licensing.
+`headless/prosperoeden/pe/audio/sounds.cpp` now prefers the installed WAVs
+even when soft-navigation mode is enabled; synthesized C++ tones remain as
+fallback only if the corresponding WAV is unavailable. The packaging script
+checks the **exact SHA-256 hashes** and 48 kHz PCM16 format of all 20 approved
+WAVs; a stale/altered source file fails the build. Former ElevenLabs attribution
+is replaced in `THIRD_PARTY_NOTICES.md` with accurate Soft Orbit attribution.
 
-Primary sources:
-- https://elevenlabs.io/creative-terms (Exhibit 4: Sound Effects)
-- https://help.elevenlabs.io/hc/en-us/articles/13313564601361-Can-I-publish-the-content-I-generate-on-the-platform
-
-**Before public distribution, choose and document one route:**
-1. Obtain defensible written provenance/permissions from the creator and
-   confirm the intended packaging and redistribution comply with the license; or
-2. Replace every affected sound asset with independently authored/licensed cues,
-   review any additional credits required, rebuild and retest audio on PS5.
-
-Keep the current ElevenLabs third-party notice until the actual sound assets
-and rights are resolved. Do not claim these WAVs were created by KernelForgeX.
+See [SOFT_ORBIT_AUDIO.md](SOFT_ORBIT_AUDIO.md) for provenance and the exact
+audio test procedure. **On-console audio regression is still pending; do not
+declare final public-release readiness based solely on desktop previews.**
 
 ## Title identity and catalog
 
@@ -101,8 +93,8 @@ retesting is required if a different ID is chosen or assigned.
 
 ## Required final gates
 
-- [ ] Resolve ElevenLabs sound provenance/redistribution or replace WAV assets,
-      update notices truthfully, and review the new audio with PS5 hardware.
+- [ ] Finish PS5 playback testing of the 20 new Soft Orbit WAVs, verify
+      default/soft-navigation behavior, and check the finished release ZIP.
 - [ ] Choose the long-term GitHub owner, then reserve `PPSA99186` with the
       catalog under the appropriate submitting account.
 - [ ] Fully clean-test installation and initial data directory creation on
@@ -118,5 +110,6 @@ retesting is required if a different ID is chosen or assigned.
 - [ ] Record a final PS5 regression pass and obtain explicit go-ahead before
       pushing a release tag or submitting a public listing.
 
-Keep the verified RC2 revision available for fallback. No app binary or
-packaging identifiers are changed by this documentation audit.
+Keep the verified RC2 revision available for fallback. The new sound assets,
+player preference for WAVs, and package-level sound verification are isolated
+to release-prep; the PS5 title ID and shared game-data root are unchanged.
