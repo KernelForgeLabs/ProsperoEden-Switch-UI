@@ -492,12 +492,12 @@ void Launcher::draw_about(Canvas &c)
     text_block(c, tr("ProsperoEden is an unofficial PS5 port brought to you by BlackBearReloaded."),
                144.0f, baseline(684.0f, 36.0f, th().size_text), th().size_text, 36.0f, th().body,
                748.0f, 2, kShrink);
-    text_shrink(c, tr("Menu sound effects made with ElevenLabs."), 144.0f,
-                baseline(788.0f, 30.0f, th().size_small), th().size_small, th().meta, 748.0f);
     // Supplement rather than replace Eden / PS5 port attribution.
-    text_shrink(c, "Switch UI v6.0 RC  |  Based on ProsperoEden v1.001.000",
+    text_shrink(c, "Switch UI v6.0 RC  |  Provided by KernelForgeX", 144.0f,
+                baseline(788.0f, 30.0f, th().size_small), th().size_small, th().accent_pale, 748.0f);
+    text_shrink(c, "Based on ProsperoEden v1.001.000",
                 144.0f, baseline(826.0f, 28.0f, th().size_small),
-                th().size_small, th().accent_pale, 748.0f);
+                th().size_small, th().meta, 748.0f);
 
     if (look().high_contrast)
         list.rounded_rect(kDetailPanel, 2.0f, th().panel);

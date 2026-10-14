@@ -576,7 +576,12 @@ void Launcher::draw_sources(Canvas &c, float open)
     list.push_opacity(open);
     list.push_transform(1.0f - 0.03f * (1.0f - open) * motion(), 960.0f, 540.0f, 0.0f,
                         (1.0f - open) * 26.0f * motion());
-    glass(c, kDialog, th().radius_panel, th().panel.with_alpha(0.97f), th().panel_edge.with_alpha(0.66f), 1.6f);
+    // Flat Settings sheet; row and scroll geometry stays unchanged.
+    list.rounded_rect(kDialog, 3.0f, look().high_contrast ? th().panel :
+                      th().panel.with_alpha(0.79f));
+    if (sources_.configured)
+        list.rounded_rect({592.0f, 365.0f, 736.0f, 1.0f}, 0.0f,
+                          th().rule.with_alpha(0.42f));
     text_shrink(c, tr("Downloads"), 592.0f, baseline(218.0f, 62.0f, th().size_display), th().size_display, th().title,
                 736.0f);
     text_shrink(c, tr("Games on your network, downloaded when you play them."), 592.0f,
@@ -599,8 +604,9 @@ void Launcher::draw_sources(Canvas &c, float open)
         if (!sources_.error.empty())
             notice_block(c, sources_.error, 592.0f, baseline(508.0f, 30.0f, th().size_small), th().size_small, 28.0f,
                          th().warning, 736.0f, 2, true);
-        list.bordered_rect({592.0f, 570.0f, 736.0f, 202.0f}, 14.0f, gfx::mix(th().panel, th().row, 0.3f).with_alpha(0.75f), 1.0f,
-                           th().row_edge.with_alpha(0.6f));
+        // Configuration example without an individual outlined card.
+        list.rounded_rect({592.0f, 570.0f, 736.0f, 202.0f}, 3.0f,
+                          th().row.with_alpha(look().high_contrast ? 0.82f : 0.48f));
         static constexpr const char *kExample[] = {"{ \"sources\": [",
                                                    "    { \"type\": \"romm\", \"name\": \"Home\",",
                                                    "      \"url\": \"http://192.168.1.20:3000\",",
@@ -623,11 +629,18 @@ void Launcher::draw_sources(Canvas &c, float open)
     for (int row = source_rows_.first_row(); row <= source_rows_.last_row(); ++row)
     {
         list.push_opacity(source_rows_.row_alpha(row, kRowHeight));
-        plate_rest(c, row_plate(), {592.0f, row_top(row), 736.0f, kRowHeight});
+        const Rect r{592.0f, row_top(row), 736.0f, kRowHeight};
+        if (row < source_row_count() - 1)
+            list.rounded_rect({r.x + 24.0f, r.y + r.h + 2.0f,
+                               r.w - 48.0f, 1.0f}, 0.0f,
+                              th().rule.with_alpha(look().high_contrast ? 0.62f : 0.35f));
         list.pop_opacity();
     }
-    plate_focus(c, row_plate(),
-                {592.0f, kRowsTop + source_rows_.cursor() - source_rows_.scroll(), 736.0f, kRowHeight}, 1.0f);
+    if (source_rows_.count > 0)
+        list.bordered_rect({592.0f, kRowsTop + source_rows_.cursor() - source_rows_.scroll(),
+                            736.0f, kRowHeight}, 3.0f,
+                           look().high_contrast ? th().row_focus : th().row_focus.with_alpha(0.56f),
+                           2.0f, th().accent_pale);
     for (int row = source_rows_.first_row(); row <= source_rows_.last_row(); ++row)
     {
         const float top = row_top(row);

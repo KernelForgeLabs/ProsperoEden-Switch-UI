@@ -665,7 +665,8 @@ void Launcher::draw(gfx::DrawList &list)
     const bool wallpaper_sheet = modal_shown_ == Modal::theme ||
         modal_shown_ == Modal::video || modal_shown_ == Modal::performance ||
         modal_shown_ == Modal::audio || modal_shown_ == Modal::controls ||
-        modal_shown_ == Modal::accessibility || modal_shown_ == Modal::diagnostics;
+        modal_shown_ == Modal::accessibility || modal_shown_ == Modal::diagnostics ||
+        modal_shown_ == Modal::sources || modal_shown_ == Modal::sync_setup;
     if (wallpaper_sheet)
         list.push_opacity(1.0f - opened);
     if (transition_.running)

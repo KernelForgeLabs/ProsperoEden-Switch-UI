@@ -189,7 +189,9 @@ void Launcher::draw_sync_setup(Canvas &c, float open)
     list.push_opacity(open);
     list.push_transform(1.0f - 0.03f * (1.0f - open) * motion(), 960.0f, 540.0f, 0.0f,
                         (1.0f - open) * 26.0f * motion());
-    glass(c, kDialog, th().radius_panel, th().panel.with_alpha(0.97f), th().panel_edge.with_alpha(0.66f), 1.6f);
+    // Flat Settings sheet; pairing and unlink controller handling stays unchanged.
+    list.rounded_rect(kDialog, 3.0f, look().high_contrast ? th().panel :
+                      th().panel.with_alpha(0.79f));
     const bool choosing = sync_setup_choosing_;
     const std::string chosen = sync_setup_profile_ < static_cast<int>(sync_setup_.profiles.size()) ?
                                    sync_setup_.profiles[static_cast<std::size_t>(sync_setup_profile_)].name :
@@ -217,12 +219,18 @@ void Launcher::draw_sync_setup(Canvas &c, float open)
     for (int row = sync_setup_rows_.first_row(); row <= sync_setup_rows_.last_row(); ++row)
     {
         list.push_opacity(sync_setup_rows_.row_alpha(row, kRowHeight));
-        plate_rest(c, row_plate(), {592.0f, row_top(row), 736.0f, kRowHeight});
+        const Rect r{592.0f, row_top(row), 736.0f, kRowHeight};
+        if (row < sync_setup_rows_.count - 1)
+            list.rounded_rect({r.x + 24.0f, r.y + r.h + 2.0f,
+                               r.w - 48.0f, 1.0f}, 0.0f,
+                              th().rule.with_alpha(look().high_contrast ? 0.62f : 0.35f));
         list.pop_opacity();
     }
     if (sync_setup_rows_.count > 0)
-        plate_focus(c, row_plate(),
-                    {592.0f, kRowsTop + sync_setup_rows_.cursor() - sync_setup_rows_.scroll(), 736.0f, kRowHeight}, 1.0f);
+        list.bordered_rect({592.0f, kRowsTop + sync_setup_rows_.cursor() - sync_setup_rows_.scroll(),
+                            736.0f, kRowHeight}, 3.0f,
+                           look().high_contrast ? th().row_focus : th().row_focus.with_alpha(0.56f),
+                           2.0f, th().accent_pale);
     for (int row = sync_setup_rows_.first_row(); row <= sync_setup_rows_.last_row(); ++row)
     {
         const float top = row_top(row);

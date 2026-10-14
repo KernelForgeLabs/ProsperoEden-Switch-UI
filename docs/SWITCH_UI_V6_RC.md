@@ -41,3 +41,20 @@ rollback and data-compatibility checks have been verified on hardware.
 Do not publish/tag this experimental branch as a stable release.
 The ID must be reserved, and any future organization transfer coordinated with
 the catalog maintainer, before public distribution.
+
+## v6.0 RC2 visual smoke test
+
+- Settings > Downloads: configured and unconfigured sources, list focus, scrolling,
+  re-read lists, download progress, retry, cancellation, and configuration example.
+- Settings > Save sync: profile list, linked and unlinked status, multi-server
+  selection, pairing, Square-twice unlink and Back navigation.
+- About: "Provided by KernelForgeX" and "Based on ProsperoEden v1.001.000"
+  alongside the existing Eden developer and BlackBearReloaded attribution.
+- Verify that HOME, themes and game launching remain unchanged.
+- Sound licensing remains a release blocker until audited: THIRD_PARTY_NOTICES.md
+  currently attributes the bundled WAVs to ElevenLabs. Do not remove its
+  attribution without establishing the current sound files' origin and rights.
+
+The initial v6.0 RC successfully launched on PS5 under PPSA99186, found and
+launched existing games, and did not offer an original-app update. RC2's
+visual changes must still be tested on console.
