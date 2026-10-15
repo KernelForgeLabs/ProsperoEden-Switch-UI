@@ -11,6 +11,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <sys/stat.h>
 
 namespace pe::ui::switch_bootstrap {
 namespace fs = std::filesystem;
@@ -39,16 +40,16 @@ inline std::string trim(std::string value) {
     return value.substr(start, end - start + 1);
 }
 
+// Use lstat rather than filesystem::symlink_status on the PS5's native paths.
+// Both checks reject symbolic links (including a redirected storage root).
 inline bool regular_without_links(const fs::path &path) {
-    std::error_code ec;
-    return !fs::is_symlink(fs::symlink_status(path, ec)) && !ec &&
-           fs::is_regular_file(path, ec) && !ec;
+    struct stat entry{};
+    return ::lstat(path.c_str(), &entry) == 0 && S_ISREG(entry.st_mode);
 }
 
 inline bool directory_without_links(const fs::path &path) {
-    std::error_code ec;
-    return !fs::is_symlink(fs::symlink_status(path, ec)) && !ec &&
-           fs::is_directory(path, ec) && !ec;
+    struct stat entry{};
+    return ::lstat(path.c_str(), &entry) == 0 && S_ISDIR(entry.st_mode);
 }
 
 // Fast structural validation. The texture loader still fully decodes TGA files.
@@ -137,9 +138,8 @@ inline bool ensure(const std::string &root_path) {
     fs::create_directories(root_dir / "installed", ec);
     if (ec || !directory_without_links(root_dir) || !directory_without_links(root_dir / "installed"))
         return false;
-    ec.clear();
-    fs::create_directories(root_dir / "active", ec);
-    if (ec) return false;
+    // 'active/' is legacy-only: preserve it when present, but do not require
+    // creating an unused folder for a fresh installation or Themezer pack.
     const fs::path current = root_dir / "current.txt";
     if (fs::exists(current, ec)) return !ec && regular_without_links(current);
     // Preserve the v3 active directory when upgrading with no current.txt.

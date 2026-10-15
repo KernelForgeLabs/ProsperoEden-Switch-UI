@@ -11,19 +11,26 @@ theme library is fully usable offline.
 
 ## Theme storage
 
-The app creates and manages the following persistent paths automatically:
+The app creates `installed/` and `current.txt` on first run and preserves
+existing library content. The optional legacy `active/` folder is not
+needed for new Themezer pack imports:
 
 ```text
 /data/prosperoeden/themes/
   installed/       # Themezer wallpapers, packs and palettes
-  active/          # preserved for compatible legacy theme imports
   current.txt      # selected theme ID; defaults to switch-dark
+  active/          # optional; preserved if present from legacy imports
 ```
 
 The theme library lives outside the Switch UI app package and survives app
 updates. When `/data/prosperoeden/themes` is missing, the next launch
-automatically recreates it; Themezer Quick ID imports and activation have
-been tested on PS5 in this state.
+automatically recreates its essential folders. An October 2026 fresh
+installation exposed a pack-specific failure when only `installed/` was
+recreated. This release-prep revision now decouples pack staging from
+the old `active/` and `current.txt` bootstrap, validates storage
+paths without following symlinks, and cleans up partial staging directories.
+A fresh P-pack installation on PS5 still needs retesting.
+Earlier single-theme Quick ID imports and activation passed on PS5.
 
 Older installations whose `current.txt` still names `canopy` are migrated
 to `switch-dark`. The other persisted themes and files are left in place.

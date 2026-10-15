@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cerrno>
 #include <cctype>
 #include <cmath>
 #include <cstdio>
@@ -48,6 +49,17 @@ bool directory(const std::string& path)
     if (mkdir(path.c_str(), 0755) == 0) return true;
     struct stat s{};
     return stat(path.c_str(), &s) == 0 && S_ISDIR(s.st_mode);
+}
+
+// Packs must only depend on their own installed/ tree, not on unrelated
+// first-run legacy selection files. Reject symlinked storage paths rather
+// than following a redirection when installing untrusted downloaded artwork.
+bool real_directory_or_create(const std::string& path)
+{
+    struct stat s{};
+    if (lstat(path.c_str(), &s) == 0) return S_ISDIR(s.st_mode);
+    if (errno != ENOENT || mkdir(path.c_str(), 0755) != 0) return false;
+    return lstat(path.c_str(), &s) == 0 && S_ISDIR(s.st_mode);
 }
 
 // This is always a private staging directory with a validated Quick ID.
@@ -531,9 +543,19 @@ ImportResult unpack_pack(const std::string& id, const std::vector<unsigned char>
     struct stat st{};
     if (lstat(final.c_str(),&st)==0 || lstat(stage.c_str(),&st)==0)
     { mz_zip_reader_end(&pack); return failed("Pack already installed or previous staging directory exists."); }
-    if (!switch_bootstrap::ensure(root) || !directory(installed) ||
-        !directory(stage) || !directory(stage+"/art") || !directory(stage+"/art/pages"))
+    if (!real_directory_or_create(root) || !real_directory_or_create(installed))
+    { mz_zip_reader_end(&pack); return failed("Cannot prepare theme storage folder (check permissions)."); }
+    // Require fresh exclusive creation: never reuse another install's stage.
+    if (mkdir(stage.c_str(), 0755) != 0)
     { mz_zip_reader_end(&pack); return failed("Cannot create private pack staging directory."); }
+    if (mkdir((stage+"/art").c_str(), 0755) != 0 ||
+        mkdir((stage+"/art/pages").c_str(), 0755) != 0)
+    {
+        std::error_code ec;
+        std::filesystem::remove_all(stage, ec);
+        mz_zip_reader_end(&pack);
+        return failed("Cannot prepare private pack artwork directory.");
+    }
     // The private staging directory has been created by this operation; its
     // filenames are generated from a fixed allowlist, never from ZIP entries.
     const auto abandon = [&] {
