@@ -1,7 +1,9 @@
 # Homebrew catalog — Switch UI title-ID reservation
 
-**Status:** Prepared for submission, **not submitted**. No public GitHub
-release or catalog reservation has been created by this document.
+**Status:** Reservation branch created in `KernelForgeX/ps5-homebrew-catalog`:
+`reserve-ppsa99186` at commit `6809c9dc0bbe0e60d635309b7c75774c4a6d3fe7`.
+**The PR has not yet been submitted or merged.** No public GitHub release
+or catalog reservation has been created by this document.
 
 This edition is a separate PS5 app from the original ProsperoEden.
 Its intended title identity is:
@@ -11,7 +13,7 @@ Its intended title identity is:
 - Source: https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI
 - Maintainer: `KernelForgeX`, published by `KernelForgeLabs`
 - Original upstream: https://github.com/blackbearreloaded/ProsperoEden
-- License: GPL-3.0-or-later
+- License: GPL-3.0 (matches GitHub's detected repository license)
 
 ## Reservation record to submit
 
@@ -26,7 +28,7 @@ with exactly this JSON:
   "name": "ProsperoEden Switch UI",
   "kind": "app",
   "description": "An independent Switch-inspired PS5 interface edition of BlackBearReloaded's ProsperoEden emulator.",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0",
   "author": "KernelForgeLabs",
   "version": null,
   "source_repo": null,
