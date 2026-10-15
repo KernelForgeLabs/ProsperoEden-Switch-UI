@@ -21,7 +21,7 @@ results and outstanding gates; it is **not a claim of full release qualification
 | Release-prep Tactile Leaf v3 audio and UI gain changes | **Passed on PS5**, maintainer reported successful build and test 2026-10-14 |
 | Release-prep Canopy removal and Switch Dark-only built-in selector | **Passed on PS5**, maintainer reported successful build and test 2026-10-14 |
 | Game Settings flat styling (release-prep build `5c82ac97`) | **Passed visual PS5 review**, maintainer reported the new build looks good 2026-10-15; other final regression checks still pending |
-| Startup app-icon animation and forged-K About badge | **Prepared for next build; PS5 verification pending**. Package regenerates floating/rail icon from its actual `sce_sys/icon0.png`; About shows KernelForgeLabs badge alongside unchanged original credits |
+| Startup app-icon animation and forged-K About badge (build `8c762510`) | **Passed on PS5 2026-10-15**. Maintainer confirmed all [branding checklist](BRANDING.md) items after installing the full package; GitHub Actions run [38795319172](https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/actions/runs/38795319172) succeeded |
 | Legacy saved `canopy` selection migration after update | **Pending a targeted migration test** |
 | Recreate deleted theme root and import P-pack | **Passed on PS5** with stat-compatible Themezer import fix, maintainer confirmed 2026-10-15 |
 | Remove a newly installed Themezer theme | **Passed on PS5**: maintainer confirmed a fresh test build recreated the theme structure, installed a theme, and deleted that newly installed theme (2026-10-15). Full multi-page pack and active-theme deletion guards still need final regression checks |
@@ -145,6 +145,9 @@ retesting is required if a different ID is chosen or assigned.
 - [x] Complete the new PS5 build and initial hands-on test of Tactile Leaf v3
       menu audio at the restrained volume and Canopy-free theme selector.
 - [x] Verify theme-root recreation, a fresh Themezer import and deletion of a newly installed theme on PS5.
+- [x] Verify packaged app-icon startup animation, rail mark and independent
+      KernelForgeLabs forged-K About badge on PS5, including accessibility
+      and Themezer wallpaper checks (2026-10-15, build `8c762510`).
 - [ ] Target-test legacy Canopy selection migration, multi-page pack handling,
       theme previews and palette changes on the exact final build.
 - [ ] Document any remaining full audio/regression issues reported by beta testers.
