@@ -20,6 +20,7 @@ results and outstanding gates; it is **not a claim of full release qualification
 | Themezer Quick ID import/install and activation with fresh theme library | Passed on PS5 (earlier RC2) |
 | Release-prep Tactile Leaf v3 audio and UI gain changes | **Passed on PS5**, maintainer reported successful build and test 2026-10-14 |
 | Release-prep Canopy removal and Switch Dark-only built-in selector | **Passed on PS5**, maintainer reported successful build and test 2026-10-14 |
+| Game Settings flat styling (release-prep build `5c82ac97`) | **Passed visual PS5 review**, maintainer reported the new build looks good 2026-10-15; other final regression checks still pending |
 | Legacy saved `canopy` selection migration after update | **Pending a targeted migration test** |
 | Recreate deleted theme root and import P-pack | **Passed on PS5** with stat-compatible Themezer import fix, maintainer confirmed 2026-10-15 |
 | Remove a newly installed Themezer theme | **Passed on PS5**: maintainer confirmed a fresh test build recreated the theme structure, installed a theme, and deleted that newly installed theme (2026-10-15). Full multi-page pack and active-theme deletion guards still need final regression checks |
@@ -180,7 +181,4 @@ when opened for a specific game. The game box icon remains recognizable, and
 controller-symbol circles and switch knobs keep their meaningful shapes.
 The polish commit [`1a624da`](https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/commit/1a624da7bd5165b4237ef48ef1f2d7436cd13a96)
 was **fast-forwarded into release-prep** after the maintainer verified theme
-installation/deletion. The updated Game Settings and mapping visuals have
-**not yet been built and visually checked on PS5**; their visual review remains
-a separate beta-release gate. The validated Themezer build predates this
-cosmetic change.
+installation/deletion. **The maintainer confirmed the new release-prep build looks good on PS5 on 2026-10-15**, verifying the flattened Game Settings visuals after the polish integration. The broader final regression checklist remains open, including the dedicated controller-mapping and accessibility checks.
