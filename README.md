@@ -17,7 +17,7 @@ The Switch UI launcher is based on ProsperoEden **v1.001.000**; compatibility an
 
 ## Source code
 
-The complete ProsperoEden source is in this repository: the PS5 frontend and launcher in `headless/`, and the build and packaging tools in `tools/`. To build it yourself, run `make` on Linux (Ubuntu 26.04; WSL works). It fetches every dependency at its pinned revision and writes the release files to `dist/`; `make help` lists the other targets. See [docs/BUILDING.md](docs/BUILDING.md). A release ZIP built by this fork’s GitHub Actions can be checked with `gh attestation verify <ZIP> -R KernelForgeX/ProsperoEden` (GitHub CLI). After any repository transfer to an organization, use its new repository owner. This describes CI-built artifacts, not binaries built by the upstream repository.
+The complete ProsperoEden source is in this repository: the PS5 frontend and launcher in `headless/`, and the build and packaging tools in `tools/`. To build it yourself, run `make` on Linux (Ubuntu 26.04; WSL works). It fetches every dependency at its pinned revision and writes the release files to `dist/`; `make help` lists the other targets. See [docs/BUILDING.md](docs/BUILDING.md). A release ZIP built by this fork’s GitHub Actions can be checked with `gh attestation verify <ZIP> -R KernelForgeLabs/ProsperoEden-Switch-UI` (GitHub CLI). After any repository transfer to an organization, use its new repository owner. This describes CI-built artifacts, not binaries built by the upstream repository.
 
 Local-wireless multiplayer through Eden rooms is new in v1.000.110 and experimental. See the
 [setup guide and current limitations](docs/MULTIPLAYER.md) and the
@@ -557,7 +557,7 @@ The touchpad is pressed as a button. On its own, a tap of the touchpad presses t
 
 ## Issues and reports
 
-For **Switch UI edition** problems and suggestions, use [KernelForgeX's GitHub issues](https://github.com/KernelForgeX/ProsperoEden/issues). For problems specific to the unmodified original port, see [BlackBearReloaded's upstream issues](https://github.com/blackbearreloaded/ProsperoEden/issues). Reports about a particular game are welcome: name the game, and say what happens and where.
+For **Switch UI edition** problems and suggestions, use [KernelForgeLabs GitHub issues](https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/issues). For problems specific to the unmodified original port, see [BlackBearReloaded's upstream issues](https://github.com/blackbearreloaded/ProsperoEden/issues). Reports about a particular game are welcome: name the game, and say what happens and where.
 
 A report that can be acted on has:
 
