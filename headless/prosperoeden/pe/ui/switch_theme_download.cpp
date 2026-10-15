@@ -51,6 +51,16 @@ bool directory(const std::string& path)
     return stat(path.c_str(), &s) == 0 && S_ISDIR(s.st_mode);
 }
 
+// Never replace an already-installed theme. On native PS5 filesystems,
+// lstat() may not identify an existing directory although stat() does.
+// Keep the non-following check first so dangling links are recognized where
+// supported, then fall back to stat() for ordinary existing files/folders.
+bool occupied(const std::string& path)
+{
+    struct stat s{};
+    return lstat(path.c_str(), &s) == 0 || stat(path.c_str(), &s) == 0;
+}
+
 // This is always a private staging directory with a validated Quick ID.
 void cleanup(const std::string& path)
 {
@@ -394,8 +404,7 @@ ImportResult unpack(const std::string& id, const std::vector<unsigned char>& byt
     const std::string installed=root+"/installed";
     const std::string stage=installed+"/.pending-"+id;
     const std::string final=installed+"/"+id;
-    struct stat existing{};
-    if (lstat(final.c_str(),&existing)==0) return failed("This Quick ID is already installed. Existing themes are never overwritten.");
+    if (occupied(final)) return failed("This Quick ID is already installed. Existing themes are never overwritten.");
     if (!directory(root) || !directory(installed)) return failed("Theme storage folder cannot be created.");
     // Never reuse abandoned temporary contents. Only the names listed by cleanup are removed.
     cleanup(stage);
@@ -529,8 +538,7 @@ ImportResult unpack_pack(const std::string& id, const std::vector<unsigned char>
     const std::string installed=root+"/installed";
     const std::string final=installed+"/"+id;
     const std::string stage=installed+"/.pending-"+id;
-    struct stat st{};
-    if (lstat(final.c_str(),&st)==0 || lstat(stage.c_str(),&st)==0)
+    if (occupied(final) || occupied(stage))
     { mz_zip_reader_end(&pack); return failed("Pack already installed or previous staging directory exists."); }
     if (!switch_bootstrap::directory_or_create(root))
     { mz_zip_reader_end(&pack); return failed("Theme library root is inaccessible (themes/)."); }
