@@ -37,16 +37,16 @@ Switch UI edition, without implying upstream endorsement.
 
 ## Hardware qualification
 
-- [ ] Launch the app from the PS5 home screen and compare its icon with the
+- [x] Launch the app from the PS5 home screen and compare its icon with the
       floating intro mark and 64px rail badge.
-- [ ] Confirm the original opening animation still travels to the rail and
+- [x] Confirm the original opening animation still travels to the rail and
       respects Reduce motion.
-- [ ] Open About and check the forge emblem at the lower right of project
+- [x] Open About and check the forge emblem at the lower right of project
       credits, with no overlap or clipping at normal/large text sizes.
-- [ ] Verify original Eden/BlackBearReloaded attribution remains readable.
-- [ ] Switch to a Themezer wallpaper and reopen About; the forge badge should
+- [x] Verify original Eden/BlackBearReloaded attribution remains readable.
+- [x] Switch to a Themezer wallpaper and reopen About; the forge badge should
       remain the same.
-- [ ] Reinstall using the **whole package** (not just eboot.bin) because art
+- [x] Reinstall using the **whole package** (not just eboot.bin) because art
       assets have changed.
 
-The implementation is unqualified until these PS5 tests pass.
+**Hardware result — passed on PS5 (2026-10-15).** The maintainer installed the complete build from commit `8c762510` and confirmed every branding checklist item: the floating app icon and rail icon match the PS5 icon; the original animation and Reduce Motion behavior work; the forge badge displays cleanly on About at the tested text sizes, including with Themezer artwork; and Eden/BlackBearReloaded attribution remains visible. These results qualify the branding change, not the entire v6.0 public release.
