@@ -39,6 +39,7 @@ constexpr float kKindPitch = 80.0f;
 constexpr float kKindHeight = 72.0f;
 constexpr Rect kMiddle{624.0f, 160.0f, 760.0f, 792.0f};
 constexpr Rect kExplain{1424.0f, 160.0f, 400.0f, 792.0f};
+constexpr float kGameSettingsCorner = 3.0f; // match the flat main Settings dialogs
 
 // The game page's rows on the left. Video to Language open what the game does differently from
 // Settings (game_options.cpp).
@@ -767,13 +768,14 @@ void Launcher::draw_game_page(Canvas &c, float open)
     list.push_transform(1.0f, 0.0f, 0.0f, (1.0f - open) * 48.0f * motion(), 0.0f);
 
     // ---- which game, and how much it has of its own ----
-    cover(c, game.cover, {layout::kLeft, 36.0f, 84.0f, 84.0f}, 20.0f, 0.6f);
+    cover(c, game.cover, {layout::kLeft, 36.0f, 84.0f, 84.0f}, kGameSettingsCorner, 0.6f);
     kicker(c, tr("Game settings"), layout::kLeft + 108.0f, baseline(38.0f, 28.0f, t.size_small), t.accent, 900.0f);
     const float clock = text_width(c, clock_, t.size_heading) + 28.0f;
     const std::string changed = changes_text(game_changes());
     const Tone tone = game_changes() > 0 ? Tone::accent : Tone::plain;
     const float chip_w = chip_width(c, changed, tone, 420.0f);
-    chip(c, changed, layout::kRight - clock - chip_w, layout::kTop + 32.0f, tone, 420.0f);
+    chip(c, changed, layout::kRight - clock - chip_w, layout::kTop + 32.0f, tone, 420.0f,
+         kGameSettingsCorner);
     {
         const Heavy heavy(c);
         text_fit(c, game.name, layout::kLeft + 108.0f, baseline(66.0f, 54.0f, 44.0f), 44.0f, t.title,
@@ -817,9 +819,11 @@ void Launcher::draw_game_page(Canvas &c, float open)
     };
     // The highlight: whole while the focus is on the kinds, quieter once it is on the rows.
     const Rect lit{kKinds.x, kKinds.y + game_rows_.cursor(), kKinds.w, kKindHeight};
-    plate_focus(c, row_plate(), lit, 1.0f - 0.62f * pane);
+    Plate kinds_style = row_plate();
+    kinds_style.radius = kGameSettingsCorner;
+    plate_focus(c, kinds_style, lit, 1.0f - 0.62f * pane);
     if (!look().high_contrast)
-        list.rounded_rect({lit.x + 14.0f, lit.y + 20.0f, 4.0f, kKindHeight - 40.0f}, 2.0f, t.accent);
+        list.rounded_rect({lit.x + 14.0f, lit.y + 20.0f, 4.0f, kKindHeight - 40.0f}, 0.0f, t.accent);
     for (int row = 0; row < rows; ++row)
     {
         const int which = game_row(row);
@@ -920,16 +924,18 @@ void Launcher::draw_mode_pane(Canvas &c, const Rect &pane)
     gfx::DrawList &list = c.list;
     const Theme &t = th();
     const float width = (pane.w - 20.0f) * 0.5f;
+    Plate mode_style = tile_plate();
+    mode_style.radius = kGameSettingsCorner;
     for (int i = 0; i < 2; ++i)
     {
         const bool chosen = (i == 0) == game_docked_;
         const Rect r{pane.x + (width + 20.0f) * static_cast<float>(i), pane.y, width, 232.0f};
         if (chosen && !look().high_contrast)
-            list.bordered_rect(r, t.radius_card, t.accent.with_alpha(0.14f), 1.5f, t.accent.with_alpha(0.75f));
+            list.bordered_rect(r, kGameSettingsCorner, t.accent.with_alpha(0.14f), 1.5f, t.accent.with_alpha(0.75f));
         else if (chosen)
-            list.bordered_rect(r, t.radius_card, gfx::mix(t.scrim, t.row_focus, 0.7f), 3.0f, t.title);
+            list.bordered_rect(r, kGameSettingsCorner, gfx::mix(t.scrim, t.row_focus, 0.7f), 3.0f, t.title);
         else
-            plate_rest(c, tile_plate(), r);
+            plate_rest(c, mode_style, r);
         const Color ink = chosen ? t.accent_pale : t.label;
         icon(c, i == 0 ? Icon::docked : Icon::handheld, r.x + r.w * 0.5f, r.y + 92.0f, 84.0f, ink);
         text_shrink(c, i == 0 ? tr("Docked") : tr("Handheld"), r.x + r.w * 0.5f, baseline(r.y + 160.0f, 40.0f, 28.0f),
@@ -962,6 +968,8 @@ void Launcher::draw_mods_pane(Canvas &c, const Rect &pane, bool active)
     }
     const float pitch = layout::kPanePitch;
     const float height = layout::kPaneRow;
+    Plate mod_style = row_plate();
+    mod_style.radius = kGameSettingsCorner;
     const float scroll = active ? mod_rows_.scroll() : 0.0f;
     const int count = static_cast<int>(mod_list_.size());
     const int first = active ? mod_rows_.first_row() : 0;
@@ -972,11 +980,11 @@ void Launcher::draw_mods_pane(Canvas &c, const Rect &pane, bool active)
     for (int row = first; row <= last; ++row)
     {
         list.push_opacity(active ? mod_rows_.row_alpha(row, height) : 1.0f);
-        plate_rest(c, row_plate(), {pane.x, row_top(row), pane.w, height});
+        plate_rest(c, mod_style, {pane.x, row_top(row), pane.w, height});
         list.pop_opacity();
     }
     if (active)
-        plate_focus(c, row_plate(), {pane.x, pane.y + mod_rows_.cursor() - scroll, pane.w, height}, 1.0f);
+        plate_focus(c, mod_style, {pane.x, pane.y + mod_rows_.cursor() - scroll, pane.w, height}, 1.0f);
     // With the game's Mods switch off (the Library's) no mod is used: their own switches keep
     // their state, drawn faint.
     const bool live = game.mods_enabled;
@@ -996,7 +1004,7 @@ void Launcher::draw_mods_pane(Canvas &c, const Rect &pane, bool active)
             text_fit(c, cheat.name, pane.x + 68.0f, baseline(top, height, t.size_text), t.size_text,
                      cheat.enabled && used ? t.value : t.meta, pane.w - 68.0f - 120.0f);
             list.push_opacity(used ? 1.0f : 0.4f);
-            toggle(c, right, top + height * 0.5f, cheat.enabled ? 1.0f : 0.0f);
+            toggle(c, right, top + height * 0.5f, cheat.enabled ? 1.0f : 0.0f, kGameSettingsCorner);
             list.pop_opacity();
             list.pop_opacity();
             continue;
@@ -1014,7 +1022,7 @@ void Launcher::draw_mods_pane(Canvas &c, const Rect &pane, bool active)
         text_shrink(c, made, pane.x + 28.0f, baseline(top + 46.0f, 26.0f, 18.0f), 18.0f, t.meta,
                     pane.w - 28.0f - 120.0f);
         list.push_opacity(live ? 1.0f : 0.4f);
-        toggle(c, right, top + height * 0.5f, mod.enabled ? 1.0f : 0.0f);
+        toggle(c, right, top + height * 0.5f, mod.enabled ? 1.0f : 0.0f, kGameSettingsCorner);
         list.pop_opacity();
         list.pop_opacity();
     }
@@ -1030,7 +1038,9 @@ void Launcher::draw_save_pane(Canvas &c, const Rect &pane, bool removing)
     const Theme &t = th();
     const Game &game = games_[static_cast<std::size_t>(library_.selected)];
     const Rect r{pane.x, pane.y, pane.w, 232.0f};
-    plate_rest(c, tile_plate(), r);
+    Plate save_style = tile_plate();
+    save_style.radius = kGameSettingsCorner;
+    plate_rest(c, save_style, r);
     icon(c, removing ? Icon::downloads : Icon::sync, r.x + 72.0f, r.y + r.h * 0.5f, 72.0f,
          removing ? t.warning : t.accent_pale);
     const float x = r.x + 144.0f;
@@ -1054,7 +1064,7 @@ void Launcher::draw_save_pane(Canvas &c, const Rect &pane, bool removing)
 void Launcher::draw_explain_pane(Canvas &c, const Rect &pane, int kind)
 {
     const Theme &t = th();
-    glass(c, {pane.x, pane.y, pane.w, 712.0f}, t.radius_card + 4.0f, t.panel.with_alpha(0.90f),
+    glass(c, {pane.x, pane.y, pane.w, 712.0f}, kGameSettingsCorner, t.panel.with_alpha(0.90f),
           t.panel_edge.with_alpha(0.40f), 0.8f);
     const float x = pane.x + 32.0f;
     const float width = pane.w - 64.0f;
@@ -1098,7 +1108,8 @@ void Launcher::draw_explain_pane(Canvas &c, const Rect &pane, int kind)
     if (kind >= row_video && kind <= row_language)
     {
         const int own = game_overrides(kind - row_video);
-        chip(c, changes_text(own), x, y + 22.0f, own > 0 ? Tone::accent : Tone::plain, width);
+        chip(c, changes_text(own), x, y + 22.0f, own > 0 ? Tone::accent : Tone::plain, width,
+             kGameSettingsCorner);
     }
     // What the menu last said, at the foot.
     if (!message_.empty())

@@ -164,3 +164,16 @@ Keep the verified RC2 revision available for fallback. Tactile Leaf v3 audio,
 restrained gain, Switch Dark-only base theme, and package-level sound
 verification are isolated to release-prep; the PS5 title ID and shared
 game-data root are unchanged.
+
+## Game Settings visual consistency (separate polish branch)
+
+The Game Settings page still rendered its selection rows, mode/save tiles,
+explanation panel, chips, and mod switch tracks using the default rounded theme
+radius (18–30px) after the HOME UI was flattened. A scoped polish branch,
+`polish/flat-game-settings`, changes those elements to the 3px radius already
+used by primary Settings dialogs. It leaves the main theme and other screens'
+shared widget defaults unchanged, and only flattens the button-mapping modal
+when opened for a specific game. The game box icon remains recognizable, and
+controller-symbol circles and switch knobs keep their meaningful shapes.
+This branch is **not merged into release-prep** and awaits visual review and
+hardware verification after the ongoing theme-deletion test build.

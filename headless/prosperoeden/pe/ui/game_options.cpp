@@ -423,6 +423,8 @@ void Launcher::draw_option_pane(Canvas &c, const Rect &pane, int category, bool 
     const std::vector<Option> rows = options(category, game_settings_, prefs_, services_, {hertz(0), hertz(1)});
     const float pitch = layout::kPanePitch;
     const float height = layout::kPaneRow;
+    Plate game_options_style = row_plate();
+    game_options_style.radius = 3.0f; // flat Game Settings, not global Settings
     const int count = static_cast<int>(rows.size());
     // The rows as they are while the focus is on the kinds; the list's own place once it is here.
     const float scroll = active ? option_rows_.scroll() : 0.0f;
@@ -434,11 +436,11 @@ void Launcher::draw_option_pane(Canvas &c, const Rect &pane, int category, bool 
     for (int row = first; row <= last; ++row)
     {
         list.push_opacity(active ? option_rows_.row_alpha(row, height) : 1.0f);
-        plate_rest(c, row_plate(), {pane.x, row_top(row), pane.w, height});
+        plate_rest(c, game_options_style, {pane.x, row_top(row), pane.w, height});
         list.pop_opacity();
     }
     if (active)
-        plate_focus(c, row_plate(), {pane.x, pane.y + option_rows_.cursor() - scroll, pane.w, height}, 1.0f);
+        plate_focus(c, game_options_style, {pane.x, pane.y + option_rows_.cursor() - scroll, pane.w, height}, 1.0f);
     for (int row = first; row <= last; ++row)
     {
         const Option &option = rows[static_cast<std::size_t>(row)];
@@ -558,7 +560,8 @@ void Launcher::draw_mapping(Canvas &c, float open)
     list.push_opacity(open);
     list.push_transform(1.0f - 0.03f * (1.0f - open) * motion(), 960.0f, 540.0f, 0.0f,
                         (1.0f - open) * 26.0f * motion());
-    glass(c, kDialog, th().radius_panel, th().panel.with_alpha(0.97f), th().panel_edge.with_alpha(0.66f), 1.6f);
+    glass(c, kDialog, mapping_for_game_ ? 3.0f : th().radius_panel,
+          th().panel.with_alpha(0.97f), th().panel_edge.with_alpha(0.66f), 1.6f);
     text_shrink(c, tr("Button mapping"), 592.0f, baseline(218.0f, 62.0f, th().size_display), th().size_display,
                 th().title, 736.0f);
     const Game *game = mapping_for_game_ && !games_.empty() ?
@@ -567,16 +570,18 @@ void Launcher::draw_mapping(Canvas &c, float open)
              592.0f, baseline(291.0f, 32.0f, th().size_small), th().size_small, th().copy, 736.0f);
 
     const ButtonMapping &mapping = mapping_for_game_ ? game_settings_.mapping : prefs_.mapping;
+    Plate mapping_style = row_plate();
+    if (mapping_for_game_) mapping_style.radius = 3.0f;
     list.push_clip({kWindow.x - 24.0f, kWindow.y - 6.0f, kWindow.w + 48.0f, kWindow.h + 12.0f});
     const auto row_top = [&](int row)
     { return kRowsTop + static_cast<float>(row) * kRowPitch - mapping_rows_.scroll(); };
     for (int row = mapping_rows_.first_row(); row <= mapping_rows_.last_row(); ++row)
     {
         list.push_opacity(mapping_rows_.row_alpha(row, kRowHeight));
-        plate_rest(c, row_plate(), {592.0f, row_top(row), 736.0f, kRowHeight});
+        plate_rest(c, mapping_style, {592.0f, row_top(row), 736.0f, kRowHeight});
         list.pop_opacity();
     }
-    plate_focus(c, row_plate(), {592.0f, kRowsTop + mapping_rows_.cursor() - mapping_rows_.scroll(), 736.0f, kRowHeight},
+    plate_focus(c, mapping_style, {592.0f, kRowsTop + mapping_rows_.cursor() - mapping_rows_.scroll(), 736.0f, kRowHeight},
                 1.0f);
     for (int row = mapping_rows_.first_row(); row <= mapping_rows_.last_row(); ++row)
     {

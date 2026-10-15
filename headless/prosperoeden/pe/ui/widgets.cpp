@@ -468,15 +468,16 @@ void controller_icon(Canvas &c, const Rect &r, float lit)
     }
 }
 
-void toggle(Canvas &c, float right, float cy, float position)
+void toggle(Canvas &c, float right, float cy, float position, float corner_radius)
 {
     constexpr float kWidth = 64.0f;
     constexpr float kHeight = 34.0f;
     const Theme &t = th();
     const Rect track{right - kWidth, cy - kHeight * 0.5f, kWidth, kHeight};
-    c.list.bordered_rect(track, kHeight * 0.5f, gfx::mix(t.row, t.row_edge, 0.18f).with_alpha(0.95f), 1.0f,
+    const float radius = corner_radius >= 0.0f ? corner_radius : kHeight * 0.5f;
+    c.list.bordered_rect(track, radius, gfx::mix(t.row, t.row_edge, 0.18f).with_alpha(0.95f), 1.0f,
                          t.row_edge.with_alpha(0.7f));
-    c.list.hgradient_rect(track, kHeight * 0.5f, t.accent.with_alpha(0.95f * position),
+    c.list.hgradient_rect(track, radius, t.accent.with_alpha(0.95f * position),
                           gfx::mix(t.accent, t.accent_deep, 0.35f).with_alpha(0.95f * position));
     const float knob_x = track.x + kHeight * 0.5f + (kWidth - kHeight) * position;
     c.list.shadow({knob_x - 12.0f, cy - 10.0f, 24.0f, 24.0f}, 12.0f, 6.0f, kBlack.with_alpha(0.35f));
@@ -565,13 +566,15 @@ float chip_width(Canvas &c, std::string_view value, Tone tone, float max_width)
     return std::min(max_width, kChipPad * 2.0f + lead + text_width(c, value, th().size_small));
 }
 
-float chip(Canvas &c, std::string_view value, float x, float cy, Tone tone, float max_width)
+float chip(Canvas &c, std::string_view value, float x, float cy, Tone tone, float max_width,
+           float corner_radius)
 {
     const Theme &t = th();
     const float width = chip_width(c, value, tone, max_width);
     const float height = look().large_text ? kChipHeight + 6.0f : kChipHeight;
     const Rect r{x, cy - height * 0.5f, width, height};
-    const float radius = t.pill_chips ? height * 0.5f : t.radius_row * 0.6f;
+    const float radius = corner_radius >= 0.0f ? corner_radius :
+                         t.pill_chips ? height * 0.5f : t.radius_row * 0.6f;
     const Color ink = tone == Tone::warning ? t.warning : tone == Tone::accent ? t.accent_pale : t.body;
     if (look().high_contrast)
         c.list.bordered_rect(r, radius, gfx::mix(t.scrim, t.row, 0.6f), 1.5f, ink);

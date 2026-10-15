@@ -156,7 +156,7 @@ void arc(gfx::DrawList &list, float cx, float cy, float radius, float width, flo
 // bar glowing at lit 1.
 void controller_icon(Canvas &c, const Rect &r, float lit);
 // A switch: knob at `position` (0 off .. 1 on).
-void toggle(Canvas &c, float right, float cy, float position);
+void toggle(Canvas &c, float right, float cy, float position, float corner_radius = -1.0f);
 // A level bar ending at `right`: `level` 0..1.
 void level_bar(Canvas &c, float right, float cy, float width, float level, float focus);
 // A bar that fills (downloads, the update): `done` 0..1.
@@ -175,7 +175,8 @@ enum class Tone : std::uint8_t
 // How wide chip() draws value (no wider than max_width).
 float chip_width(Canvas &c, std::string_view value, Tone tone, float max_width);
 // A chip with its left edge at x, centred on cy; returns its width.
-float chip(Canvas &c, std::string_view value, float x, float cy, Tone tone, float max_width);
+float chip(Canvas &c, std::string_view value, float x, float cy, Tone tone, float max_width,
+           float corner_radius = -1.0f);
 
 // ---- icons, drawn from lines ----
 enum class Icon : std::uint8_t
