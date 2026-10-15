@@ -552,11 +552,19 @@ void Launcher::press_dialog(Key key)
         return;
     }
     if (modal_ == Modal::theme && key == Key::square) {
-        if (option_ <= 2) { say(tr("Bundled themes cannot be deleted."), true); return; }
+        // Row zero is the Themezer Quick ID installer, not a theme.
+        // Only Switch Dark is bundled. The old <= 2 guard was left over
+        // from the two-theme (Canopy + Switch Dark) selection list and
+        // incorrectly protected the first downloaded Themezer theme.
+        if (option_ <= 0) return;
         const auto all = themes();
         const int index = option_ - 1;
-        if (index >= static_cast<int>(all.size())) return;
+        if (index < 0 || index >= static_cast<int>(all.size())) return;
         const std::string id = all[static_cast<std::size_t>(index)].id;
+        if (id == "switch-dark" || id == "legacy") {
+            say(tr("Bundled themes cannot be deleted."), true);
+            return;
+        }
         if (id == th().id || id == switch_bootstrap::selected(switch_bootstrap::root())) {
             say(tr("Select another theme before deleting this one."), true);
             return;
@@ -1017,7 +1025,8 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
                         th().size_text, th().value, 530.0f);
                 } else {
                     const Theme &entry = all[static_cast<std::size_t>(row - 1)];
-                    const auto preview = c.textures.theme_preview(entry.id, entry.backdrop, row <= 2);
+                    const auto preview = c.textures.theme_preview(entry.id, entry.backdrop,
+                                                                  std::string_view(entry.id) == "switch-dark");
                     const Rect thumb{610.0f,
                                      dialog_row_top(modal, row - theme_first) + 12.0f,
                                      120.0f, 68.0f};
@@ -1057,7 +1066,8 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
         else if (selected_index >= 0 && selected_index < static_cast<int>(all.size()))
         {
             const Theme &entry = all[static_cast<std::size_t>(selected_index)];
-            preview = c.textures.theme_preview(entry.id, entry.backdrop, selected_index < 2);
+            preview = c.textures.theme_preview(entry.id, entry.backdrop,
+                                               std::string_view(entry.id) == "switch-dark");
         }
         if (preview != 0)
             list.rounded_image(preview, large, {0.0f,0.0f,1.0f,1.0f}, 7.0f,

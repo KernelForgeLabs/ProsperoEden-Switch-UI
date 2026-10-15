@@ -21,7 +21,8 @@ results and outstanding gates; it is **not a claim of full release qualification
 | Release-prep Tactile Leaf v3 audio and UI gain changes | **Passed on PS5**, maintainer reported successful build and test 2026-10-14 |
 | Release-prep Canopy removal and Switch Dark-only built-in selector | **Passed on PS5**, maintainer reported successful build and test 2026-10-14 |
 | Legacy saved `canopy` selection migration after update | **Pending a targeted migration test** |
-| Recreate deleted theme root (fresh boot) | **Partial failure found**: `installed/` created; first patch still failed strict `lstat()` validation of theme root. Stat-compatible fix prepared; PS5 retest pending |
+| Recreate deleted theme root and import P-pack | **Passed on PS5** with stat-compatible Themezer import fix, maintainer confirmed 2026-10-15 |
+| Remove installed Themezer packs | **Failed on PS5**: delete menu still treated first downloaded theme as bundled. Row guard and previews fixed in release-prep; PS5 retest pending |
 | Completely fresh install with empty data root and no prior configuration | **Pending** |
 | Cross-version shared save/config compatibility and backup/rollback | **Pending** |
 | On-console update install and rollback | **Pending** |

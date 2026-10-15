@@ -32,7 +32,13 @@ check. This revision falls back to the same `stat()` behavior used by the
 working single-theme importer, while rejecting symlinks whenever `lstat()`
 can recognize them. Pack imports still depend only on `themes/installed/`
 and clean up partially created staging folders.
-A fresh P-pack installation on PS5 still needs retesting.
+A fresh P-pack installation succeeded on PS5 after the stat-compatible fix,
+reported by the maintainer on 2026-10-15. A follow-up regression showed that
+the delete button still treated the first installed theme as bundled because
+its guard assumed the old two-theme list. The guard now protects Switch Dark
+by ID, and theme previews use the same built-in ID rather than row position.
+Deletion requires selecting an inactive installed theme and confirming with
+Square twice; hardware retesting is still pending.
 Earlier single-theme Quick ID imports and activation passed on PS5.
 
 Older installations whose `current.txt` still names `canopy` are migrated
@@ -74,8 +80,14 @@ Each Themezer import is validated before it is shown; an optional
    launch selects Switch Dark and updates `current.txt` to `switch-dark`.
 3. Switch between Switch Dark and a Themezer wallpaper, including Settings
    and its background-dimming dialogs.
-4. Confirm installed Themezer wallpapers persist after an app update.
-5. Test an empty theme root via safe folder **rename**, not deletion of
+4. Apply Switch Dark, highlight an inactive downloaded P-pack or T-theme,
+   then press Square twice; it should be removed, without affecting other
+   installed themes. Verify Switch Dark itself cannot be deleted and the
+   active theme is protected.
+5. Confirm Themezer previews display the downloaded artwork, not the
+   bundled Switch Dark background.
+6. Confirm installed Themezer wallpapers persist after an app update.
+7. Test an empty theme root via safe folder **rename**, not deletion of
    personal themes. Restore the backup afterward.
 
 For the historical upstream Canopy theme documentation, refer to

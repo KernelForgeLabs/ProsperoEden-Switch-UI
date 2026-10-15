@@ -3,6 +3,7 @@
 #include "prosperoeden/pe/ui/switch_bootstrap.hpp"
 #include <cstdlib>
 #include <cerrno>
+#include <array>
 #include <sys/stat.h>
 #include <filesystem>
 #include <fstream>
@@ -33,6 +34,19 @@ void check(bool result, const char *why) {
     if (!result) throw std::runtime_error(why);
 }
 
+// Write a tiny structurally valid TGA fixture; the test exercises only
+// theme storage/deletion, not image rendering.
+void write_tga(const fs::path &path) {
+    std::array<unsigned char, 21> pixels{};
+    pixels[2] = 2; // uncompressed true-color TGA
+    pixels[12] = 1; // width
+    pixels[14] = 1; // height
+    pixels[16] = 24; // BGR
+    std::ofstream out(path, std::ios::binary);
+    out.write(reinterpret_cast<const char *>(pixels.data()), pixels.size());
+    check(out.good(), "fixture wallpaper must be writable");
+}
+
 int main() {
     const fs::path scratch = fs::temp_directory_path() /
         ("pe-switch-theme-check-" + std::to_string(::getpid()));
@@ -59,6 +73,37 @@ int main() {
         check(library::ensure(root.string()), "legacy/existing theme root must still initialize");
         check(fs::exists(root / "active"), "legacy active/ must be preserved");
         check(library::selected(root.string()) == "T123456", "existing selection must not be overwritten");
+
+        // Simulate a freshly downloaded P pack, including multiple screen
+        // backgrounds. Only a valid, inactive installed theme may be deleted.
+        fs::create_directories(scratch_theme / "art" / "pages");
+        write_tga(scratch_theme / "art" / "backdrop.tga");
+        write_tga(scratch_theme / "art" / "backdrop-blur.tga");
+        write_tga(scratch_theme / "art" / "pages" / "home.tga");
+        write_tga(scratch_theme / "art" / "pages" / "home-blur.tga");
+        write_tga(scratch_theme / "art" / "pages" / "settings.tga");
+        write_tga(scratch_theme / "art" / "pages" / "settings-blur.tga");
+        { std::ofstream(scratch_theme / "palette.ini") << "name=Test Themezer Pack\\n"; }
+        { std::ofstream(scratch_theme / "pages.ini") << "home=home\\nsettings=settings\\n"; }
+        check(library::usable(scratch_theme), "synthetic Themezer pack must be recognized");
+        check(!library::remove_installed(root.string(), "switch-dark"), "built-in Switch Dark must never be deleted");
+        { std::ofstream(root / "current.txt", std::ios::trunc) << "P1234\\n"; }
+        check(!library::remove_installed(root.string(), "P1234"), "selected theme must not be deleted");
+        { std::ofstream(root / "current.txt", std::ios::trunc) << "switch-dark\\n"; }
+        check(library::remove_installed(root.string(), "P1234"), "inactive Themezer pack must be removable");
+        check(!fs::exists(scratch_theme), "pack art and metadata must be deleted");
+
+        // Keep refusing deletion if an unexpected user file exists.
+        const fs::path single = root / "installed" / "T1234";
+        fs::create_directories(single / "art");
+        write_tga(single / "art" / "backdrop.tga");
+        write_tga(single / "art" / "backdrop-blur.tga");
+        { std::ofstream(single / "palette.ini") << "name=Single Theme\\n"; }
+        { std::ofstream(single / "keep-me.txt") << "unrecognized user content\\n"; }
+        check(!library::remove_installed(root.string(), "T1234"), "unexpected files must prevent deletion");
+        check(fs::exists(single / "keep-me.txt"), "unexpected files must remain untouched");
+        fs::remove(single / "keep-me.txt");
+        check(library::remove_installed(root.string(), "T1234"), "installed single theme must be removable");
 
         // Reject links to avoid saving packs outside the theme library.
         const fs::path redirected = scratch / "redirected";
