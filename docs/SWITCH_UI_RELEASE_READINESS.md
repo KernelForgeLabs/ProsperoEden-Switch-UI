@@ -22,7 +22,7 @@ results and outstanding gates; it is **not a claim of full release qualification
 | Release-prep Canopy removal and Switch Dark-only built-in selector | **Passed on PS5**, maintainer reported successful build and test 2026-10-14 |
 | Legacy saved `canopy` selection migration after update | **Pending a targeted migration test** |
 | Recreate deleted theme root and import P-pack | **Passed on PS5** with stat-compatible Themezer import fix, maintainer confirmed 2026-10-15 |
-| Remove installed Themezer packs | **Failed on PS5**: delete menu still treated first downloaded theme as bundled. Row guard and previews fixed in release-prep; PS5 retest pending |
+| Remove a newly installed Themezer theme | **Passed on PS5**: maintainer confirmed a fresh test build recreated the theme structure, installed a theme, and deleted that newly installed theme (2026-10-15). Full multi-page pack and active-theme deletion guards still need final regression checks |
 | Completely fresh install with empty data root and no prior configuration | **Pending** |
 | Cross-version shared save/config compatibility and backup/rollback | **Pending** |
 | On-console update install and rollback | **Pending** |
@@ -84,8 +84,11 @@ old-owner release destinations.
 The default branch remains the inherited `main`, **not** the Switch UI
 release-prep branch. Before a public beta, decide the maintained Switch UI
 branch, promote it to the default branch after qualification, and set an
-accurate repository description. The next manual CI build under the
-organization and its artifact validation are not yet recorded.
+accurate repository description. Manual GitHub Actions builds under the organization have been completed and
+installed on PS5, including the Themezer fixes. Final artifact checksums,
+attestation, clean *entire data root* testing and beta packaging are still
+outstanding. The repository About description and organization membership
+were updated by the maintainer on 2026-10-15.
 
 ## Title identity and catalog
 
@@ -97,12 +100,11 @@ ProsperoEden is **`PPSA99008`**. The Switch UI package currently includes:
 - Title-specific `lapy.elf` and manifest checked by package validation.
 - `/data/prosperoeden/` as shared emulator root.
 
-The public homebrew catalog's `apps/PPSA99186.json` was **not present**
-when checked on 2026-10-14 (HTTP 404). This does not reserve the ID.
-The catalog describes a first-come, first-served **reservation pull request**
-for `apps/<TITLEID>.json`, which the **same account** is expected to update
-for a later release. Coordinate the intended permanent owner/organization
-*before* opening that reservation PR.
+The catalog reservation [PR #302](https://github.com/blackbearreloaded/ps5-homebrew-catalog/pull/302)
+was submitted by **KernelForgeX** with `apps/PPSA99186.json`, and the dedicated
+submission validation passed. As of 2026-10-15 the PR remained open and
+unmerged; **the ID is not formally reserved yet**. The same account must
+submit subsequent catalog updates for that reservation.
 
 Catalog guidance:
 https://github.com/blackbearreloaded/ps5-homebrew-catalog#reserve-a-title-id
@@ -140,13 +142,14 @@ retesting is required if a different ID is chosen or assigned.
 
 - [x] Complete the new PS5 build and initial hands-on test of Tactile Leaf v3
       menu audio at the restrained volume and Canopy-free theme selector.
-- [ ] Target-test legacy Canopy selection migration and new/existing Themezer
-      imports, palette changes and dialog behavior on the exact latest build.
+- [x] Verify theme-root recreation, a fresh Themezer import and deletion of a newly installed theme on PS5.
+- [ ] Target-test legacy Canopy selection migration, multi-page pack handling,
+      theme previews and palette changes on the exact final build.
 - [ ] Document any remaining full audio/regression issues reported by beta testers.
 - [x] Choose the long-term GitHub repository owner: KernelForgeLabs,
       preserving the original fork.
-- [ ] Reserve `PPSA99186` with the catalog under the account that will
-      continue to own the reservation; its PR owner is long-term relevant.
+- [x] Submit `PPSA99186` reservation PR #302 as KernelForgeX.
+- [ ] Wait for PR #302 to be merged before treating the ID as reserved.
 - [ ] Fully clean-test installation and initial data directory creation on
       supported hardware, retaining backups rather than erasing personal data.
 - [ ] Test application coexistence, shared data, save backup/restore, and
@@ -165,7 +168,7 @@ restrained gain, Switch Dark-only base theme, and package-level sound
 verification are isolated to release-prep; the PS5 title ID and shared
 game-data root are unchanged.
 
-## Game Settings visual consistency (separate polish branch)
+## Game Settings visual consistency (integrated for testing)
 
 The Game Settings page still rendered its selection rows, mode/save tiles,
 explanation panel, chips, and mod switch tracks using the default rounded theme
@@ -175,5 +178,9 @@ used by primary Settings dialogs. It leaves the main theme and other screens'
 shared widget defaults unchanged, and only flattens the button-mapping modal
 when opened for a specific game. The game box icon remains recognizable, and
 controller-symbol circles and switch knobs keep their meaningful shapes.
-This branch is **not merged into release-prep** and awaits visual review and
-hardware verification after the ongoing theme-deletion test build.
+The polish commit [`1a624da`](https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/commit/1a624da7bd5165b4237ef48ef1f2d7436cd13a96)
+was **fast-forwarded into release-prep** after the maintainer verified theme
+installation/deletion. The updated Game Settings and mapping visuals have
+**not yet been built and visually checked on PS5**; their visual review remains
+a separate beta-release gate. The validated Themezer build predates this
+cosmetic change.
