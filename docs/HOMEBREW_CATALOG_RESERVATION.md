@@ -1,9 +1,6 @@
 # Homebrew catalog — Switch UI title-ID reservation
 
-**Status:** Reservation branch created in `KernelForgeX/ps5-homebrew-catalog`:
-`reserve-ppsa99186` at commit `6809c9dc0bbe0e60d635309b7c75774c4a6d3fe7`.
-**The PR has not yet been submitted or merged.** No public GitHub release
-or catalog reservation has been created by this document.
+**Status:** Reservation PR [#302](https://github.com/blackbearreloaded/ps5-homebrew-catalog/pull/302) **submitted, open and awaiting maintainer merge**. Submitted by `KernelForgeX` from fork branch `reserve-ppsa99186` at commit `6809c9dc0bbe0e60d635309b7c75774c4a6d3fe7`. GitHub's dedicated **Submission check** passed (Validate submission and Scan the release). A separate general CI workflow reports `action_required` with zero jobs, potentially awaiting repository-maintainer approval; this is not a failed submission check. **The title ID is not reserved until the PR is merged.** No public beta or release has been published.
 
 This edition is a separate PS5 app from the original ProsperoEden.
 Its intended title identity is:
@@ -81,7 +78,8 @@ https://github.com/blackbearreloaded/ps5-homebrew-catalog/blob/main/docs/submitt
 
 - [ ] Confirm title ID is still free at submission time (including open PRs).
 - [ ] Make KernelForgeX's KernelForgeLabs organization membership public.
-- [ ] Submit the reservation PR as KernelForgeX and receive its merge.
+- [x] Submit reservation PR #302 as KernelForgeX.
+- [ ] Await maintainer approval and merge of reservation PR #302.
 - [ ] Verify fresh CI build, clean PS5 install, safe rollback and complete
       source/release documentation before inviting public beta users.
 - [ ] Validate the new organization's release assets and uploader/attestation.
