@@ -51,17 +51,6 @@ bool directory(const std::string& path)
     return stat(path.c_str(), &s) == 0 && S_ISDIR(s.st_mode);
 }
 
-// Packs must only depend on their own installed/ tree, not on unrelated
-// first-run legacy selection files. Reject symlinked storage paths rather
-// than following a redirection when installing untrusted downloaded artwork.
-bool real_directory_or_create(const std::string& path)
-{
-    struct stat s{};
-    if (lstat(path.c_str(), &s) == 0) return S_ISDIR(s.st_mode);
-    if (errno != ENOENT || mkdir(path.c_str(), 0755) != 0) return false;
-    return lstat(path.c_str(), &s) == 0 && S_ISDIR(s.st_mode);
-}
-
 // This is always a private staging directory with a validated Quick ID.
 void cleanup(const std::string& path)
 {
@@ -543,16 +532,21 @@ ImportResult unpack_pack(const std::string& id, const std::vector<unsigned char>
     struct stat st{};
     if (lstat(final.c_str(),&st)==0 || lstat(stage.c_str(),&st)==0)
     { mz_zip_reader_end(&pack); return failed("Pack already installed or previous staging directory exists."); }
-    if (!real_directory_or_create(root) || !real_directory_or_create(installed))
-    { mz_zip_reader_end(&pack); return failed("Cannot prepare theme storage folder (check permissions)."); }
+    if (!switch_bootstrap::directory_or_create(root))
+    { mz_zip_reader_end(&pack); return failed("Theme library root is inaccessible (themes/)."); }
+    if (!switch_bootstrap::directory_or_create(installed))
+    { mz_zip_reader_end(&pack); return failed("Theme install folder is inaccessible (themes/installed/)."); }
     // Require fresh exclusive creation: never reuse another install's stage.
     if (mkdir(stage.c_str(), 0755) != 0)
     { mz_zip_reader_end(&pack); return failed("Cannot create private pack staging directory."); }
     if (mkdir((stage+"/art").c_str(), 0755) != 0 ||
         mkdir((stage+"/art/pages").c_str(), 0755) != 0)
     {
-        std::error_code ec;
-        std::filesystem::remove_all(stage, ec);
+        // Only the directories just created by this operation exist so far.
+        // POSIX cleanup works even if C++ filesystem status fails on PS5.
+        rmdir((stage+"/art/pages").c_str());
+        rmdir((stage+"/art").c_str());
+        rmdir(stage.c_str());
         mz_zip_reader_end(&pack);
         return failed("Cannot prepare private pack artwork directory.");
     }

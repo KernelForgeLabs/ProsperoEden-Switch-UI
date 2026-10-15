@@ -26,9 +26,12 @@ The theme library lives outside the Switch UI app package and survives app
 updates. When `/data/prosperoeden/themes` is missing, the next launch
 automatically recreates its essential folders. An October 2026 fresh
 installation exposed a pack-specific failure when only `installed/` was
-recreated. This release-prep revision now decouples pack staging from
-the old `active/` and `current.txt` bootstrap, validates storage
-paths without following symlinks, and cleans up partial staging directories.
+recreated. The first follow-up build reproduced a second problem: the native PS5 filesystem
+reported the existing `themes/` path as inaccessible to the strict `lstat()`
+check. This revision falls back to the same `stat()` behavior used by the
+working single-theme importer, while rejecting symlinks whenever `lstat()`
+can recognize them. Pack imports still depend only on `themes/installed/`
+and clean up partially created staging folders.
 A fresh P-pack installation on PS5 still needs retesting.
 Earlier single-theme Quick ID imports and activation passed on PS5.
 

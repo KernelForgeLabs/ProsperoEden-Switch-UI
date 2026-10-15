@@ -105,6 +105,10 @@ jobs:
           c++ -std=c++20 -Wall -Wextra -Werror -Iheadless \
             tools/tests/test-switch-theme-storage.cpp -o /tmp/pe-switch-theme-storage-test
           /tmp/pe-switch-theme-storage-test
+          c++ -std=c++20 -Wall -Wextra -Werror -DPE_TEST_LSTAT_UNAVAILABLE \
+            -Wl,--wrap=lstat -Iheadless \
+            tools/tests/test-switch-theme-storage.cpp -o /tmp/pe-switch-theme-storage-test-compat
+          /tmp/pe-switch-theme-storage-test-compat
 
       # A pull request's artifact is named by its number and its own commit (github.sha is a
       # temporary merge commit there); the version in param.json stays the release's.

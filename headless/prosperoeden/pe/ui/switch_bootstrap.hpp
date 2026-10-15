@@ -11,6 +11,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <cerrno>
 #include <sys/stat.h>
 
 namespace pe::ui::switch_bootstrap {
@@ -40,16 +41,36 @@ inline std::string trim(std::string value) {
     return value.substr(start, end - start + 1);
 }
 
-// Use lstat rather than filesystem::symlink_status on the PS5's native paths.
-// Both checks reject symbolic links (including a redirected storage root).
+// Native PS5 mounts may support stat() but not lstat() or the C++
+// filesystem symlink-status check. Never accept a *detected* symlink,
+// but fall back to stat() when lstat cannot identify the filesystem entry.
+// The root path is fixed to /data/prosperoeden/themes on console; theme
+// Quick IDs are independently validated before being used as paths.
 inline bool regular_without_links(const fs::path &path) {
     struct stat entry{};
-    return ::lstat(path.c_str(), &entry) == 0 && S_ISREG(entry.st_mode);
+    if (::lstat(path.c_str(), &entry) == 0) {
+        if (S_ISLNK(entry.st_mode)) return false;
+        if (S_ISREG(entry.st_mode)) return true;
+    }
+    return ::stat(path.c_str(), &entry) == 0 && S_ISREG(entry.st_mode);
 }
 
 inline bool directory_without_links(const fs::path &path) {
     struct stat entry{};
-    return ::lstat(path.c_str(), &entry) == 0 && S_ISDIR(entry.st_mode);
+    if (::lstat(path.c_str(), &entry) == 0) {
+        if (S_ISLNK(entry.st_mode)) return false;
+        if (S_ISDIR(entry.st_mode)) return true;
+    }
+    return ::stat(path.c_str(), &entry) == 0 && S_ISDIR(entry.st_mode);
+}
+
+// Use the same stat()/mkdir() semantics as the already working
+// single-theme importer; unlike create_directories(), this only creates
+// the one path passed in. Call it parent-first for new theme libraries.
+inline bool directory_or_create(const fs::path &path) {
+    if (directory_without_links(path)) return true;
+    if (::mkdir(path.c_str(), 0755) != 0) return false;
+    return directory_without_links(path);
 }
 
 // Fast structural validation. The texture loader still fully decodes TGA files.
