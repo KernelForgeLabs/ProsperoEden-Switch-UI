@@ -482,8 +482,8 @@ void Launcher::draw_about(Canvas &c)
     text(c, tr("THANKS"), 144.0f, baseline(464.0f, 30.0f, th().size_small), th().size_small,
          th().accent_pale, Align::left, 2.0f);
     text_block(c,
-               tr("Thanks to the whole PS5 homebrew community and to every developer whose drivers, "
-               "tools and libraries make ProsperoEden possible."),
+               tr("With appreciation to BlackBearReloaded, the Eden team, the PS5 homebrew "
+               "community, and everyone whose tools and libraries make this possible."),
                144.0f, baseline(500.0f, 36.0f, th().size_text), th().size_text, 36.0f, th().body,
                748.0f, 3, kShrink);
     list.rounded_rect({144.0f, 628.0f, 748.0f, 1.0f}, 0.0f, th().rule);
@@ -492,12 +492,20 @@ void Launcher::draw_about(Canvas &c)
     text_block(c, tr("ProsperoEden is an unofficial PS5 port brought to you by BlackBearReloaded."),
                144.0f, baseline(684.0f, 36.0f, th().size_text), th().size_text, 36.0f, th().body,
                748.0f, 2, kShrink);
-    // Supplement rather than replace Eden / PS5 port attribution.
-    text_shrink(c, "Switch UI v6.0 RC2  |  Provided by KernelForgeX", 144.0f,
-                baseline(788.0f, 30.0f, th().size_small), th().size_small, th().accent_pale, 748.0f);
-    text_shrink(c, "Based on ProsperoEden v1.001.000",
-                144.0f, baseline(826.0f, 28.0f, th().size_small),
-                th().size_small, th().meta, 748.0f);
+    // The independent publisher mark does not replace upstream acknowledgments.
+    // Keep it at the foot of the credits panel, out of the text columns.
+    if (c.textures.forge() != 0)
+    {
+        const Rect publisher{732.0f, 750.0f, 136.0f, 136.0f};
+        list.rounded_image(c.textures.forge(), publisher, {0.0f, 0.0f, 1.0f, 1.0f},
+                           3.0f, Color{1.0f, 1.0f, 1.0f, 1.0f});
+    }
+    text_shrink(c, "Switch UI v6.0  |  KernelForgeLabs", 144.0f,
+                baseline(782.0f, 30.0f, th().size_small), th().size_small, th().accent_pale, 548.0f);
+    text_shrink(c, "Independent edition by KernelForgeX", 144.0f,
+                baseline(820.0f, 28.0f, th().size_small), th().size_small, th().body, 548.0f);
+    text_shrink(c, "Built on ProsperoEden v1.001.000", 144.0f,
+                baseline(858.0f, 28.0f, th().size_small), th().size_small, th().meta, 548.0f);
 
     if (look().high_contrast)
         list.rounded_rect(kDetailPanel, 2.0f, th().panel);

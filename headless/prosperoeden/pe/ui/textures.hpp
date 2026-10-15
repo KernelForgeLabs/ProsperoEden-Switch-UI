@@ -63,6 +63,11 @@ class Textures
     {
         return brand_;
     }
+    // KernelForgeLabs' forged-K emblem, exclusively for publisher credits.
+    std::uint32_t forge() const
+    {
+        return forge_;
+    }
     // 0 when the launch picture was not loaded.
     std::uint32_t splash() const
     {
@@ -102,6 +107,7 @@ class Textures
     std::uint32_t backdrop_ = 0;
     std::uint32_t backdrop_blur_ = 0;
     std::uint32_t brand_ = 0;
+    std::uint32_t forge_ = 0;
     std::uint32_t controller_ = 0;
     std::uint32_t splash_ = 0;
     std::unordered_map<std::string, Entry> covers_;

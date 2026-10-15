@@ -122,7 +122,9 @@ def main():
         small = art.resize((512, 288), Image.Resampling.LANCZOS).filter(ImageFilter.GaussianBlur(9))
         save_tga(small, "backdrop-blur.tga")
     if "brand" in wanted:
-        icon = Image.open(ROOT / "sce_sys/icon-source.png").convert("RGBA")
+        # Source-tree preview only. Release packages derive brand.tga from
+        # their *generated* sce_sys/icon0.png in package-branding.py.
+        icon = Image.open(ROOT / "sce_sys/icon0.png").convert("RGBA")
         save_tga(icon.resize((384, 384), Image.Resampling.LANCZOS), "brand.tga")
     if "controller" in wanted:
         save_tga(controller(), "controller.tga")

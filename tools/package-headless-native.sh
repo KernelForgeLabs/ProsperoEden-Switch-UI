@@ -64,6 +64,16 @@ python3 -B "$root/tools/launcher/build-ps5-branding.py" \
     --source "$root/sce_sys/branding-source.webp.b64" --out "$app/sce_sys"
 rm -rf "$app/ui"
 cp -a "$root/headless/prosperoeden/ui" "$app/ui"
+# Generate the floating startup/sidebar icon from this exact package's PS5
+# home-screen icon, and the independent forge badge from its pinned source.
+python3 -B "$root/tools/launcher/package-branding.py" \
+    --icon "$app/sce_sys/icon0.png" \
+    --forge "$root/assets/branding/kernel-forge-labs.webp.b64" \
+    --art "$app/ui/art"
+python3 -B "$root/tools/launcher/package-branding.py" \
+    --icon "$app/sce_sys/icon0.png" \
+    --forge "$root/assets/branding/kernel-forge-labs.webp.b64" \
+    --art "$app/ui/art" --check
 # Refuse previous audio variants and unreviewed replacements in a build.
 # Keep this immediately after copying UI assets, not merely in the CI workflow.
 python3 -B "$root/tools/check-tactile-leaf-audio.py" "$app/ui/sounds"

@@ -34,9 +34,9 @@ std::uint32_t Textures::create(const gfx::Image &image)
 
 bool Textures::load_art(const std::string &directory)
 {
-    // Stage all four textures before touching the active ones. A corrupt or
+    // Stage the UI textures before touching the active ones. A corrupt or
     // incomplete imported theme must not blank the running HOME screen.
-    std::uint32_t backdrop = 0, blur = 0, brand = 0, controller = 0;
+    std::uint32_t backdrop = 0, blur = 0, brand = 0, forge = 0, controller = 0;
     const auto load = [&](const std::string &name, std::uint32_t *texture)
     {
         gfx::Image image;
@@ -58,18 +58,22 @@ bool Textures::load_art(const std::string &directory)
     if (!ok_backdrop) ok_backdrop = load("art/switch-dark-backdrop.tga", &backdrop);
     if (!ok_blur) ok_blur = load("art/switch-dark-backdrop-blur.tga", &blur);
     const bool ok_brand = load("art/" + std::string(th().brand), &brand);
+    // Publisher art is kept separate from the actual PS5 app icon and does
+    // not depend on the currently selected Themezer wallpaper.
+    (void)load("art/kernel-forge-labs.tga", &forge);
     (void)load("art/controller.tga", &controller);
     if (!(ok_backdrop && ok_blur && ok_brand))
     {
-        for (const auto texture : {backdrop, blur, brand, controller})
+        for (const auto texture : {backdrop, blur, brand, forge, controller})
             if (texture != 0) batch_.delete_texture(texture);
         return false;
     }
-    for (const auto texture : {backdrop_, backdrop_blur_, brand_, controller_})
+    for (const auto texture : {backdrop_, backdrop_blur_, brand_, forge_, controller_})
         if (texture != 0) batch_.delete_texture(texture);
     backdrop_ = backdrop;
     backdrop_blur_ = blur;
     brand_ = brand;
+    forge_ = forge;
     controller_ = controller;
     art_directory_ = directory;
     loaded_page_ = "base";
@@ -177,7 +181,7 @@ void Textures::release()
 {
     clear_theme_previews();
     drop_splash();
-    for (std::uint32_t *texture : {&backdrop_, &backdrop_blur_, &brand_, &controller_})
+    for (std::uint32_t *texture : {&backdrop_, &backdrop_blur_, &brand_, &forge_, &controller_})
     {
         batch_.delete_texture(*texture);
         *texture = 0;

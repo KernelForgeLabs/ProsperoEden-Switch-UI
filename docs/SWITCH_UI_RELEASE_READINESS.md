@@ -21,6 +21,7 @@ results and outstanding gates; it is **not a claim of full release qualification
 | Release-prep Tactile Leaf v3 audio and UI gain changes | **Passed on PS5**, maintainer reported successful build and test 2026-10-14 |
 | Release-prep Canopy removal and Switch Dark-only built-in selector | **Passed on PS5**, maintainer reported successful build and test 2026-10-14 |
 | Game Settings flat styling (release-prep build `5c82ac97`) | **Passed visual PS5 review**, maintainer reported the new build looks good 2026-10-15; other final regression checks still pending |
+| Startup app-icon animation and forged-K About badge | **Prepared for next build; PS5 verification pending**. Package regenerates floating/rail icon from its actual `sce_sys/icon0.png`; About shows KernelForgeLabs badge alongside unchanged original credits |
 | Legacy saved `canopy` selection migration after update | **Pending a targeted migration test** |
 | Recreate deleted theme root and import P-pack | **Passed on PS5** with stat-compatible Themezer import fix, maintainer confirmed 2026-10-15 |
 | Remove a newly installed Themezer theme | **Passed on PS5**: maintainer confirmed a fresh test build recreated the theme structure, installed a theme, and deleted that newly installed theme (2026-10-15). Full multi-page pack and active-theme deletion guards still need final regression checks |
