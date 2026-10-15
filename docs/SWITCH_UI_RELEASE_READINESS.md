@@ -17,7 +17,10 @@ results and outstanding gates; it is **not a claim of full release qualification
 | About-screen KernelForgeX and upstream credits | Passed on PS5 |
 | Basic browsing, navigation, and game launching after RC2 swap | Passed on PS5 |
 | Missing `/data/prosperoeden/themes/` folder auto-created on launch | Passed on PS5 |
-| Themezer Quick ID import/install and activation with fresh theme library | Passed on PS5 |
+| Themezer Quick ID import/install and activation with fresh theme library | Passed on PS5 (earlier RC2) |
+| Release-prep Tactile Leaf v3 audio and UI gain changes | **Passed on PS5**, maintainer reported successful build and test 2026-10-14 |
+| Release-prep Canopy removal and Switch Dark-only built-in selector | **Passed on PS5**, maintainer reported successful build and test 2026-10-14 |
+| Legacy saved `canopy` selection migration after update | **Pending a targeted migration test** |
 | Completely fresh install with empty data root and no prior configuration | **Pending** |
 | Cross-version shared save/config compatibility and backup/rollback | **Pending** |
 | On-console update install and rollback | **Pending** |
@@ -27,7 +30,7 @@ The original app uses `/data/homebrew/PPSA99008/`.
 Both access `/data/prosperoeden/`; do not run both simultaneously and back up
 `config/` and `user/` before cross-version tests.
 
-## Original audio — Tactile Leaf v3 integrated; PS5 regression pending
+## Original audio — Tactile Leaf v3 tested on PS5
 
 The RC2 branch inherited 20 upstream WAV files with unclear audio
 redistribution provenance. The release-prep branch first replaced them with
@@ -46,10 +49,12 @@ exact SHA-256 hashes and WAV formats of all 20 files at packaging time.
 upstream audio.
 
 See [TACTILE_LEAF_AUDIO.md](TACTILE_LEAF_AUDIO.md) for provenance and
-the on-console sound test. **PS5 volume, balance and rapid-navigation
-tests are still pending; the audio integration is not yet hardware-qualified.**
+the on-console sound test. **The maintainer confirmed a successful build and
+PS5 test of this revision on 2026-10-14**, including the latest restrained
+sound profile. Specific per-cue audio measurements and exhaustive regression
+coverage are not claimed.
 
-## Theme list — Canopy removed; regression pending
+## Theme list — Canopy removed; main PS5 test passed
 
 `switch_dark()` is now a self-contained palette: **Canopy is not registered
 or consulted as a visual fallback**, and Themezer imports inherit Switch
@@ -57,9 +62,11 @@ Dark's colours. The Settings selector has one built-in option, Switch Dark,
 plus Themezer themes installed by the user. Legacy `current.txt` selections
 of `canopy` migrate to `switch-dark` without removing other themes.
 
-Test selector enumeration, migration, Themezer persistence, and UI background
-dimming on the next PS5 build. The earlier first-run Themezer tests were
-conducted before Canopy removal, so they do not qualify this revision.
+The maintainer reported that the updated PS5 build tested successfully after
+Canopy removal on 2026-10-14. A **targeted legacy migration test** with
+`current.txt` explicitly set to `canopy` and renewed first-run Themezer testing
+on this exact build are still unrecorded; do not infer those scenarios passed
+solely from the overall successful test.
 
 ## Title identity and catalog
 
@@ -108,10 +115,11 @@ retesting is required if a different ID is chosen or assigned.
 
 ## Required final gates
 
-- [ ] Finish PS5 playback testing of all 20 Tactile Leaf v3 WAVs at the
-      new restrained volume, default/soft-navigation behavior, and packaging.
-- [ ] Check Canopy no longer appears in Themes, legacy Canopy selection safely
-      migrates, and existing Themezer imports/palettes and dialogs still work.
+- [x] Complete the new PS5 build and initial hands-on test of Tactile Leaf v3
+      menu audio at the restrained volume and Canopy-free theme selector.
+- [ ] Target-test legacy Canopy selection migration and new/existing Themezer
+      imports, palette changes and dialog behavior on the exact latest build.
+- [ ] Document any remaining full audio/regression issues reported by beta testers.
 - [ ] Choose the long-term GitHub owner, then reserve `PPSA99186` with the
       catalog under the appropriate submitting account.
 - [ ] Fully clean-test installation and initial data directory creation on
