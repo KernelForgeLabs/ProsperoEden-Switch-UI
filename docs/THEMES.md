@@ -38,7 +38,10 @@ the delete button still treated the first installed theme as bundled because
 its guard assumed the old two-theme list. The guard now protects Switch Dark
 by ID, and theme previews use the same built-in ID rather than row position.
 Deletion requires selecting an inactive installed theme and confirming with
-Square twice; hardware retesting is still pending.
+Square twice. The maintainer confirmed on PS5 on 2026-10-15 that an installed
+Themezer theme could be deleted after recreating the theme library. This
+establishes a passing installation/deletion regression; a separate complete
+multi-page pack and active-theme protection check remains outstanding.
 Earlier single-theme Quick ID imports and activation passed on PS5.
 
 Older installations whose `current.txt` still names `canopy` are migrated
