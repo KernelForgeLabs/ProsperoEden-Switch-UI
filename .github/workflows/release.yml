@@ -110,6 +110,9 @@ jobs:
             tools/tests/test-switch-theme-storage.cpp -o /tmp/pe-switch-theme-storage-test-compat
           /tmp/pe-switch-theme-storage-test-compat
 
+      - name: Test beta ZIP safety preflight
+        run: python3 tools/ci/test_beta_zip.py -v
+
       # A pull request's artifact is named by its number and its own commit (github.sha is a
       # temporary merge commit there); the version in param.json stays the release's.
       - name: Name this build
@@ -242,6 +245,9 @@ jobs:
               print(f"{archive}: {len(names)} entries, all 0777, version {version}")
           PY
           sha256sum -c SHA256SUMS
+
+      - name: Validate beta release ZIP and exclude personal data
+        run: python3 tools/ci/check_beta_zip.py dist/ProsperoEden-v*.zip dist/SHA256SUMS
 
       # Signed provenance: this ZIP was built by this workflow from this commit. Anyone can check a
       # downloaded copy with `gh attestation verify <file> -R <owner>/<repo>`. Not for pull requests

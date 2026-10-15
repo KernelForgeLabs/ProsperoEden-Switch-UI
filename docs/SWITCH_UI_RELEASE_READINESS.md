@@ -1,6 +1,6 @@
 # Switch UI v6.0 public-release readiness
 
-**Audit date:** 2026-10-14  
+**Audit date:** 2026-10-15  
 **Candidate:** `feature/switch-ui-v6.0-rc` at `11abb230bab69bfe98c55c4164ba04fe3bae8548`  
 **Preparation:** `feature/switch-ui-v6.0-release-prep` (do not tag or release yet)
 
@@ -121,6 +121,21 @@ retesting is required if a different ID is chosen or assigned.
 
 ## Updates and release packaging
 
+- **Beta distribution safety gate prepared:** the read-only
+  [manual installation/rollback plan](BETA_INSTALL_AND_ROLLBACK.md) protects
+  shared `/data/prosperoeden/` saves and requires an app-folder rollback
+  drill before public testers are invited. This protocol has not yet been
+  performed end-to-end on PS5.
+- `tools/ci/check_beta_zip.py` rejects ZIPs with unexpected paths, private
+  key/save folders, title-ID/version/helper mismatches, missing branding or
+  sound files, wrong permissions, or checksum mismatches. Eight synthetic
+  regression tests run before compilation; the exact final package is
+  checked again after the standard ZIP/checksum validation. This check is
+  **not a substitute for on-console qualification**.
+- The **Update now** action is intentionally blocked in Switch UI and shows
+  an error instructing users to use a rebuilt fork release. The catalog
+  install/rollback path remains **unqualified**; do not imply the initial
+  beta has working automatic updates.
 - The updater reads its own `sce_sys/param.json` title ID and checks
   the homebrew.page catalog for that ID; this separates it from the original
   `PPSA99008` updates, but **does not qualify** its install path.
@@ -155,8 +170,11 @@ retesting is required if a different ID is chosen or assigned.
       preserving the original fork.
 - [x] Submit `PPSA99186` reservation PR #302 as KernelForgeX.
 - [ ] Wait for PR #302 to be merged before treating the ID as reserved.
+- [ ] Follow [beta installation and rollback plan](BETA_INSTALL_AND_ROLLBACK.md):
+      test complete ZIP install, preserve shared user data, and verify
+      restoration from a known-good previous Switch UI build.
 - [ ] Fully clean-test installation and initial data directory creation on
-      supported hardware, retaining backups rather than erasing personal data.
+      an isolated setup, retaining backups rather than erasing personal data.
 - [ ] Test application coexistence, shared data, save backup/restore, and
       behavior across incompatible emulator versions.
 - [ ] Qualify catalog-based update offer, download, installation,
