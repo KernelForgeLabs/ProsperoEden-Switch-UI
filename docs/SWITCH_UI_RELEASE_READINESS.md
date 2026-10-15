@@ -68,6 +68,23 @@ Canopy removal on 2026-10-14. A **targeted legacy migration test** with
 on this exact build are still unrecorded; do not infer those scenarios passed
 solely from the overall successful test.
 
+## New GitHub organization — transferred, beta setup pending
+
+The original fork was transferred (not duplicated) to
+[KernelForgeLabs/ProsperoEden-Switch-UI](https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI).
+GitHub confirms its upstream parent is still
+`blackbearreloaded/ProsperoEden` and the validated v5.9.1, RC2 and
+release-prep branches remain intact. Organization GitHub app access was
+verified by a successful README update. The release workflow uses
+`GITHUB_REPOSITORY` to target the current repository, without hard-coded
+old-owner release destinations.
+
+The default branch remains the inherited `main`, **not** the Switch UI
+release-prep branch. Before a public beta, decide the maintained Switch UI
+branch, promote it to the default branch after qualification, and set an
+accurate repository description. The next manual CI build under the
+organization and its artifact validation are not yet recorded.
+
 ## Title identity and catalog
 
 The provisional Switch UI title ID is **`PPSA99186`**; original
@@ -120,8 +137,10 @@ retesting is required if a different ID is chosen or assigned.
 - [ ] Target-test legacy Canopy selection migration and new/existing Themezer
       imports, palette changes and dialog behavior on the exact latest build.
 - [ ] Document any remaining full audio/regression issues reported by beta testers.
-- [ ] Choose the long-term GitHub owner, then reserve `PPSA99186` with the
-      catalog under the appropriate submitting account.
+- [x] Choose the long-term GitHub repository owner: KernelForgeLabs,
+      preserving the original fork.
+- [ ] Reserve `PPSA99186` with the catalog under the account that will
+      continue to own the reservation; its PR owner is long-term relevant.
 - [ ] Fully clean-test installation and initial data directory creation on
       supported hardware, retaining backups rather than erasing personal data.
 - [ ] Test application coexistence, shared data, save backup/restore, and

@@ -7,7 +7,24 @@
 
 ## Repository and history
 
-This edition is a **GitHub fork** of BlackBearReloaded's ProsperoEden. Preserve that fork ancestry when moving the repository to the KernelForgeLabs organization using **GitHub's Transfer repository** action rather than copying source files into a new repository. GitHub documents that transferring a fork preserves its upstream association, branches, Git commits and releases.
+The original repository has **already been transferred** to
+[KernelForgeLabs/ProsperoEden-Switch-UI](https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI).
+GitHub still identifies it as a **fork of BlackBearReloaded/ProsperoEden**;
+the original repository ID, protected-by-policy test branches, and commit
+history were preserved. The ChatGPT GitHub app has also been installed for
+KernelForgeLabs and write access was verified with a documentation commit.
+
+**Current default branch is still `main`**, the inherited upstream base.
+It is not yet our user-facing Switch UI edition. Select the
+`feature/switch-ui-v6.0-release-prep` branch to inspect the tested edition.
+After release qualification, establish the official maintained Switch UI
+branch (for example `switch-ui-main`) and deliberately switch the
+repository's default branch to it. Keep the inherited `main` as a historical
+upstream base or repurpose it only after a reviewed migration plan.
+
+Repo title, logo, description, GitHub Pages and default-branch settings are
+**organization settings**, not part of transferring Git history. Confirm these
+separately before promoting a public beta.
 
 Until a replacement stable branch is explicitly approved:
 
@@ -20,7 +37,7 @@ After final qualification, decide the public default branch and make **that** th
 
 ## Remotes after transferring the existing fork
 
-Use the actual repository name chosen under KernelForgeLabs; `ProsperoEden-Switch-UI` below is the preferred branding **if that name is selected at transfer**:
+The permanent repository name is now **ProsperoEden-Switch-UI**:
 
 ```bash
 git remote set-url origin https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI.git
@@ -32,6 +49,18 @@ git remote -v
 
 If `upstream` already exists, use `git remote set-url upstream ...` instead.
 The read of `upstream/main` should never alter any published Switch UI branch.
+
+## Emulator dependency separation
+
+The PS5 frontend is forked from `blackbearreloaded/ProsperoEden`, but
+`UPSTREAM.json` on the tested Switch UI branch pins the underlying
+Eden emulator core to commit
+`67bada77f8a43a90da2e94e89b8e7da73c256989`.
+Adopting a BlackBearReloaded UI/toolchain patch does not automatically
+upgrade this core. Core upgrades require reviewing the new upstream
+SHA, checksums, compatible dependencies, configuration/migration
+behavior, build toolchain and PS5 game regressions. Keep those upgrades
+in dedicated integration PRs, separate from cosmetic UI changes.
 
 ## Integrate upstream improvements through reviewable pull requests
 
@@ -66,12 +95,15 @@ It is safe to **notify** or create draft tracking issues when BlackBearReloaded 
 
 ## Organization transfer checklist
 
-- [ ] Transfer the existing GitHub fork to KernelForgeLabs without losing fork linkage or verified branches.
+- [x] Transfer the existing GitHub fork to KernelForgeLabs without losing fork linkage or verified branches.
 - [ ] Set the organization repository's description, maintainer, original-project acknowledgement, and separate-app identity.
-- [ ] Grant the ChatGPT GitHub app access to the organization repository and verify issue/branch/PR permissions.
+- [x] Grant the ChatGPT GitHub app access to KernelForgeLabs and verify repository write permissions (successful README commit).
+- [ ] Verify organization issue and pull-request workflow with a trial integration PR before first upstream merge.
 - [ ] Verify all branches, repository fork parent, Actions environment and release workflows after transfer.
-- [ ] Update hard-coded owner URLs in README, documentation, attestations, release links and catalog plans.
+- [x] Update README's hard-coded issue and attestation links to KernelForgeLabs.
+- [ ] Audit any other owner-specific URLs, release destinations and catalog plans before publication.
 - [ ] Update the local `origin` remote while retaining `upstream` for BlackBearReloaded.
-- [ ] Check releases, assets, CI caches and attestations after transfer; do not presume older build attestations validate new artifacts.
+- [ ] Run a fresh manual GitHub Actions build under KernelForgeLabs and validate the generated package, SHA256 and attestation; do not presume older build attestations validate new artifacts.
+- [ ] Set the public repository description and, after clean beta qualification, the official default Switch UI branch.
 - [ ] Reserve the separate PS5 title ID with the catalog under a stable submitting account after the permanent source repository URL is confirmed.
 - [ ] Establish an upstream-watch cadence and PR review policy without automatic emulator/UI merging.
