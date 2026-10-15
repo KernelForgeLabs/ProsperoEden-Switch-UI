@@ -105,6 +105,10 @@ for a later release. Coordinate the intended permanent owner/organization
 Catalog guidance:
 https://github.com/blackbearreloaded/ps5-homebrew-catalog#reserve-a-title-id
 
+See [HOMEBREW_CATALOG_RESERVATION.md](HOMEBREW_CATALOG_RESERVATION.md)
+for the prepared reservation JSON, public-organization-membership requirement,
+submitter-account ownership rule, and beta-vs-catalog release sequence.
+
 Do not change `PPSA99186` casually: the identifier is embedded in the app
 mount paths, helper, package validation, and update state. Rebuilding and
 retesting is required if a different ID is chosen or assigned.
