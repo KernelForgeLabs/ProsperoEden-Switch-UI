@@ -21,7 +21,7 @@
   "batches": [
     {
       "id": "01-romfs-stability",
-      "status": "ci-and-general-ps5-smoke-passed-targeted-romfs-crash-unverified",
+      "status": "ci-general-ps5-smoke-pass-prime4-game-specific-fps-fail-cause-open",
       "source_commits": [
         "4f813a352816662fb86183bb1d108425a507881f"
       ],
@@ -30,11 +30,12 @@
       "ci_run": "https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/actions/runs/38916616359",
       "ps5_test_date": "2026-10-16",
       "ps5_result": "Maintainer reported build looked good on PS5; targeted wide-RomFS/TOTK UltraCam reproduction not exercised.",
-      "checkpoint_branch": "checkpoint/upstream-v1.003.000-batch01"
+      "checkpoint_branch": "checkpoint/upstream-v1.003.000-batch01",
+      "ps5_game_regression": "User confirmed Metroid Prime 4 same 7–20 FPS fluctuations on Batch 01 checkpoint as on Batch 02a; specific cause not established, no full release qualification."
     },
     {
       "id": "02-memory",
-      "status": "blocked-ps5-performance-upstream-correlated-cause-unconfirmed",
+      "status": "ci-pass-ps5-prime4-slowdown-present-in-batch01-no-causality",
       "source_commits": [
         "46b269fc18218572b7c7d72d17d90994c646c1c4"
       ],
@@ -43,7 +44,7 @@
       "tested_commit": "6dd98c1557d2b30aa306d0050a29b8b087afa5db",
       "diagnostic_branch": "diagnostic/upstream-v1.003.000-batch02a-fps-regression",
       "ps5_test_date": "2026-10-16",
-      "ps5_observation": "Metroid Prime 4: Beyond, previously roughly 50-60 FPS, now frequently 7-20 FPS and only briefly 50 FPS; Zelda Breath of the Wild initial area near 30 FPS with a momentary 24 FPS and no visible texture corruption. Exact cause unconfirmed. Do not promote Batch 02a; verify old checkpoint A/B under matching Vulkan, resolution, mods and settings.",
+      "ps5_observation": "Metroid Prime 4: Beyond, previously roughly 50-60 FPS, now frequently 7-20 FPS and only briefly 50 FPS; Zelda Breath of the Wild initial area near 30 FPS with a momentary 24 FPS and no visible texture corruption. Exact cause unconfirmed. Do not promote Batch 02a; verify old checkpoint A/B under matching Vulkan, resolution, mods and settings. Follow-up confirmed same severe Prime 4 slowdown on Batch 01 without collector backport. Therefore do NOT attribute this issue specifically to Batch 02a.",
       "diagnostic_toggle": "gc_scan=upstream is compiled only when EDEN_DEV_PROFILE=ON; normal release ZIP does not read it. Do not suggest editing dev-settings.txt to test it on a normal build.",
       "upstream_evidence": {
         "issue": "https://github.com/blackbearreloaded/ProsperoEden/issues/195",
@@ -51,7 +52,13 @@
         "reported_date": "2026-10-14",
         "symptoms": "~60 FPS at ~9 GB memory and 2–9 FPS near ~12 GB; occasional crashes",
         "maintainer_observation": "Official v1.003.000 exhibits similar Metroid Prime 4 slowdown in user test on 2026-10-16.",
-        "caveat": "Upstream v1.002 includes collector fix 46b269fc. Correlation, not same verified root cause. Batch01 A/B still pending."
+        "caveat": "Latest upstream v1.003 also shows similar Prime 4 problem; upstream v1.002 included collector fix. Batch 01 without collector patch also reproduces FPS drop. Cause unconfirmed; next comparison pre-integration Switch UI build #37."
+      },
+      "next_baseline": {
+        "build": "Release build #37",
+        "run": "https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/actions/runs/38801787792",
+        "sha": "50c54c1c7242d108a5169598c233a25dfd503731",
+        "purpose": "Separate original Switch UI foundation/runtime from Batch 01 RomFS backport and shared settings."
       }
     },
     {
