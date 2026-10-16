@@ -318,6 +318,7 @@ void RecordHle(const char* service, unsigned command, long long ns);
 inline std::atomic<bool> gc_keep_dirty{true};
 // ProsperoEden@46b269fc1821: protect the eviction allowance from skipped
 // textures, with a separate bounded scan and optional legacy behavior.
+// dev-settings gc_scan=upstream restores upstream's visit-counted GC budget.
 inline std::atomic<bool> gc_count_visits{false};
 inline std::atomic<bool> graphics_memory_short{false};
 // 1 GiB: the pool is the CPU's too, and the largest thing a game asked of it at once was a
