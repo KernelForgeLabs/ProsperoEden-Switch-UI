@@ -55,7 +55,20 @@
         "caveat": "User confirmed slowdown also on pre-integration Switch UI build #37 (v1.001-based) and upstream v1.003. Neither Batch 01 nor 02a is necessary to reproduce. 50-60 FPS earlier reference build/settings not yet established.",
         "earlier_working_reference": "Official original ProsperoEden, before v1.001.000 (user confirmation 2026-10-16), roughly 50–60 FPS. Exact version not yet known; native vs frame-generated FPS not determined.",
         "next_comparison": "Test official v1.000.110 vs v1.001.000 under identical Prime 4 game version/settings; both share Eden pin 67bada77 and 27 upstream commits separate them. This is a hypothesis test only.",
-        "public_beta_decision": "Keep Prime 4 as separate baseline compatibility issue; do not attribute it to integration batches or claim a v1.000.110 success before testing."
+        "public_beta_decision": "Keep Prime 4 as separate baseline compatibility issue; do not attribute it to integration batches or claim a v1.000.110 success before testing.",
+        "confirmed_before_after": {
+          "game": "Metroid Prime 4: Beyond",
+          "working_version": "original ProsperoEden v1.000.110",
+          "working_result": "fluid gameplay, occasional ~43 FPS dip",
+          "poor_version": "original ProsperoEden v1.001.000",
+          "poor_result": "choppy variable ~7/14/30 FPS",
+          "video_settings": "global 2160p 60 Hz; game internal 2x in all tests",
+          "frame_generation": "unavailable in v1.000.110 due to missing Lossless.dll",
+          "diff": "https://github.com/blackbearreloaded/ProsperoEden/compare/v1.000.110...v1.001.000",
+          "commits_between": 27,
+          "caveat": "Root cause unknown; per-game ASTC, game update, cached assets, graphics backend and system memory telemetry not yet verified identical."
+        },
+        "next_diagnostic": "On official v1.001, verify ASTC textures effective Compressed (global + game override); compare 2x vs 1x internal resolution with 2160p60 output fixed and same scene. Then consider reversible guest-clock, worker placement or GC ablation builds."
       },
       "next_baseline": {
         "status": "reproduced",

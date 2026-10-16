@@ -111,6 +111,57 @@ investigation while recording per-batch memory/graphics qualification.
 - The next controlled comparison is **official v1.001.000** with the same game version/scene, graphics settings, frame-generation state, PS5 enabler and shared data. Do not reset shader caches or change unrelated settings. If v1.001.000 is markedly slower on a matched test, the release-to-release difference narrows the likely regression window to **27 upstream commits** between v1.000.110 and v1.001.000, not any of our Switch UI migration batches.
 - Keep backups of `/data/homebrew/PPSA99008/` and shared `/data/prosperoeden/` before replacing official app versions. This historical experiment should not influence public-bundle content without a reviewed fix.
 
+### Confirmed v1.000.110 → v1.001.000 Metroid Prime 4 regression (2026-10-16)
+
+The maintainer performed a controlled comparison with the **original upstream
+application**, not a Switch UI build:
+
+| Version | Observed performance |
+| --- | --- |
+| Official v1.000.110 | Fluid, occasional dips to ~43 FPS; noticeably sharper/fluid appearance |
+| Official v1.001.000 | Choppy and erratic, ~7, 14, and 30 FPS |
+| Switch UI #37, Batch 01, Batch 02a, official v1.003.000 | Similar severe choppiness |
+
+**Consistent reported video settings in every test:** global **2160p at 60 Hz**,
+game **2× internal resolution**. In v1.000.110 the Frame generation option
+explicitly says **unavailable (needs Lossless.dll)**, so that successful run
+was *not* using Lossless Scaling frame interpolation. We have not verified the
+game's exact update, render backend, ASTC policy, cache state, or PS5 memory
+readout across every run; preserve those caveats.
+
+The upstream diff [v1.000.110...v1.001.000](https://github.com/blackbearreloaded/ProsperoEden/compare/v1.000.110...v1.001.000)
+contains **27 commits**. Both versions pin the same underlying Eden core
+`67bada77`. Do **not** diagnose the slowdown as specifically caused by the
+Switch UI fork or Batch 01/02a backports.
+
+**Prioritized hypotheses to test, not established causes:**
+
+1. Vulkan/ASTC texture handling changed (new compressed-vs-decoded setting,
+   per-frame background ASTC conversion and texture reclaim paths). At 2×
+   resolution this may be memory-sensitive. Check **per-game Video > ASTC
+   textures = Compressed**, because Full quality keeps decoded textures and
+   can consume ~4× as much memory for those textures.
+2. The new guest clock/frame pacing and CPU topology detection changed
+   timing and worker placement. Both require controlled source-level
+   comparison if a 1× render test does not isolate graphics pressure.
+3. The v1.001 PS5 graphics/memory budget, image-page locking and GC
+   prefetch changes could affect resource contention under load.
+
+**Next short diagnostic:** On official v1.001.000, record Prime 4's effective
+ASTC option including the per-game override; confirm **Compressed**. Then
+temporarily test **1× internal resolution** at the same 2160p/60 Hz output
+and same scene for ~5 minutes; restore 2× afterwards. 1× improvement would
+point toward render-scale-dependent work or memory use; no improvement
+would increase priority of timing/scheduling and other non-scale-dependent
+changes. Neither result alone proves a root cause. Avoid shader-cache
+deletion or multiple simultaneous setting changes.
+
+After narrowing the affected subsystem, create one reversible diagnostic
+change on a **separate upstream-regression branch**, keep the original
+v1.000.110 package as control, and run a matching-scene A/B. Do not
+merge a speculative workaround or block unrelated v1.003 feature
+integrations merely because Prime 4 predates the fork's changes.
+
 ## Exit conditions
 
 - [ ] All planned high-priority emulator improvements selected and attributed.
