@@ -1204,6 +1204,23 @@ file(READ "${PROJECT_SOURCE_DIR}/src/core/file_sys/fsmitm_romfsbuild.cpp" romfs_
 string(REPLACE "    std::shared_ptr<RomFSBuildDirectoryContext> parent;"
     "    RomFSBuildDirectoryContext* parent = nullptr;" romfs_source "${romfs_source}")
 string(REPLACE "parent = std::move(parent_dir_ctx);" "parent = parent_dir_ctx.get();" romfs_source "${romfs_source}")
+# Backport of upstream ProsperoEden 4f813a352816 (#212): break the
+# owning sibling/child chains before destroying wide modded RomFS trees.
+# Guard the pinned source anchor so a future Eden core bump cannot silently
+# omit the fix when upstream changes its destructor.
+string(FIND "${romfs_source}" "RomFSBuildContext::~RomFSBuildContext() = default;" romfs_destructor_at)
+if(romfs_destructor_at LESS 0)
+    message(FATAL_ERROR "Pinned Eden RomFS builder destructor changed; re-review upstream 4f813a35")
+endif()
+string(REPLACE "RomFSBuildContext::~RomFSBuildContext() = default;"
+    "RomFSBuildContext::~RomFSBuildContext() {
+    for (auto& file : files) file->sibling.reset();
+    for (auto& dir : directories) {
+        dir->child.reset();
+        dir->sibling.reset();
+        dir->file.reset();
+    }
+}" romfs_source "${romfs_source}")
 write_derived("${PORT_BUILD_DIR}/fsmitm_romfsbuild.cpp" "${romfs_source}")
 get_target_property(core_sources core SOURCES)
 list(REMOVE_ITEM core_sources file_sys/fsmitm_romfsbuild.cpp)
