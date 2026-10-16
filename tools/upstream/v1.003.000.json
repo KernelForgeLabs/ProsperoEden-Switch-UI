@@ -21,18 +21,24 @@
   "batches": [
     {
       "id": "01-romfs-stability",
-      "status": "adapted-awaiting-ci",
+      "status": "ci-and-general-ps5-smoke-passed-targeted-romfs-crash-unverified",
       "source_commits": [
         "4f813a352816662fb86183bb1d108425a507881f"
       ],
       "scope": "Bounded-stack cleanup for very wide RomFS rebuilds, with host regression",
-      "commit": "3b43c49127d5cb007970ad3dec42e4b0f3115364"
+      "commit": "3b43c49127d5cb007970ad3dec42e4b0f3115364",
+      "ci_run": "https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/actions/runs/38916616359",
+      "ps5_test_date": "2026-10-16",
+      "ps5_result": "Maintainer reported build looked good on PS5; targeted wide-RomFS/TOTK UltraCam reproduction not exercised.",
+      "checkpoint_branch": "checkpoint/upstream-v1.003.000-batch01"
     },
     {
       "id": "02-memory",
-      "status": "not-started",
-      "source_commits": [],
-      "scope": "Memory pool reclamation, PS5 Pro memory mode, GPU texture reclamation, emulated memory layout and per-game settings"
+      "status": "02a-texture-collector-backported-awaiting-ci-and-ps5",
+      "source_commits": [
+        "46b269fc18218572b7c7d72d17d90994c646c1c4"
+      ],
+      "scope": "Batch 02a: bounded texture-cache scan counting evictions rather than skipped-image visits, with fallback flag gc_scan=upstream. Pool memory, PS5 Pro and 4/6/8 GiB layout remain 02b."
     },
     {
       "id": "03-cpu-runtime",

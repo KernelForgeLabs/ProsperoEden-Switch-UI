@@ -1,6 +1,6 @@
 # ProsperoEden v1.003.000 — repeatable integration plan
 
-**Status:** Upstream integration branch open; first RomFS fix adapted; CI and PS5 hardware verification **pending**. Not merged into Switch UI release-prep.
+**Status (2026-10-16):** Batch 01 CI passed ([run #38916616359](https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/actions/runs/38916616359)) and the maintainer reports general PS5 smoke testing looked good. The original giant-RomFS/UltraCam failure was **not reproduced**. Exact tested code checkpoint: `checkpoint/upstream-v1.003.000-batch01` (`d1d331f5`). Batch 02a texture-collector fix is prepared but awaits CI and hardware testing. Not merged into release-prep.
 
 ## Immutable reference points
 
@@ -45,8 +45,9 @@ For any future release: pin both release tag commit SHAs in a fresh manifest, th
 
 | Group | Scope | State |
 | --- | --- | --- |
-| 01 | RomFS stack overflow during destruction of huge modded directory trees | Adapted from upstream [4f813a35](https://github.com/blackbearreloaded/ProsperoEden/commit/4f813a352816662fb86183bb1d108425a507881f) into our [3b43c491](https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/commit/3b43c49127d5cb007970ad3dec42e4b0f3115364); CI and PS5 pending |
-| 02 | Memory reclamation and texture collection, PS5 Pro pool, per-game emulated memory | Pending commit review |
+| 01 | RomFS stack overflow during destruction of huge modded directory trees | Adapted from upstream [4f813a35](https://github.com/blackbearreloaded/ProsperoEden/commit/4f813a352816662fb86183bb1d108425a507881f) into our [3b43c491](https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/commit/3b43c49127d5cb007970ad3dec42e4b0f3115364); **CI and general PS5 smoke passed 2026-10-16**, specific large RomFS case untested |
+| 02a | Texture-collector scan liveness: count actual evictions with bounded scans | Adapted from [46b269fc](https://github.com/blackbearreloaded/ProsperoEden/commit/46b269fc18218572b7c7d72d17d90994c646c1c4), with pinned source check; awaiting CI and PS5 |
+| 02b | Memory pool/JIT memory-on-demand, PS5 Pro memory mode, 4/6/8 GiB per-game memory | **Not yet integrated**; requires additional host checks, PS5 model testing and UI adaptations |
 | 03 | CPU/JIT, fastmem, code caches, scheduling, lower GPU/CPU overhead | Pending performance/compatibility review |
 | 04 | Vulkan/RADV graphics correctness and partial texture updates | Pending graphics review |
 | 05 | Controller haptics, vibration control and split touchpad | Pending per-game mapping and UX review |
