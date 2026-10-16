@@ -39,7 +39,7 @@ python3 tools/upstream/audit_changes.py \
 
 Source comparison as of October 16: **53 commits, 256 changed upstream files, 95 overlaps with files changed by our existing fork**. The overlap count is informational, not an assertion that 95 merge conflicts will occur. Review all changed paths. Protected visual/theme/identity/packaging files are **never automatic merges**.
 
-For any future release: pin both release tag commit SHAs in a fresh versioned manifest, compare against the previously integrated tag, generate a new review, and only then schedule integration batches. Do not track a moving branch head as the target.
+For any future release: pin both release tag commit SHAs in a fresh manifest, then pass `--manifest tools/upstream/vNEXT.json` to **the same audit script**. Compare against the previously integrated release tag, generate a new review, and only then schedule integration batches. Do not track a moving branch head as the target.
 
 ## Small integration batches
 

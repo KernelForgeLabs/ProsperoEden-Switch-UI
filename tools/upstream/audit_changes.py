@@ -101,7 +101,7 @@ def git(root: Path, *args: str) -> str:
     return result.stdout.strip()
 
 
-def audit(upstream: Path, fork: Path, manifest: dict) -> dict:
+def audit(upstream: Path, fork: Path, manifest: dict, manifest_path: Path = MANIFEST) -> dict:
     for ref, expected in (("refs/tags/" + manifest["baseline_tag"],
                             manifest["baseline_commit"]),
                            ("refs/tags/" + manifest["target_tag"],
@@ -127,7 +127,7 @@ def audit(upstream: Path, fork: Path, manifest: dict) -> dict:
         for p in sorted(upstream_paths)
     ]
     return {
-        "manifest": str(MANIFEST.relative_to(ROOT)),
+        "manifest": str(manifest_path),
         "baseline": manifest["baseline_commit"],
         "upstream_target": manifest["target_commit"],
         "fork_head": git(fork, "rev-parse", "HEAD"),
@@ -146,20 +146,22 @@ def audit(upstream: Path, fork: Path, manifest: dict) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--manifest", type=Path, default=MANIFEST,
+                        help="versioned integration manifest (reuse script for every release)")
     parser.add_argument("--verify-only", action="store_true",
                         help="check our exact core/title/update pins, no remote Git required")
     parser.add_argument("--upstream", type=Path, help="local original upstream Git checkout")
     parser.add_argument("--fork", type=Path, default=ROOT, help="local Switch UI Git checkout")
     parser.add_argument("--output", type=Path, help="optional path for machine-readable review JSON")
     args = parser.parse_args()
-    manifest = load_manifest()
+    manifest = load_manifest(args.manifest)
     verify_local(args.fork, manifest)
     if args.verify_only:
         print("PASS immutable upstream manifest / Eden pin / Switch UI title / update safety")
         return
     if not args.upstream:
         parser.error("--upstream is required unless --verify-only is set")
-    report = audit(args.upstream, args.fork, manifest)
+    report = audit(args.upstream, args.fork, manifest, args.manifest)
     result = json.dumps(report, indent=2) + "\n"
     if args.output:
         args.output.write_text(result, encoding="utf-8")
