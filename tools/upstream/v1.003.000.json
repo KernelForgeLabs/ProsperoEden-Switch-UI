@@ -34,7 +34,7 @@
     },
     {
       "id": "02-memory",
-      "status": "blocked-ps5-major-gameplay-performance-regression",
+      "status": "blocked-ps5-performance-upstream-correlated-cause-unconfirmed",
       "source_commits": [
         "46b269fc18218572b7c7d72d17d90994c646c1c4"
       ],
@@ -44,7 +44,15 @@
       "diagnostic_branch": "diagnostic/upstream-v1.003.000-batch02a-fps-regression",
       "ps5_test_date": "2026-10-16",
       "ps5_observation": "Metroid Prime 4: Beyond, previously roughly 50-60 FPS, now frequently 7-20 FPS and only briefly 50 FPS; Zelda Breath of the Wild initial area near 30 FPS with a momentary 24 FPS and no visible texture corruption. Exact cause unconfirmed. Do not promote Batch 02a; verify old checkpoint A/B under matching Vulkan, resolution, mods and settings.",
-      "diagnostic_toggle": "gc_scan=upstream is compiled only when EDEN_DEV_PROFILE=ON; normal release ZIP does not read it. Do not suggest editing dev-settings.txt to test it on a normal build."
+      "diagnostic_toggle": "gc_scan=upstream is compiled only when EDEN_DEV_PROFILE=ON; normal release ZIP does not read it. Do not suggest editing dev-settings.txt to test it on a normal build.",
+      "upstream_evidence": {
+        "issue": "https://github.com/blackbearreloaded/ProsperoEden/issues/195",
+        "reported_version": "1.002.000",
+        "reported_date": "2026-10-14",
+        "symptoms": "~60 FPS at ~9 GB memory and 2–9 FPS near ~12 GB; occasional crashes",
+        "maintainer_observation": "Official v1.003.000 exhibits similar Metroid Prime 4 slowdown in user test on 2026-10-16.",
+        "caveat": "Upstream v1.002 includes collector fix 46b269fc. Correlation, not same verified root cause. Batch01 A/B still pending."
+      }
     },
     {
       "id": "03-cpu-runtime",
