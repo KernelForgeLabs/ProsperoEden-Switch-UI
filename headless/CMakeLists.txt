@@ -828,9 +828,10 @@ string(FIND "${core_timing_source}" "${guest_clock_old}" guest_clock_at)
 if(guest_clock_at LESS 0)
     message(FATAL_ERROR "Pinned CoreTiming::GetClockTicks changed")
 endif()
-string(REPLACE "${guest_clock_old}"
-    "    fres = ::Eden::GuestClock::Scale(fres);\n${guest_clock_old}"
-    core_timing_source "${core_timing_source}")
+# PRIME4 DIAGNOSTIC ONLY (not a product fix):
+# v1.001.000 injects GuestClock::Scale into CoreTiming::GetClockTicks.
+# Deliberately leave the original upstream clock counter untouched here;
+# preserve the exact pinned-source guard above. Do not merge to a release.
 write_derived("${PORT_BUILD_DIR}/core_timing.cpp" "#include \"${EDEN_PORT_DIR}/guest_clock.h\"\n${core_timing_source}")
 file(READ "${PROJECT_SOURCE_DIR}/src/core/hle/service/nvnflinger/buffer_queue_producer.cpp" producer_source)
 set(queue_old "    input.Deflate(&timestamp, &is_auto_timestamp, &crop, &scaling_mode, &transform, &sticky_transform_, &async, &swap_interval, &fence);")
@@ -838,7 +839,9 @@ string(FIND "${producer_source}" "${queue_old}" queue_at)
 if(queue_at LESS 0)
     message(FATAL_ERROR "Pinned buffer queue hand-off changed")
 endif()
-string(REPLACE "${queue_old}" "${queue_old}\n    ::Eden::GuestClock::FrameQueued(swap_interval);" producer_source "${producer_source}")
+# PRIME4 DIAGNOSTIC ONLY: do not inject GuestClock::FrameQueued into
+# BufferQueueProducer::QueueBuffer. This and the counter bypass above are
+# one logical timing feature ablation; CPU topology, Vulkan and UI stay as-is.
 # (A development build adds its counters to the same source and writes it below.)
 if(NOT EDEN_DEV_PROFILE)
     write_derived("${PORT_BUILD_DIR}/buffer_queue_producer.cpp" "#include \"${EDEN_PORT_DIR}/guest_clock.h\"\n${producer_source}")
