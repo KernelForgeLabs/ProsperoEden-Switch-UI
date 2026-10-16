@@ -75,6 +75,35 @@ Each batch has to:
 - **Diagnostic limitation:** `gc_scan=upstream` is only parsed inside `#ifdef EDEN_DEV_PROFILE`; standard Release build sets that profile off. Editing `dev-settings.txt` for this particular rollback switch **will not work** with the normal GitHub Actions ZIP. An intentional A/B development build would be necessary.
 - **Gate:** Do not merge Batch 02a or begin 02b until cause is determined, corrective changes pass CI and Metroid Prime 4 performance is recovered on PS5.
 
+## Historical Metroid Prime 4 regression baseline (2026-10-16)
+
+The user's 50–60 FPS experience was on **official ProsperoEden before
+v1.001.000**, not on any version of Switch UI. Subsequent low FPS reproduces
+on pre-integration Switch UI build #37, Batches 01/02a, and official upstream
+v1.003.000. Thus neither integration batch is required to reproduce it.
+
+The exact original working build and whether reported FPS included frame
+generation are **not yet known**. The most useful controlled upstream
+comparison is [v1.000.110](https://github.com/blackbearreloaded/ProsperoEden/releases/tag/v1.000.110)
+versus [v1.001.000](https://github.com/blackbearreloaded/ProsperoEden/releases/tag/v1.001.000).
+Both pin the same Eden core `67bada77`; 27 upstream commits separate them,
+including changes to guest clock, thread placement, ASTC texture processing,
+and memory management. The comparison does not prove any of those changes
+caused the Prime 4 issue. If v1.000.110 also has the issue, examine an
+earlier version matching the user's previously working setup.
+
+Before testing a historical original release, back up the complete original
+`/data/homebrew/PPSA99008/` app folder as well as shared
+`/data/prosperoeden/` configuration and saves. Keep game version, mods,
+graphics backend, resolution, scene, frame generation and PS5 environment
+as constant as possible; never erase shared data just to run a comparison.
+A historical version is a diagnostic only, not a recommendation to downgrade
+public installations.
+
+Avoid blocking otherwise safe emulator integrations **solely** because
+Prime 4 is slow on our baseline. Maintain a separate game-compatibility
+investigation while recording per-batch memory/graphics qualification.
+
 ## Exit conditions
 
 - [ ] All planned high-priority emulator improvements selected and attributed.
