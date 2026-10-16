@@ -118,6 +118,9 @@ jobs:
           python3 -m unittest discover -s tools/upstream -p 'test_*.py' -v
           python3 tools/upstream/audit_changes.py --verify-only
 
+      - name: Verify upstream texture collector backport
+        run: python3 -B tools/check-gc-scan.py
+
       # A pull request's artifact is named by its number and its own commit (github.sha is a
       # temporary merge commit there); the version in param.json stays the release's.
       - name: Name this build
