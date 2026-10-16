@@ -104,6 +104,13 @@ Avoid blocking otherwise safe emulator integrations **solely** because
 Prime 4 is slow on our baseline. Maintain a separate game-compatibility
 investigation while recording per-batch memory/graphics qualification.
 
+### Official v1.000.110 working performance reference (2026-10-16)
+
+- **User hardware confirmation:** After restoring **official ProsperoEden v1.000.110**, Metroid Prime 4 feels much more fluid, generally stable with occasional dips near **43 FPS**, and appears sharper. This is our **first observed working upstream reference** in the investigation; precise average FPS and frame-generation state were not measured.
+- Frame generation was introduced in **v1.000.100** and is available in v1.000.110. In that release, enabling it requires **Settings > Video** (or the game's Video settings) plus a user-provided `Lossless.dll` on Vulkan. The FPS overlay can distinguish native (**N**) and frame-generated/display (**F**) rates. Check whether Frame generation was on before attributing the apparent 50–60 FPS to native emulation.
+- The next controlled comparison is **official v1.001.000** with the same game version/scene, graphics settings, frame-generation state, PS5 enabler and shared data. Do not reset shader caches or change unrelated settings. If v1.001.000 is markedly slower on a matched test, the release-to-release difference narrows the likely regression window to **27 upstream commits** between v1.000.110 and v1.001.000, not any of our Switch UI migration batches.
+- Keep backups of `/data/homebrew/PPSA99008/` and shared `/data/prosperoeden/` before replacing official app versions. This historical experiment should not influence public-bundle content without a reviewed fix.
+
 ## Exit conditions
 
 - [ ] All planned high-priority emulator improvements selected and attributed.
