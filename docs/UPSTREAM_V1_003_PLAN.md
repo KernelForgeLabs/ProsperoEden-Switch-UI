@@ -162,6 +162,30 @@ v1.000.110 package as control, and run a matching-scene A/B. Do not
 merge a speculative workaround or block unrelated v1.003 feature
 integrations merely because Prime 4 predates the fork's changes.
 
+### ASTC/1× graphics-scale follow-up (2026-10-16)
+
+On **official v1.001.000**, the maintainer confirmed **ASTC textures =
+Compressed** and changed Prime 4's internal resolution from 2× to **1×**
+while leaving global 2160p/60 Hz output. The game **remained badly choppy**.
+This reduces the likelihood that excessive 2× GPU render work or decoded
+ASTC quality is the primary cause. It does not exclude graphics
+synchronization, texture cache or memory pressure at 1×.
+
+A minimal controlled guest-clock ablation has been prepared on a **separate**
+branch [`diagnostic/prime4-guest-clock-off`](https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/tree/diagnostic/prime4-guest-clock-off),
+forked from the **pre-integration Switch UI #37** code (`50c54c1c`).
+It bypasses only the two v1.001 `GuestClock` calls in generated Eden
+sources while preserving CPU worker placement, graphics code, title ID
+and shared data formats. CI/PS5 qualification is **pending**; it is not a
+release candidate or accepted upstream fix.
+
+The next PS5 test should restore the original 2× internal resolution,
+compare the same Prime 4 scene to known poor Switch UI #37, and note
+FPS immediately and after 5–10 minutes. A successful result would
+implicate the clock behavior; a failure would prioritize worker placement
+and GPU/presentation synchronization. Neither result proves causality
+without a repeatable controlled comparison.
+
 ## Exit conditions
 
 - [ ] All planned high-priority emulator improvements selected and attributed.
