@@ -1,6 +1,6 @@
 # Homebrew catalog — Switch UI title-ID reservation
 
-**Status:** Reservation PR [#302](https://github.com/blackbearreloaded/ps5-homebrew-catalog/pull/302) **submitted, open and awaiting maintainer merge**. Submitted by `KernelForgeX` from fork branch `reserve-ppsa99186` at commit `6809c9dc0bbe0e60d635309b7c75774c4a6d3fe7`. GitHub's dedicated **Submission check** passed (Validate submission and Scan the release). A separate general CI workflow reports `action_required` with zero jobs, potentially awaiting repository-maintainer approval; this is not a failed submission check. **The title ID is not reserved until the PR is merged.** No public beta or release has been published.
+**Status (2026-10-16):** Catalog reservation [PR #302](https://github.com/blackbearreloaded/ps5-homebrew-catalog/pull/302) was **closed without merge** by maintainer BlackBearReloaded. The catalog does **not** reserve `PPSA99186` for this edition. The maintainer supports forks but explained that the catalog limits multiple variants of the same emulator, and offered collaboration on reusable themes/changes. This is a catalog-listing decision, **not a ban on independently maintaining or distributing a GPL-compliant fork**. The individual `KernelForgeX` had submitted from `reserve-ppsa99186` at `6809c9d` and submission checks had passed. No beta or public release has been published. Before an independent release, consider title-ID collision risk, user-facing project identity, and a manual update/rollback policy.
 
 This edition is a separate PS5 app from the original ProsperoEden.
 Its intended title identity is:
@@ -12,12 +12,11 @@ Its intended title identity is:
 - Original upstream: https://github.com/blackbearreloaded/ProsperoEden
 - License: GPL-3.0 (matches GitHub's detected repository license)
 
-## Reservation record to submit
+## Historical reservation record (not approved)
 
-The upstream catalog guide requires the four release/download link
-fields to be `null` until publication. Create **`apps/PPSA99186.json`**
-in a fork of https://github.com/blackbearreloaded/ps5-homebrew-catalog
-with exactly this JSON:
+The reservation submission used the following JSON. It is retained solely
+as a historical record; **do not resubmit it unchanged or treat it as a
+live catalog listing**:
 
 ```json
 {
@@ -65,8 +64,7 @@ accepts ownership before announcing a catalog installation.
 
 The catalog accepts GitHub pre-releases, and its automated daily
 release-update job may advance listed releases. A Reddit beta can remain
-**outside** the catalog while `PPSA99186` is only a Coming soon
-reservation. Decide explicit beta/stable versioning before pushing any
+**outside** the catalog because the proposed reservation was not accepted. Decide explicit beta/stable versioning before pushing any
 `v*` tag: this repository's release workflow publishes a prerelease
 automatically on matching tags. Never replace already-public release
 ZIPs with different bytes.
@@ -79,7 +77,8 @@ https://github.com/blackbearreloaded/ps5-homebrew-catalog/blob/main/docs/submitt
 - [ ] Confirm title ID is still free at submission time (including open PRs).
 - [ ] Make KernelForgeX's KernelForgeLabs organization membership public.
 - [x] Submit reservation PR #302 as KernelForgeX.
-- [ ] Await maintainer approval and merge of reservation PR #302.
+- [x] Record maintainer response: PR #302 closed unmerged 2026-10-16; title ID not reserved.
+- [ ] Decide whether to release an independently maintained beta outside the catalog, taking title-ID collision risk and manual install/update implications into account.
 - [ ] Verify fresh CI build, clean PS5 install, safe rollback and complete
       source/release documentation before inviting public beta users.
 - [ ] Validate the new organization's release assets and uploader/attestation.

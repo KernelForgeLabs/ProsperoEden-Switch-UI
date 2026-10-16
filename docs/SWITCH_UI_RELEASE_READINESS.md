@@ -1,6 +1,6 @@
 # Switch UI v6.0 public-release readiness
 
-**Audit date:** 2026-10-15  
+**Audit date:** 2026-10-16  
 **Candidate:** `feature/switch-ui-v6.0-rc` at `11abb230bab69bfe98c55c4164ba04fe3bae8548`  
 **Preparation:** `feature/switch-ui-v6.0-release-prep` (do not tag or release yet)
 
@@ -103,10 +103,17 @@ ProsperoEden is **`PPSA99008`**. The Switch UI package currently includes:
 - `/data/prosperoeden/` as shared emulator root.
 
 The catalog reservation [PR #302](https://github.com/blackbearreloaded/ps5-homebrew-catalog/pull/302)
-was submitted by **KernelForgeX** with `apps/PPSA99186.json`, and the dedicated
-submission validation passed. As of 2026-10-15 the PR remained open and
-unmerged; **the ID is not formally reserved yet**. The same account must
-submit subsequent catalog updates for that reservation.
+was submitted by **KernelForgeX**, and dedicated submission checks passed,
+but **BlackBearReloaded closed it without merge on 2026-10-16**. They explained
+that the catalog favors distinct emulator applications over multiple
+alternative frontends for ProsperoEden, while encouraging forks and
+upstream collaboration. **`PPSA99186` is not reserved in the catalog.** This
+is a catalog policy decision, not a restriction on a properly licensed
+independent fork. Before a public beta, decide how to distribute the app
+independently, verify title-ID collisions and document manual upgrades.
+The repository's default `main` still displays the inherited ProsperoEden
+README; the maintained work is on `feature/switch-ui-v6.0-release-prep`.
+Promote the actual release branch when qualified and explicitly approved.
 
 Catalog guidance:
 https://github.com/blackbearreloaded/ps5-homebrew-catalog#reserve-a-title-id
@@ -169,7 +176,11 @@ retesting is required if a different ID is chosen or assigned.
 - [x] Choose the long-term GitHub repository owner: KernelForgeLabs,
       preserving the original fork.
 - [x] Submit `PPSA99186` reservation PR #302 as KernelForgeX.
-- [ ] Wait for PR #302 to be merged before treating the ID as reserved.
+- [x] Record PR #302 closure without merge; catalog registration was declined.
+- [ ] Decide an independent beta distribution channel and verify provisional
+      `PPSA99186` collision risk before giving users installation files.
+- [ ] Promote the qualified Switch UI release line to repository default so
+      visitors see the actual app instead of the upstream base.
 - [ ] Follow [beta installation and rollback plan](BETA_INSTALL_AND_ROLLBACK.md):
       test complete ZIP install, preserve shared user data, and verify
       restoration from a known-good previous Switch UI build.

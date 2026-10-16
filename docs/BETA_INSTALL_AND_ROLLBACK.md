@@ -108,8 +108,9 @@ mark a row passed until that behavior has been observed on console.
 
 - [ ] Pass applicable PS5 manual install/data/rollback tests and record evidence.
 - [ ] Verify the **final** CI release ZIP, SHA256SUMS and attestation.
-- [ ] Decide how title reservation [PR #302](https://github.com/blackbearreloaded/ps5-homebrew-catalog/pull/302)
-      will be resolved; the ID is not formally reserved until merge.
+- [ ] Decide and document independent non-catalog beta distribution after
+      title reservation [PR #302](https://github.com/blackbearreloaded/ps5-homebrew-catalog/pull/302)
+      was closed without merge. Verify provisional title-ID collision risk.
 - [ ] Publish clear limitations, original Eden/BlackBearReloaded credit,
       GPL source availability and manual rollback instructions.
 - [ ] Obtain explicit maintainer approval before tagging or publishing.
