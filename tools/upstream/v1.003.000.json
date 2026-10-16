@@ -1,0 +1,62 @@
+{
+  "schema": "kernelforgelabs.upstream-review.v1",
+  "integration_target": "blackbearreloaded/ProsperoEden",
+  "baseline_tag": "v1.001.000",
+  "baseline_commit": "d7f2764f8ecf8bdbd979eece2b402621edceee2f",
+  "target_tag": "v1.003.000",
+  "target_commit": "368294ee4b5fb1b38c6cb88854c53ae46e9b8a93",
+  "fork_divergence_commit": "487fa348265bf05e3eabc5f659efd3ba71787336",
+  "integration_branch": "integration/upstream-v1.003.000",
+  "release_prep_parent": "f0234eb3212df716abbe8306e0474fc746f3a846",
+  "app_title_id": "PPSA99186",
+  "app_content_version": "06.000.000",
+  "eden_commit": "67bada77f8a43a90da2e94e89b8e7da73c256989",
+  "policy": {
+    "no_automatic_merge": true,
+    "preserve_switch_ui": true,
+    "no_new_release": true,
+    "no_eden_core_upgrade": true,
+    "on_console_validation_required": true
+  },
+  "batches": [
+    {
+      "id": "01-romfs-stability",
+      "status": "adapted-awaiting-ci",
+      "source_commits": [
+        "4f813a352816662fb86183bb1d108425a507881f"
+      ],
+      "scope": "Bounded-stack cleanup for very wide RomFS rebuilds, with host regression",
+      "commit": "3b43c49127d5cb007970ad3dec42e4b0f3115364"
+    },
+    {
+      "id": "02-memory",
+      "status": "not-started",
+      "source_commits": [],
+      "scope": "Memory pool reclamation, PS5 Pro memory mode, GPU texture reclamation, emulated memory layout and per-game settings"
+    },
+    {
+      "id": "03-cpu-runtime",
+      "status": "not-started",
+      "source_commits": [],
+      "scope": "JIT page table/checked-fastmem, batched caches, worker scheduling and performance improvements"
+    },
+    {
+      "id": "04-graphics",
+      "status": "not-started",
+      "source_commits": [],
+      "scope": "RADV geometry-shader/vertex fixes and partial texture uploads"
+    },
+    {
+      "id": "05-controls",
+      "status": "not-started",
+      "source_commits": [],
+      "scope": "Vibration strength, optional audio haptics, touchpad behavior and shortcut compatibility"
+    },
+    {
+      "id": "06-optional-interface",
+      "status": "deferred",
+      "source_commits": [],
+      "scope": "Upstream Lua runtime launcher, Slate themes and status layout; not part of emulator foundation upgrade"
+    }
+  ]
+}

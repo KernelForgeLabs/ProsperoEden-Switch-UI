@@ -113,6 +113,11 @@ jobs:
       - name: Test beta ZIP safety preflight
         run: python3 tools/ci/test_beta_zip.py -v
 
+      - name: Verify pinned upstream integration and audit tests
+        run: |
+          python3 -m unittest discover -s tools/upstream -p 'test_*.py' -v
+          python3 tools/upstream/audit_changes.py --verify-only
+
       # A pull request's artifact is named by its number and its own commit (github.sha is a
       # temporary merge commit there); the version in param.json stays the release's.
       - name: Name this build
