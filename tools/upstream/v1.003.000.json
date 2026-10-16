@@ -52,7 +52,10 @@
         "reported_date": "2026-10-14",
         "symptoms": "~60 FPS at ~9 GB memory and 2–9 FPS near ~12 GB; occasional crashes",
         "maintainer_observation": "Official v1.003.000 exhibits similar Metroid Prime 4 slowdown in user test on 2026-10-16.",
-        "caveat": "User confirmed slowdown also on pre-integration Switch UI build #37 (v1.001-based) and upstream v1.003. Neither Batch 01 nor 02a is necessary to reproduce. 50-60 FPS earlier reference build/settings not yet established."
+        "caveat": "User confirmed slowdown also on pre-integration Switch UI build #37 (v1.001-based) and upstream v1.003. Neither Batch 01 nor 02a is necessary to reproduce. 50-60 FPS earlier reference build/settings not yet established.",
+        "earlier_working_reference": "Official original ProsperoEden, before v1.001.000 (user confirmation 2026-10-16), roughly 50–60 FPS. Exact version not yet known; native vs frame-generated FPS not determined.",
+        "next_comparison": "Test official v1.000.110 vs v1.001.000 under identical Prime 4 game version/settings; both share Eden pin 67bada77 and 27 upstream commits separate them. This is a hypothesis test only.",
+        "public_beta_decision": "Keep Prime 4 as separate baseline compatibility issue; do not attribute it to integration batches or claim a v1.000.110 success before testing."
       },
       "next_baseline": {
         "status": "reproduced",
