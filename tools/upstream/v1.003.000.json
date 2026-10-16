@@ -34,11 +34,17 @@
     },
     {
       "id": "02-memory",
-      "status": "02a-texture-collector-backported-awaiting-ci-and-ps5",
+      "status": "blocked-ps5-major-gameplay-performance-regression",
       "source_commits": [
         "46b269fc18218572b7c7d72d17d90994c646c1c4"
       ],
-      "scope": "Batch 02a: bounded texture-cache scan counting evictions rather than skipped-image visits, with fallback flag gc_scan=upstream. Pool memory, PS5 Pro and 4/6/8 GiB layout remain 02b."
+      "scope": "Batch 02a: bounded texture-cache scan counting evictions rather than skipped-image visits, with fallback flag gc_scan=upstream. Pool memory, PS5 Pro and 4/6/8 GiB layout remain 02b.",
+      "ci_run": "https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/actions/runs/38946440182",
+      "tested_commit": "6dd98c1557d2b30aa306d0050a29b8b087afa5db",
+      "diagnostic_branch": "diagnostic/upstream-v1.003.000-batch02a-fps-regression",
+      "ps5_test_date": "2026-10-16",
+      "ps5_observation": "Metroid Prime 4: Beyond, previously roughly 50-60 FPS, now frequently 7-20 FPS and only briefly 50 FPS; Zelda Breath of the Wild initial area near 30 FPS with a momentary 24 FPS and no visible texture corruption. Exact cause unconfirmed. Do not promote Batch 02a; verify old checkpoint A/B under matching Vulkan, resolution, mods and settings.",
+      "diagnostic_toggle": "gc_scan=upstream is compiled only when EDEN_DEV_PROFILE=ON; normal release ZIP does not read it. Do not suggest editing dev-settings.txt to test it on a normal build."
     },
     {
       "id": "03-cpu-runtime",

@@ -1,6 +1,6 @@
 # ProsperoEden v1.003.000 — repeatable integration plan
 
-**Status (2026-10-16):** Batch 01 CI passed ([run #38916616359](https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/actions/runs/38916616359)) and the maintainer reports general PS5 smoke testing looked good. The original giant-RomFS/UltraCam failure was **not reproduced**. Exact tested code checkpoint: `checkpoint/upstream-v1.003.000-batch01` (`d1d331f5`). Batch 02a texture-collector fix is prepared but awaits CI and hardware testing. Not merged into release-prep.
+**Status (2026-10-16):** Batch 01 passed [CI #38916616359](https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/actions/runs/38916616359) and general PS5 smoke testing, but not the specific wide-RomFS reproduction. Its tested checkpoint is `checkpoint/upstream-v1.003.000-batch01` (`d1d331f5`). **Batch 02a is blocked due to a severe PS5 gameplay FPS regression** in Metroid Prime 4: Beyond, despite passing [CI #38946440182](https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/actions/runs/38946440182). Do not promote or compound it with further changes. The exact failing build is frozen as `diagnostic/upstream-v1.003.000-batch02a-fps-regression` (`6dd98c15`). Await matching-settings A/B against Batch 01 before attributing the cause. Nothing merged into release-prep.
 
 ## Immutable reference points
 
@@ -46,7 +46,7 @@ For any future release: pin both release tag commit SHAs in a fresh manifest, th
 | Group | Scope | State |
 | --- | --- | --- |
 | 01 | RomFS stack overflow during destruction of huge modded directory trees | Adapted from upstream [4f813a35](https://github.com/blackbearreloaded/ProsperoEden/commit/4f813a352816662fb86183bb1d108425a507881f) into our [3b43c491](https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/commit/3b43c49127d5cb007970ad3dec42e4b0f3115364); **CI and general PS5 smoke passed 2026-10-16**, specific large RomFS case untested |
-| 02a | Texture-collector scan liveness: count actual evictions with bounded scans | Adapted from [46b269fc](https://github.com/blackbearreloaded/ProsperoEden/commit/46b269fc18218572b7c7d72d17d90994c646c1c4), with pinned source check; awaiting CI and PS5 |
+| 02a | Texture-collector scan liveness: count actual evictions with bounded scans | **BLOCKED — severe Metroid Prime 4 FPS regression in PS5 test** (7–20 FPS versus previous 50–60 FPS); CI passed, but gameplay did not. Review upstream [46b269fc](https://github.com/blackbearreloaded/ProsperoEden/commit/46b269fc18218572b7c7d72d17d90994c646c1c4). |
 | 02b | Memory pool/JIT memory-on-demand, PS5 Pro memory mode, 4/6/8 GiB per-game memory | **Not yet integrated**; requires additional host checks, PS5 model testing and UI adaptations |
 | 03 | CPU/JIT, fastmem, code caches, scheduling, lower GPU/CPU overhead | Pending performance/compatibility review |
 | 04 | Vulkan/RADV graphics correctness and partial texture updates | Pending graphics review |
@@ -61,6 +61,15 @@ Each batch has to:
 4. Preserve Switch Dark/Themezer, Tactile Leaf sound assets, startup/forge art, flat Settings, distinct PS5 title/installer behavior and disabled automatic update installation.
 5. Backup `/data/prosperoeden/` and the previous installed `PPSA99186` app folder, then smoke-test game launch, graphics, memory, mods, input, themes, saves and restart on real PS5 hardware.
 6. Record build URL/SHA, test console, results and regressions; only bring validated batches into release-prep after explicit review. Roll back that batch if a regression appears.
+
+## Hardware regression report — Batch 02a (2026-10-16)
+
+- **Failing artifact:** [CI run #38946440182](https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/actions/runs/38946440182), source `6dd98c15`, stored at branch `diagnostic/upstream-v1.003.000-batch02a-fps-regression`.
+- **Metroid Prime 4: Beyond:** previously roughly 50–60 FPS; now 7–20 FPS most of the time, intermittently near 50 FPS. This is a blocking gameplay regression. Cause **not yet isolated**; CPU work from collector is one hypothesis, not a finding.
+- **Zelda: Breath of the Wild:** initial area ~30 FPS with one brief drop to ~24 FPS; no visible texture corruption. No save file/fast travel available, so a memory-stress test was **not completed**.
+- **A/B next:** Quit the app; back up the full installed `PPSA99186` application folder and preserve shared `/data/prosperoeden/` files. Download the **ProsperoEden** artifact from [Batch 01 run #38916616359](https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/actions/runs/38916616359); install the *whole* app folder, not just `eboot.bin`, and **do not delete shared caches or settings**. Retest Metroid Prime 4 at the same game location, graphics backend, resolution, mods, GPU accuracy, and approximate runtime. If it returns to ~50–60 FPS, that supports the Batch 02a code as the cause; if still poor, investigate shared configuration/cache or other external variables before changing code.
+- **Diagnostic limitation:** `gc_scan=upstream` is only parsed inside `#ifdef EDEN_DEV_PROFILE`; standard Release build sets that profile off. Editing `dev-settings.txt` for this particular rollback switch **will not work** with the normal GitHub Actions ZIP. An intentional A/B development build would be necessary.
+- **Gate:** Do not merge Batch 02a or begin 02b until cause is determined, corrective changes pass CI and Metroid Prime 4 performance is recovered on PS5.
 
 ## Exit conditions
 
