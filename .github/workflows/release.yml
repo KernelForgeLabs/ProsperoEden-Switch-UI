@@ -72,6 +72,10 @@ jobs:
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Fail quickly if an upstream sync overwrote the Switch UI title, paths or audio.
+      - name: Protect Switch UI fork identity
+        run: python3 tools/ci/check_fork_identity.py
+
       - name: Locate the caches
         run: |
           # Beside the checkout, on the runner's disk; the paths stay the same between runs.
