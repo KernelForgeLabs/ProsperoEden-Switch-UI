@@ -186,6 +186,31 @@ implicate the clock behavior; a failure would prioritize worker placement
 and GPU/presentation synchronization. Neither result proves causality
 without a repeatable controlled comparison.
 
+### Prime 4 guest-clock negative result and CPU-topology test (2026-10-16)
+
+- [Switch UI diagnostic build #41](https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/actions/runs/38983986326),
+  source `3a890991`, removed only the `GuestClock::Scale` and
+  `GuestClock::FrameQueued` injections from the **pre-integration #37**
+  source. CI succeeded, but user reported **the same very low FPS in
+  Metroid Prime 4 at 2×**, possibly slightly worse. Therefore the
+  new guest-clock behavior **alone** is not sufficient to explain the
+  original performance regression.
+- Old upstream v1.000.110 **already pinned CPU workers** by checking CPUID;
+  v1.001.000 added an SMT timing-based **fallback** when fewer than five
+  physical cores are found. Turning off *all* worker placement would be
+  a different and misleading test.
+- A separate minimal experiment
+  [`diagnostic/prime4-topology-fallback-off`](https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/tree/diagnostic/prime4-topology-fallback-off)
+  starts again from untouched **pre-integration #37** and disables
+  **only that new v1.001 fallback**; it preserves existing CPUID-based
+  pinning and guest-clock behavior. Build/PS5 result pending.
+- If the fallback was not exercised (`EDEN_WORKER_TOPOLOGY ... measured=0`
+  in the original build), this experiment cannot materially change
+  thread placement; a negative result should move us to reviewing other
+  v1.000.110→v1.001.000 commits, not random affinity tweaks.
+- Neither diagnostic is a patch for release, a v1.003 integration
+  batch, or a reason to advance a source version claim.
+
 ## Exit conditions
 
 - [ ] All planned high-priority emulator improvements selected and attributed.
