@@ -246,7 +246,12 @@ void CheckWorkerTopology() {
     // frames a second where a console with pinned threads made 26 to 29). Where CPUID does
     // answer, logical CPUs 2n and 2n+1 are one core; a timing of two pairs says whether that
     // holds here (AdjacentCpusShareCore), and then the same five CPUs are used.
-    if (!refused && count != cores.size()) {
+    // PRIME4 DIAGNOSTIC ONLY, derived from v1.000.110: omit the new
+    // v1.001.000 SMT-timing fallback when CPUID cannot identify five cores.
+    // Keep the original CPUID mapping, worker pinning, GPU/secondary thread
+    // behavior, guest clock and all other code exactly as in build #37.
+    // Do NOT ship this branch as a product performance fix.
+    if (false && !refused && count != cores.size()) {
         unsigned even = 0;
         for (unsigned cpu = 0; cpu < 64; cpu += 2) even += CPU_ISSET(cpu, &original) ? 1 : 0;
         if (even >= cores.size() && CPU_ISSET(1, &original) && AdjacentCpusShareCore()) {
