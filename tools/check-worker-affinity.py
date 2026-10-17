@@ -24,7 +24,8 @@ using cpuset_t=uint64_t;
 static uint64_t current=0x1fff, fail_mask=0;
 static unsigned max_leaf=0xb, level_type=1, apics[64];
 static bool fail_restore=false, timing_share=false;
-static bool AdjacentCpusShareCore(){return timing_share;}
+static unsigned timing_probes=0;
+static bool AdjacentCpusShareCore(){++timing_probes;return timing_share;}
 static constexpr std::array names{"CPUCore_0","CPUCore_1","CPUCore_2","CPUCore_3","GPU"};
 static unsigned __get_cpuid_max(unsigned,void*) {return max_leaf;}
 #define __cpuid_count(l,s,a,b,c,d) do {a=1;b=2;c=level_type<<8;d=apics[__builtin_ctzll(current)];} while(0)
@@ -50,12 +51,13 @@ int main(){
  current=3;CheckWorkerTopology();assert(!worker_topology_ready && current==3);
  current=0x1fff;fail_mask=4;CheckWorkerTopology();assert(!worker_topology_ready && current==0x1fff);
  fail_mask=0;level_type=0;CheckWorkerTopology();assert(!worker_topology_ready && current==0x1fff);
- // CPUID that tells nothing: the timing decides, and gives the adjacent layout or none.
- timing_share=true;CheckWorkerTopology();assert(worker_topology_ready && current==0x1fff);
- assert((worker_cpus==std::array<unsigned,5>{0,2,4,6,8}));
+ // PRIME4 DIAGNOSTIC ONLY: the SMT-timing fallback is deliberately disabled.
+ // A failed CPUID discovery must remain unpinned, regardless of timing_share.
+ timing_share=true;CheckWorkerTopology();assert(!worker_topology_ready && current==0x1fff);
+ assert(timing_probes==0);
  level_type=1;for(unsigned i=0;i<64;++i) apics[i]=5;
- CheckWorkerTopology();assert(worker_topology_ready && (worker_cpus==std::array<unsigned,5>{0,2,4,6,8}));
- timing_share=false;CheckWorkerTopology();assert(!worker_topology_ready && current==0x1fff);
+ CheckWorkerTopology();assert(!worker_topology_ready && current==0x1fff && timing_probes==0);
+ timing_share=false;CheckWorkerTopology();assert(!worker_topology_ready && current==0x1fff && timing_probes==0);
  // Too few CPUs for it, or a CPU the thread may not move to: no layout is assumed.
  timing_share=true;current=0xff;CheckWorkerTopology();assert(!worker_topology_ready && current==0xff);
  current=0x1fff;fail_mask=4;CheckWorkerTopology();assert(!worker_topology_ready);
@@ -74,4 +76,4 @@ with tempfile.TemporaryDirectory() as tmp:
     exe=Path(tmp)/'affinity'
     subprocess.run(['c++','-std=c++20','-Wall','-Wextra','-Werror','-fsanitize=address,undefined','-x','c++','-','-o',str(exe)],input=code,text=True,check=True)
     subprocess.run([str(exe)],check=True)
-print('Worker topology: PASS physical sibling exclusion, OS/APIC permutations, allowed masks, the layout by timing, fallback and restoration failures')
+print('Worker topology: PASS physical sibling exclusion, OS/APIC permutations, allowed masks, intentionally disabled timing fallback and restoration failures')
