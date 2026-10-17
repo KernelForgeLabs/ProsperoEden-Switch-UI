@@ -62,6 +62,18 @@ SHA, checksums, compatible dependencies, configuration/migration
 behavior, build toolchain and PS5 game regressions. Keep those upgrades
 in dedicated integration PRs, separate from cosmetic UI changes.
 
+## Full upstream release upgrades (v1.004.000 and beyond)
+
+For a full tagged ProsperoEden release, follow
+[UPSTREAM_RELEASE_SYNC.md](UPSTREAM_RELEASE_SYNC.md) and use
+`bash tools/upstream-merge.sh vX.Y.Z <latest-tested-UI-base>` from a clean
+developer checkout. A pinned three-way Git merge preserves upstream commit
+ancestry across releases. Resolve and review conflicts manually, run
+`python3 tools/ci/check_fork_identity.py`, and qualify the actual PS5 ZIP
+before promotion. Do not use the small-fix cherry-pick procedure below
+as a substitute for reviewing a large release. Never merge a moving
+`upstream/main` or import the original `PPSA99008` package.
+
 ## Integrate upstream improvements through reviewable pull requests
 
 1. Periodically `git fetch upstream --prune`; inspect newly added upstream commits, release notes, and changed files.
