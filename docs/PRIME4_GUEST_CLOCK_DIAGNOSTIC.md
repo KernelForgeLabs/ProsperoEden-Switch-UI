@@ -37,6 +37,20 @@ branch. The existing host `check-guest-clock.py` tests the normal
 clock algorithm in isolation, **not** the special compiled-out injection
 in this build.
 
+## Hardware result — unsuccessful (2026-10-16)
+
+- [CI run #38983986326](https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/actions/runs/38983986326), commit `3a890991`, completed successfully.
+- Maintainer tested Metroid Prime 4 on the PS5 at **2×** internal resolution.
+  The game **still suffered major FPS fluctuations**, possibly a little
+  worse than before.
+- **Conclusion:** Bypassing the guest-clock adjustment *alone* did not
+  restore performance. Keep the test as a documented negative result;
+  no production fix and no change to the migration branches.
+- Next isolated diagnostic is the **new v1.001 CPU-topology fallback**
+  on branch [`diagnostic/prime4-topology-fallback-off`](https://github.com/KernelForgeLabs/ProsperoEden-Switch-UI/tree/diagnostic/prime4-topology-fallback-off).
+  Original v1.000.110 already had CPUID-based worker pinning;
+  only the later fallback behavior is being removed.
+
 ## Hardware test protocol
 
 1. Manually trigger a Release build on branch
