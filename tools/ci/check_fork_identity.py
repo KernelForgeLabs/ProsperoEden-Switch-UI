@@ -53,6 +53,19 @@ contains("tools/ci/make-dist.py", "PPSA99186/")
 contains(".github/workflows/release.yml", "PPSA99186/eboot.bin")
 contains("headless/update_notice.cpp", "self-update-sequence-PPSA99186")
 
+# These paths must never silently revert to the original app ID.
+for path in (
+    "Makefile",
+    "tools/build-package.sh",
+    "tools/package-headless-native.sh",
+    "tools/build-lapy-helper.py",
+    "tools/ci/make-dist.py",
+    ".github/workflows/release.yml",
+    "headless/storage_paths.h",
+):
+    check("PPSA99008" not in source(path),
+          f"{path} still references the original app PPSA99008")
+
 # Preserve shared settings and data while keeping the app itself separate.
 contains("headless/storage_paths.h", 'kDataDir = "/data/prosperoeden"')
 contains("headless/storage_paths.h", 'kInstallDir = "/data/homebrew/PPSA99186"')
