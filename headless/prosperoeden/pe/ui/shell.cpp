@@ -202,6 +202,33 @@ void Launcher::draw_rail(Canvas &c)
 {
     gfx::DrawList &list = c.list;
     const Theme &t = th();
+
+    if (t.top_nav)
+    {
+        // Horizontal tabs: Home, Multiplayer, Settings, About (Library is on the home screen).
+        constexpr float kTabY = 44.0f;
+        constexpr float kTabHeight = 44.0f;
+        constexpr float kTabGap = 8.0f;
+        constexpr int kTabs[] = {0, 2, 3, 4};
+        float x = layout::kLeft;
+        for (int tab_index : kTabs)
+        {
+            const std::size_t index = static_cast<std::size_t>(tab_index);
+            const float active = tween::clamp01(rail_active_[index].value);
+            const char *name = tr(kSectionList[tab_index].name);
+            const float width = text_width(c, name, t.size_small, 2.0f) + 32.0f;
+            const Rect tab{x, kTabY, width, kTabHeight};
+            const Color ink = gfx::mix(t.muted, t.title, active);
+            text(c, name, tab.x + tab.w * 0.5f, baseline(tab.y, kTabHeight, t.size_small),
+                 t.size_small, ink, Align::center, 2.0f);
+            if (active > 0.01f)
+                list.rounded_rect({tab.x + 4.0f, tab.y + kTabHeight - 3.0f, tab.w - 8.0f, 3.0f},
+                                  1.5f, t.accent.with_alpha(active));
+            x += width + kTabGap;
+        }
+        return;
+    }
+
     const float open = tween::clamp01(rail_open_.value);
     const float width = layout::kRail + (kRailWide - layout::kRail) * open;
 
@@ -239,7 +266,6 @@ void Launcher::draw_rail(Canvas &c)
         const Rect tile{kTileLeft, tile_top(i), kTile + (width - layout::kRail), kTile};
         const float dip = 1.0f - 0.04f * press_ * focus * motion();
         list.push_transform(dip, tile.x + kTile * 0.5f, tile.y + kTile * 0.5f, 0.0f, 0.0f);
-        // The section shown keeps a quiet plate of the accent; the highlight is the ring.
         if (active > 0.01f && !look().high_contrast)
             list.bordered_rect(tile, 20.0f, t.accent.with_alpha(0.16f * active), 1.0f,
                                t.accent.with_alpha(0.55f * active));
@@ -299,6 +325,8 @@ void Launcher::draw_clock(Canvas &c)
 
 void Launcher::draw_frame(Canvas &c, const char *title, const char *copy)
 {
+    if (th().top_nav)
+        return;
     const Theme &t = th();
     const float line = baseline(layout::kTop, 64.0f, t.size_display);
     const float clock = text_width(c, clock_, t.size_heading) + 48.0f;
@@ -323,8 +351,31 @@ void Launcher::draw_footer(Canvas &c, const Hint *hints, int count, std::string_
                        message_warning_ ? t.warning : t.accent_pale, 900.0f, message_warning_, Align::right);
     else if (!status.empty())
         taken = text_shrink(c, status, layout::kRight, line, t.size_small, t.muted, 700.0f, Align::right);
-    draw_hints(c, hints, count, layout::kLeft, layout::kFooter, t.copy,
-               layout::kWidth - (taken > 0.0f ? taken + 48.0f : 0.0f));
+    draw_menu_hints(c, hints, count, layout::kLeft, layout::kFooter, t.copy,
+                    layout::kWidth - (taken > 0.0f ? taken + 48.0f : 0.0f));
+}
+
+Pad Launcher::translate_hint(Pad glyph) const
+{
+    // The four face buttons stand for the four remappable actions; nothing else moves.
+    static constexpr Pad kFace[kMenuActions] = {Pad::cross, Pad::circle, Pad::square, Pad::triangle};
+    for (int action = 0; action < kMenuActions; ++action)
+        if (glyph == kFace[action])
+            return kFace[prefs_.menu_bind[static_cast<std::size_t>(action)]];
+    return glyph;
+}
+
+float Launcher::draw_menu_hints(Canvas &c, const Hint *hints, int count, float x, float cy, Color color,
+                               float max_width)
+{
+    std::vector<Hint> translated(static_cast<std::size_t>(count));
+    for (int i = 0; i < count; ++i)
+    {
+        translated[static_cast<std::size_t>(i)] = hints[i];
+        translated[static_cast<std::size_t>(i)].button = translate_hint(hints[i].button);
+        translated[static_cast<std::size_t>(i)].second = translate_hint(hints[i].second);
+    }
+    return draw_hints(c, translated.data(), count, x, cy, color, max_width);
 }
 
 const char *Launcher::output_name(int output)

@@ -43,6 +43,10 @@ msgstr "Không đọc được một tệp NCA của firmware. Hãy cài đặt 
 msgid "A pairing is running already."
 msgstr "Đang có một lượt ghép đôi."
 
+#: pe/ui/browse.cpp
+msgid "ABOUT"
+msgstr "GIỚI THIỆU"
+
 #. The menu's last section: about this app (its credits, where its files go). One short word.
 #: pe/ui/shell.cpp
 msgid "About"
@@ -92,9 +96,21 @@ msgstr "Mọi công lao về trình giả lập Eden thuộc về các nhà phá
 msgid "AMD FSR"
 msgstr "AMD FSR"
 
+#: pe/ui/settings.cpp
+msgid "An image of your own behind this menu."
+msgstr "Một hình ảnh của riêng bạn phía sau menu này."
+
 #: eden_services.cpp
 msgid "Another language"
 msgstr "Ngôn ngữ khác"
+
+#: pe/ui/settings.cpp
+msgid "Appearance"
+msgstr "Giao diện"
+
+#: pe/ui/settings.cpp
+msgid "Apply"
+msgstr "Áp dụng"
 
 #. The button mapping has not been changed.
 #: pe/ui/game_options.cpp, pe/ui/settings.cpp
@@ -136,6 +152,10 @@ msgstr "Tự động"
 msgid "Back"
 msgstr "Quay lại"
 
+#: pe/ui/settings.cpp
+msgid "Backend"
+msgstr "Trình kết xuất"
+
 #: pe/ui/save_sync.cpp
 msgid "Backing up save data"
 msgstr "Đang sao lưu dữ liệu lưu"
@@ -149,6 +169,14 @@ msgstr "Bicubic"
 #: settings_store.h
 msgid "Bilinear"
 msgstr "Bilinear"
+
+#: pe/ui/game_options.cpp
+msgid "Bottom left"
+msgstr "Dưới trái"
+
+#: pe/ui/game_options.cpp
+msgid "Bottom right"
+msgstr "Dưới phải"
 
 #. Button hint: move through the list.
 #: pe/ui/browse.cpp, pe/ui/multiplayer.cpp
@@ -236,6 +264,14 @@ msgstr "Chọn"
 msgid "Choose a game from your library."
 msgstr "Chọn một trò chơi từ thư viện của bạn."
 
+#: pe/ui/settings.cpp
+msgid "Choose a theme or change the launcher layout."
+msgstr "Chọn chủ đề hoặc đổi bố cục trình khởi chạy."
+
+#: pe/ui/settings.cpp
+msgid "Choose the colours and appearance of this menu."
+msgstr "Chọn màu sắc và giao diện cho menu này."
+
 #: pe/ui/browse.cpp
 msgid "Choose the folder that holds your keys, firmware and games"
 msgstr "Chọn thư mục chứa khóa, firmware và trò chơi của bạn"
@@ -252,6 +288,14 @@ msgstr "Tròn"
 #: pe/ui/remote.cpp, pe/ui/update.cpp
 msgid "Close"
 msgstr "Đóng"
+
+#: pe/ui/settings.cpp
+msgid "Colour"
+msgstr "Màu"
+
+#: pe/ui/game_options.cpp, pe/ui/settings.cpp
+msgid "Compact memory"
+msgstr "Bộ nhớ gọn"
 
 #. A switch: the program code a game used in earlier sessions is prepared (compiled) while the game starts. Keep it short.
 #: pe/ui/game_options.cpp, pe/ui/settings.cpp
@@ -311,6 +355,10 @@ msgstr "BỘ ĐIỀU KHIỂN"
 msgid "Controls"
 msgstr "Điều khiển"
 
+#: pe/ui/settings.cpp
+msgid "Corner"
+msgstr "Góc"
+
 #: pe/ui/remote.cpp
 msgid "Could not cancel the download."
 msgstr "Không thể hủy tải xuống."
@@ -347,6 +395,14 @@ msgstr "Không thể lưu. Vui lòng thử lại."
 msgid "Could not start the connection or save its settings."
 msgstr "Không thể bắt đầu kết nối hoặc lưu thiết lập."
 
+#: pe/ui/settings.cpp
+msgid "CPU"
+msgstr "CPU"
+
+#: pe/ui/settings.cpp
+msgid "CPU by core"
+msgstr "CPU theo từng nhân"
+
 #. The DualSense button labelled CREATE: keep the label if the language's players do.
 #: pe/ui/game_options.cpp
 msgid "Create"
@@ -370,6 +426,10 @@ msgstr "Ghi công và thiết lập"
 #: pe/ui/game_options.cpp
 msgid "Cross"
 msgstr "Chéo"
+
+#: pe/ui/settings.cpp
+msgid "Default"
+msgstr "Mặc định"
 
 #. A per-game setting that follows the general setting; {0} is its value.
 #: pe/ui/game_options.cpp
@@ -512,6 +572,10 @@ msgid "Edit"
 msgstr "Sửa"
 
 #: pe/ui/settings.cpp
+msgid "Enable colors"
+msgstr "Bật màu"
+
+#: pe/ui/settings.cpp
 msgid "End the game and return to this menu"
 msgstr "Đóng trò chơi và quay lại menu này"
 
@@ -607,6 +671,10 @@ msgstr "Theo Cài đặt"
 msgid "For every controller. A game can have its own."
 msgstr "Cho mọi tay cầm. Mỗi trò chơi có thể có cách gán riêng."
 
+#: pe/ui/settings.cpp
+msgid "FPS"
+msgstr "FPS"
+
 #: pe/ui/game_options.cpp, pe/ui/settings.cpp
 msgid "FPS overlay"
 msgstr "Bộ đếm FPS"
@@ -626,6 +694,10 @@ msgstr "Tạo khung hình"
 #: pe/ui/game_options.cpp, pe/ui/settings.cpp
 msgid "Frame generation needs Lossless.dll, from Lossless Scaling, in the lossless folder."
 msgstr "Tạo khung hình cần Lossless.dll của Lossless Scaling trong thư mục lossless."
+
+#: pe/ui/settings.cpp
+msgid "Frame time"
+msgstr "Thời gian khung hình"
 
 #: settings_store.h
 msgid "French"
@@ -652,6 +724,10 @@ msgstr "Chất lượng đầy đủ"
 #: pe/ui/library.cpp, pe/ui/settings.cpp
 msgid "Game audio; PS5 system-menu music is unchanged."
 msgstr "Âm thanh trò chơi; nhạc menu hệ thống PS5 không thay đổi."
+
+#: pe/ui/launcher.cpp
+msgid "Game cannot start now."
+msgstr "Không thể bắt đầu trò chơi lúc này."
 
 #. {0} is the reason, a sentence in English; {1} is a file.
 #: eden_services.cpp, host/fake_services.cpp
@@ -702,9 +778,17 @@ msgstr "Tiếng Đức"
 msgid "GETTING STARTED"
 msgstr "BẮT ĐẦU"
 
+#: pe/ui/settings.cpp
+msgid "Gives back memory a game left empty, 16 KiB at a time. More free memory; a game that writes there again can stutter for a moment."
+msgstr "Trả lại bộ nhớ mà trò chơi để trống, mỗi lần 16 KiB. Nhiều bộ nhớ trống hơn; trò chơi ghi lại vào đó có thể khựng một chút."
+
 #: pe/ui/multiplayer.cpp
 msgid "Go offline"
 msgstr "Ngoại tuyến"
+
+#: pe/ui/settings.cpp
+msgid "GPU"
+msgstr "GPU"
 
 #: pe/ui/settings.cpp
 msgid "Graphics backend and how games are scaled to your TV."
@@ -732,6 +816,10 @@ msgstr "Trang chủ"
 #: pe/ui/library.cpp, pe/ui/settings.cpp
 msgid "How games are drawn and scaled to your TV."
 msgstr "Cách trò chơi được kết xuất và co giãn theo TV của bạn."
+
+#: pe/ui/settings.cpp
+msgid "Images in this folder: {0}"
+msgstr "Hình ảnh trong thư mục này: {0}"
 
 #. Button hint: copy a save in.
 #: pe/ui/library.cpp
@@ -841,6 +929,10 @@ msgstr "Ngôn ngữ"
 msgid "LANGUAGES"
 msgstr "NGÔN NGỮ"
 
+#: pe/ui/game_options.cpp
+msgid "Large"
+msgstr "Lớn"
+
 #. A switch: the menu's small text is drawn larger.
 #: pe/ui/settings.cpp
 msgid "Larger text"
@@ -850,6 +942,10 @@ msgstr "Chữ lớn hơn"
 #: eden_services.cpp
 msgid "Last game opened"
 msgstr "Trò chơi mở gần nhất"
+
+#: pe/ui/settings.cpp
+msgid "Launcher"
+msgstr "Trình khởi chạy"
 
 #: pe/ui/multiplayer.cpp
 msgid "Leave / cancel"
@@ -888,6 +984,10 @@ msgstr "Phép tính dấu phẩy động kém chính xác hơn: nhanh hơn, như
 msgid "Less exact memory transfers to the GPU: faster, and a few games show wrong graphics."
 msgstr "Truyền bộ nhớ tới GPU kém chính xác hơn: nhanh hơn, nhưng một vài trò chơi hiển thị đồ họa sai."
 
+#: pe/ui/library.cpp
+msgid "LIBRARY"
+msgstr "THƯ VIỆN"
+
 #: pe/ui/library.cpp, pe/ui/shell.cpp
 msgid "Library"
 msgstr "Thư viện"
@@ -907,6 +1007,18 @@ msgstr "Độ chính xác GPU thấp nhất: nhanh hơn trong trò chơi nặng,
 #: pe/ui/settings.cpp
 msgid "Make the menu easier to see and follow."
 msgstr "Giúp menu dễ nhìn và dễ theo dõi hơn."
+
+#: pe/ui/game_options.cpp
+msgid "Medium"
+msgstr "Vừa"
+
+#: pe/ui/settings.cpp
+msgid "Memory"
+msgstr "Bộ nhớ"
+
+#: pe/ui/game_options.cpp, pe/ui/settings.cpp
+msgid "Menu keybinds"
+msgstr "Nút menu"
 
 #: pe/ui/browse.cpp
 msgid "Menu sound effects made with ElevenLabs."
@@ -959,6 +1071,10 @@ msgstr "Gần nhất"
 #: pe/ui/pairing.cpp, pe/ui/settings.cpp
 msgid "Needs attention"
 msgstr "Cần chú ý"
+
+#: pe/ui/theme.cpp
+msgid "Neutral glass, clean and still."
+msgstr "Kính trung tính, gọn gàng và tĩnh lặng."
 
 #: pe/ui/profiles.cpp
 msgid "New profile"
@@ -1111,6 +1227,18 @@ msgstr "Options"
 msgid "Output resolution"
 msgstr "Độ phân giải đầu ra"
 
+#: pe/ui/game_options.cpp
+msgid "Overlay corner"
+msgstr "Góc bộ đếm"
+
+#: pe/ui/settings.cpp
+msgid "Overlay options"
+msgstr "Tùy chọn bộ đếm"
+
+#: pe/ui/game_options.cpp
+msgid "Overlay size"
+msgstr "Kích thước bộ đếm"
+
 #. Button hint: jump a page of the list (L1 / R1).
 #: pe/ui/browse.cpp, pe/ui/multiplayer.cpp, pe/ui/update.cpp
 msgid "Page"
@@ -1158,6 +1286,10 @@ msgstr "Bản vá"
 msgid "Performance"
 msgstr "Hiệu năng"
 
+#: pe/ui/settings.cpp
+msgid "Ping"
+msgstr "Ping"
+
 #. Button and button hint: start the game shown. Keep it to one short word.
 #: pe/ui/home.cpp, pe/ui/library.cpp
 msgid "Play"
@@ -1203,6 +1335,10 @@ msgstr "Tiếng Bồ Đào Nha"
 msgid "Portuguese (Brazil)"
 msgstr "Tiếng Bồ Đào Nha (Brazil)"
 
+#: pe/ui/game_options.cpp, pe/ui/settings.cpp
+msgid "Post-processing"
+msgstr "Hậu kỳ"
+
 #. Eden is the emulator's name (unchanged).
 #: pe/ui/browse.cpp
 msgid "Powered by Eden"
@@ -1225,6 +1361,10 @@ msgstr "Nhấn lần nữa để thay bản lưu của trò chơi này. Bản l�
 #: pe/ui/multiplayer.cpp
 msgid "Private room"
 msgstr "Phòng riêng"
+
+#: pe/ui/multiplayer.cpp
+msgid "PRIVATE ROOM"
+msgstr "PHÒNG RIÊNG"
 
 #: pe/ui/game_options.cpp
 msgid "Pro Controller"
@@ -1292,6 +1432,14 @@ msgstr "PHIÊN BẢN PS5"
 msgid "Public rooms"
 msgstr "Phòng công khai"
 
+#: pe/ui/multiplayer.cpp
+msgid "PUBLIC ROOMS"
+msgstr "PHÒNG CÔNG KHAI"
+
+#: pe/ui/settings.cpp
+msgid "Put images in the wallpapers folder to show them here."
+msgstr "Đặt hình ảnh vào thư mục wallpapers để hiện ở đây."
+
 #: pe/ui/remote.cpp
 msgid "Queued"
 msgstr "Đang chờ"
@@ -1347,6 +1495,10 @@ msgstr "Tần số quét"
 #: pe/ui/browse.cpp
 msgid "REGION"
 msgstr "KHU VỰC"
+
+#: pe/ui/game_options.cpp
+msgid "Regular"
+msgstr "Thường"
 
 #: pe/ui/profiles.cpp
 msgid "Remove"
@@ -1479,6 +1631,10 @@ msgstr "Đã lưu. Áp dụng khi mở trò chơi."
 msgid "Saved. Full quality uses four times the graphics memory for these textures and can run out above 1x."
 msgstr "Đã lưu. Chất lượng đầy đủ dùng gấp bốn lần bộ nhớ đồ họa cho các texture này và có thể hết bộ nhớ khi trên 1x."
 
+#: pe/ui/settings.cpp
+msgid "Saved. Post-processing needs the Vulkan renderer."
+msgstr "Đã lưu. Hậu kỳ cần trình kết xuất Vulkan."
+
 #: pe/ui/browse.cpp
 msgid "Saved. Reopen ProsperoEden to use this folder."
 msgstr "Đã lưu. Hãy mở lại ProsperoEden để dùng thư mục này."
@@ -1491,6 +1647,10 @@ msgstr "Quét mã bằng điện thoại hoặc mở địa chỉ bên dưới."
 #: pe/ui/update.cpp
 msgid "Scroll"
 msgstr "Cuộn"
+
+#: pe/ui/game_options.cpp
+msgid "Secondary"
+msgstr "Phụ"
 
 #. Button hint beside L1 and R1: they move between the menu's sections (Home, Library, Multiplayer, Settings, About).
 #: pe/ui/browse.cpp, pe/ui/home.cpp, pe/ui/library.cpp, pe/ui/multiplayer.cpp, pe/ui/settings.cpp
@@ -1520,6 +1680,10 @@ msgstr "Máy chủ quá cũ để đồng bộ dữ liệu lưu"
 msgid "Settings"
 msgstr "Cài đặt"
 
+#: pe/ui/settings.cpp
+msgid "SETTINGS"
+msgstr "CÀI ĐẶT"
+
 #: eden_services.cpp, host/fake_services.cpp
 msgid "Setup required"
 msgstr "Cần thiết lập"
@@ -1545,6 +1709,10 @@ msgid "Several sources have this game. Which one should it come from?"
 msgstr "Nhiều nguồn có trò chơi này. Nên lấy từ nguồn nào?"
 
 #: pe/ui/settings.cpp
+msgid "Show an image of your own behind the menu."
+msgstr "Hiện hình ảnh của riêng bạn phía sau menu."
+
+#: pe/ui/settings.cpp
 msgid "Show or hide the FPS overlay"
 msgstr "Hiện hoặc ẩn bộ đếm FPS"
 
@@ -1555,6 +1723,10 @@ msgstr "Đang hiển thị danh sách trước đó."
 #: pe/ui/pairing.cpp
 msgid "Sign in to {0} as the user this profile's save data belongs to."
 msgstr "Đăng nhập vào {0} bằng người dùng sở hữu dữ liệu lưu của hồ sơ này."
+
+#: pe/ui/settings.cpp
+msgid "Size"
+msgstr "Kích thước"
 
 #. Button and hint: not now (the dialog shows again the next time the app opens).
 #: pe/ui/update.cpp
@@ -1581,6 +1753,10 @@ msgstr "Tiếng Tây Ban Nha"
 #: settings_store.h
 msgid "Spanish (Latin America)"
 msgstr "Tiếng Tây Ban Nha (Mỹ Latinh)"
+
+#: pe/ui/settings.cpp
+msgid "Speed"
+msgstr "Tốc độ"
 
 #. A DualSense button.
 #: pe/ui/game_options.cpp
@@ -1650,6 +1826,10 @@ msgstr "LỜI CẢM ƠN"
 #: pe/ui/browse.cpp
 msgid "Thanks to the whole PS5 homebrew community and to every developer whose drivers, tools and libraries make ProsperoEden possible."
 msgstr "Cảm ơn toàn thể cộng đồng homebrew PS5 và mọi nhà phát triển có driver, công cụ và thư viện giúp ProsperoEden thành hiện thực."
+
+#: pe/ui/settings.cpp
+msgid "The accent colour of the current theme."
+msgstr "Màu nhấn của chủ đề hiện tại."
 
 #: pe/ui/remote.cpp
 msgid "The download stopped"
@@ -1743,6 +1923,10 @@ msgstr "Không thể hoàn tất cập nhật"
 msgid "Theme"
 msgstr "Giao diện"
 
+#: pe/ui/settings.cpp
+msgid "Theme and launcher settings."
+msgstr "Cài đặt chủ đề và trình khởi chạy."
+
 #: pe/ui/save_sync.cpp
 msgid "This console and the server both have save data the other does not know. Which one should stay? The other is kept as a backup."
 msgstr "Máy này và máy chủ đều có dữ liệu lưu mà bên kia không biết. Nên giữ bên nào? Bên còn lại được giữ làm bản sao lưu."
@@ -1776,6 +1960,14 @@ msgstr "Phòng này dùng phiên bản giao thức khác."
 #: eden_services.cpp
 msgid "To import, copy a Ryujinx folder to ryujinx/ or a save to save-import/{0}/, next to roms/."
 msgstr "Để nhập, hãy sao chép thư mục Ryujinx vào ryujinx/ hoặc bản lưu vào save-import/{0}/, cạnh roms/."
+
+#: pe/ui/game_options.cpp
+msgid "Top left"
+msgstr "Trên trái"
+
+#: pe/ui/game_options.cpp
+msgid "Top right"
+msgstr "Trên phải"
 
 #. The DualSense controller's touch pad, pressed as a button. Use the name players know.
 #: pe/ui/game_options.cpp
@@ -1866,6 +2058,10 @@ msgstr "Bộ lọc phóng to"
 msgid "USA"
 msgstr "Mỹ"
 
+#: pe/ui/settings.cpp
+msgid "Use another home screen, library and menu layout."
+msgstr "Dùng bố cục khác cho màn hình chính, thư viện và menu."
+
 #: pe/ui/browse.cpp
 msgid "Use extracted firmware NCA files. Choose the folder in Settings, Game files; restart the app after changing it."
 msgstr "Hãy dùng các tệp NCA firmware đã trích xuất. Chọn thư mục trong Cài đặt, Tệp trò chơi; khởi động lại ứng dụng sau khi thay đổi."
@@ -1902,6 +2098,10 @@ msgid "Vibration on"
 msgstr "Rung: Bật"
 
 #: pe/ui/settings.cpp
+msgid "Vibration strength"
+msgstr "Cường độ rung"
+
+#: pe/ui/settings.cpp
 msgid "Vibration, button mapping and the shortcuts during a game."
 msgstr "Rung, gán nút và phím tắt khi đang chơi."
 
@@ -1930,6 +2130,14 @@ msgstr "Đang chờ {0}"
 msgid "Waiting to download"
 msgstr "Đang chờ tải xuống"
 
+#: pe/ui/settings.cpp
+msgid "Wallpaper"
+msgstr "Hình nền"
+
+#: pe/ui/settings.cpp
+msgid "What the FPS overlay's line says, and how the chip is drawn."
+msgstr "Dòng của bộ đếm FPS hiển thị gì và được vẽ ra sao."
+
 #. Button on the update dialog: opens the new release's notes (what changes in it). Keep it short.
 #: pe/ui/update.cpp
 msgid "What's new"
@@ -1939,6 +2147,10 @@ msgstr "Có gì mới"
 #: pe/ui/update.cpp
 msgid "What's new in version {0}"
 msgstr "Có gì mới trong phiên bản {0}"
+
+#: pe/ui/game_options.cpp
+msgid "Which face button does what in the menu."
+msgstr "Nút hành động nào làm gì trong menu."
 
 #: pe/ui/settings.cpp
 msgid "Who is playing. Each profile keeps its own save data and settings."
@@ -2095,3 +2307,7 @@ msgstr "{0}/ (NSP hoặc XCI)"
 #: pe/ui/browse.cpp
 msgid "{0}/ (one folder per game ID)"
 msgstr "{0}/ (mỗi ID trò chơi một thư mục)"
+
+#: pe/ui/settings.cpp
+msgid "Crash reports (FTP): {0}\nAttach crash-*.txt and its matching logs to your issue."
+msgstr "Báo cáo sự cố (FTP): {0}\nĐính kèm crash-*.txt và nhật ký tương ứng vào báo cáo lỗi."

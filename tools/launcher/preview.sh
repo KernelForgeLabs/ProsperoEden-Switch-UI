@@ -23,6 +23,19 @@ harfbuzz=$(python3 -B "$root/tools/deps.py" path harfbuzz)
 harfbuzz=${harfbuzz%/harfbuzz.cc}
 # The UI kit's theme table: the launcher's themes start from its recipes (pe/ui/theme_kit.cpp).
 kit=$(python3 -B "$root/tools/deps.py" path ui-kit)/src
+# nlohmann/json (pe/ui/runtime_loading.hpp): the copy in the Eden source `make prepare` unpacks.
+json=$(ls -d "$(cat "$root/.local/headless-cache" 2>/dev/null)"/source/.cache/cpm/nlohmann_json/*/single_include \
+    2>/dev/null | head -1 || true)
+
+# Allow standalone launcher previews without preparing the full Eden source.
+if [[ -z $json && -f /usr/include/nlohmann/json.hpp ]]; then
+    json=/usr/include
+fi
+
+[[ -n $json ]] || {
+    echo "nlohmann/json not found: install nlohmann-json3-dev or run make prepare" >&2
+    exit 1
+}
 
 sources=("$source_dir"/host/*.cpp "$source_dir"/pe/core/*.cpp "$source_dir"/pe/gfx/*.cpp "$source_dir"/pe/ui/*.cpp
     "$kit/ui/theme.cpp")
@@ -34,21 +47,42 @@ for source in "${sources[@]}"; do
     objects+=("$object")
     # Rebuild when the source or any launcher header is newer than the object.
     if [[ ! -e $object || $source -nt $object ]] ||
-        [[ -n $(find "$source_dir/pe" "$source_dir/host" -name '*.hpp' -newer "$object" -print -quit) ]]; then
+        [[ $relative != pe/gfx/harfbuzz.cpp && -n $(find "$source_dir/pe" "$source_dir/host" \( -name '*.hpp' -o -name '*.inc' \) -newer "$object" -print -quit) ]]; then
         # HarfBuzz is not ours to tidy: its warnings are off.
         warnings=(-Wall -Wextra)
         [[ $relative == pe/gfx/harfbuzz.cpp ]] && warnings=(-w)
-        "$cxx" -std=c++20 -O2 "${warnings[@]}" -DGL_GLEXT_PROTOTYPES=1 -I"$source_dir" \
-            -I"$source_dir/host" -I"$root/tools/launcher/stb" -I"$root/third_party" -I"$harfbuzz" -I"$kit" \
+        "$cxx" -std=c++20 -O2 "${warnings[@]}" -DGL_GLEXT_PROTOTYPES=1 -I"$root/headless" -I"$source_dir" \
+            -I"$source_dir/host" -I"$root/third_party/lua" -I"$root/tools/launcher/stb" -I"$root/third_party" -I"$root/third_party/miniz" -I"$harfbuzz" -I"$kit" -I"$json" \
             -c "$source" -o "$object" &
         pids+=($!)
+        if [[ ${#pids[@]} -ge ${HOST_BUILD_JOBS:-2} ]]; then
+            wait "${pids[0]}"
+            pids=("${pids[@]:1}")
+        fi
     fi
 done
 for pid in "${pids[@]}"; do wait "$pid"; done
-"$cxx" "${objects[@]}" -lEGL -lGL -lm -o "$build/pe_preview"
+for source in "$root"/third_party/lua/*.c; do
+    name=${source##*/}
+    case $name in lua.c|luac.c|linit.c|liolib.c|loslib.c|loadlib.c|ldblib.c) continue;; esac
+    object="$build/obj/lua_${name}.o"
+    if [[ ! -e $object || $source -nt $object ]]; then
+        "$cxx" -x c++ -std=c++20 -O2 -w -include "$root/third_party/lua/runtime_api.hpp" -I"$root/third_party/lua" -c "$source" -o "$object"
+    fi
+    objects+=("$object")
+done
+for source in "$source_dir"/pe/audio/*.cpp; do
+    object="$build/obj/audio_${source##*/}.o"
+    if [[ ! -e $object || $source -nt $object || -n $(find "$source_dir/pe/audio" -name '*.hpp' -newer "$object" -print -quit) ]]; then
+        "$cxx" -std=c++20 -O2 -I"$source_dir" -c "$source" -o "$object"
+    fi
+    objects+=("$object")
+done
+source "$root/tools/launcher/update-deps.sh"
+"$cxx" "${objects[@]}" -lEGL -lGL -lm -lcrypto -lcurl -pthread -o "$build/pe_preview"
 
 run() {
-    EGL_PLATFORM=surfaceless LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "$build/pe_preview" "$@"
+    EGL_PLATFORM=surfaceless LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe MESA_GL_VERSION_OVERRIDE=4.6 MESA_GLSL_VERSION_OVERRIDE=460 "$build/pe_preview" "$@"
 }
 if [[ ${1:-} == --tour ]]; then
     video=${2:?video file}

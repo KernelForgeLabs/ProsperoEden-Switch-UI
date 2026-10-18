@@ -43,6 +43,10 @@ msgstr "Některý ze souborů NCA firmwaru nelze přečíst. Nainstaluj dump fir
 msgid "A pairing is running already."
 msgstr "Párování už probíhá."
 
+#: pe/ui/browse.cpp
+msgid "ABOUT"
+msgstr "O APLIKACI"
+
 #. The menu's last section: about this app (its credits, where its files go). One short word.
 #: pe/ui/shell.cpp
 msgid "About"
@@ -92,9 +96,21 @@ msgstr "Veškeré uznání za emulátor Eden patří jeho vývojářům a přisp
 msgid "AMD FSR"
 msgstr "AMD FSR"
 
+#: pe/ui/settings.cpp
+msgid "An image of your own behind this menu."
+msgstr "Vlastní obrázek za touto nabídkou."
+
 #: eden_services.cpp
 msgid "Another language"
 msgstr "Jiný jazyk"
+
+#: pe/ui/settings.cpp
+msgid "Appearance"
+msgstr "Vzhled"
+
+#: pe/ui/settings.cpp
+msgid "Apply"
+msgstr "Použít"
 
 #. The button mapping has not been changed.
 #: pe/ui/game_options.cpp, pe/ui/settings.cpp
@@ -136,6 +152,10 @@ msgstr "Automaticky"
 msgid "Back"
 msgstr "Zpět"
 
+#: pe/ui/settings.cpp
+msgid "Backend"
+msgstr "Renderer"
+
 #: pe/ui/save_sync.cpp
 msgid "Backing up save data"
 msgstr "Zálohují se uložená data"
@@ -149,6 +169,14 @@ msgstr "Bikubický"
 #: settings_store.h
 msgid "Bilinear"
 msgstr "Bilineární"
+
+#: pe/ui/game_options.cpp
+msgid "Bottom left"
+msgstr "Vlevo dole"
+
+#: pe/ui/game_options.cpp
+msgid "Bottom right"
+msgstr "Vpravo dole"
 
 #. Button hint: move through the list.
 #: pe/ui/browse.cpp, pe/ui/multiplayer.cpp
@@ -236,6 +264,14 @@ msgstr "Zvolit"
 msgid "Choose a game from your library."
 msgstr "Vyber si hru z knihovny."
 
+#: pe/ui/settings.cpp
+msgid "Choose a theme or change the launcher layout."
+msgstr "Vyberte motiv nebo změňte rozvržení spouštěče."
+
+#: pe/ui/settings.cpp
+msgid "Choose the colours and appearance of this menu."
+msgstr "Vyberte barvy a vzhled této nabídky."
+
 #: pe/ui/browse.cpp
 msgid "Choose the folder that holds your keys, firmware and games"
 msgstr "Vyber složku, ve které jsou klíče, firmware a hry"
@@ -252,6 +288,14 @@ msgstr "Kolečko"
 #: pe/ui/remote.cpp, pe/ui/update.cpp
 msgid "Close"
 msgstr "Zavřít"
+
+#: pe/ui/settings.cpp
+msgid "Colour"
+msgstr "Barva"
+
+#: pe/ui/game_options.cpp, pe/ui/settings.cpp
+msgid "Compact memory"
+msgstr "Úsporná paměť"
 
 #. A switch: the program code a game used in earlier sessions is prepared (compiled) while the game starts. Keep it short.
 #: pe/ui/game_options.cpp, pe/ui/settings.cpp
@@ -311,6 +355,10 @@ msgstr "OVLADAČE"
 msgid "Controls"
 msgstr "Ovládání"
 
+#: pe/ui/settings.cpp
+msgid "Corner"
+msgstr "Roh"
+
 #: pe/ui/remote.cpp
 msgid "Could not cancel the download."
 msgstr "Stahování se nepodařilo zrušit."
@@ -347,6 +395,14 @@ msgstr "Uložení se nezdařilo. Zkus to znovu."
 msgid "Could not start the connection or save its settings."
 msgstr "Připojení se nepodařilo zahájit nebo uložit jeho nastavení."
 
+#: pe/ui/settings.cpp
+msgid "CPU"
+msgstr "CPU"
+
+#: pe/ui/settings.cpp
+msgid "CPU by core"
+msgstr "CPU po jádrech"
+
 #. The DualSense button labelled CREATE: keep the label if the language's players do.
 #: pe/ui/game_options.cpp
 msgid "Create"
@@ -370,6 +426,10 @@ msgstr "Autoři a konfigurace"
 #: pe/ui/game_options.cpp
 msgid "Cross"
 msgstr "Křížek"
+
+#: pe/ui/settings.cpp
+msgid "Default"
+msgstr "Výchozí"
 
 #. A per-game setting that follows the general setting; {0} is its value.
 #: pe/ui/game_options.cpp
@@ -512,6 +572,10 @@ msgid "Edit"
 msgstr "Upravit"
 
 #: pe/ui/settings.cpp
+msgid "Enable colors"
+msgstr "Zapnout barvy"
+
+#: pe/ui/settings.cpp
 msgid "End the game and return to this menu"
 msgstr "Ukončit hru a vrátit se do této nabídky"
 
@@ -607,6 +671,10 @@ msgstr "Podle Nastavení"
 msgid "For every controller. A game can have its own."
 msgstr "Pro všechny ovladače. Hra může mít vlastní."
 
+#: pe/ui/settings.cpp
+msgid "FPS"
+msgstr "FPS"
+
 #: pe/ui/game_options.cpp, pe/ui/settings.cpp
 msgid "FPS overlay"
 msgstr "Počítadlo FPS"
@@ -626,6 +694,10 @@ msgstr "Generování snímků"
 #: pe/ui/game_options.cpp, pe/ui/settings.cpp
 msgid "Frame generation needs Lossless.dll, from Lossless Scaling, in the lossless folder."
 msgstr "Generování snímků potřebuje Lossless.dll z Lossless Scaling ve složce lossless."
+
+#: pe/ui/settings.cpp
+msgid "Frame time"
+msgstr "Čas snímku"
 
 #: settings_store.h
 msgid "French"
@@ -652,6 +724,10 @@ msgstr "Plná kvalita"
 #: pe/ui/library.cpp, pe/ui/settings.cpp
 msgid "Game audio; PS5 system-menu music is unchanged."
 msgstr "Zvuk her; hudba v systémové nabídce PS5 se nemění."
+
+#: pe/ui/launcher.cpp
+msgid "Game cannot start now."
+msgstr "Hru teď nelze spustit."
 
 #. {0} is the reason, a sentence in English; {1} is a file.
 #: eden_services.cpp, host/fake_services.cpp
@@ -702,9 +778,17 @@ msgstr "Němčina"
 msgid "GETTING STARTED"
 msgstr "ZAČÍNÁME"
 
+#: pe/ui/settings.cpp
+msgid "Gives back memory a game left empty, 16 KiB at a time. More free memory; a game that writes there again can stutter for a moment."
+msgstr "Vrací paměť, kterou hra nechala prázdnou, po 16 KiB. Více volné paměti; hra, která tam znovu zapíše, se může na okamžik zaseknout."
+
 #: pe/ui/multiplayer.cpp
 msgid "Go offline"
 msgstr "Přejít offline"
+
+#: pe/ui/settings.cpp
+msgid "GPU"
+msgstr "GPU"
 
 #: pe/ui/settings.cpp
 msgid "Graphics backend and how games are scaled to your TV."
@@ -732,6 +816,10 @@ msgstr "Domů"
 #: pe/ui/library.cpp, pe/ui/settings.cpp
 msgid "How games are drawn and scaled to your TV."
 msgstr "Jak se hry vykreslují a škálují na televizi."
+
+#: pe/ui/settings.cpp
+msgid "Images in this folder: {0}"
+msgstr "Obrázky v této složce: {0}"
 
 #. Button hint: copy a save in.
 #: pe/ui/library.cpp
@@ -841,6 +929,10 @@ msgstr "Jazyk"
 msgid "LANGUAGES"
 msgstr "JAZYKY"
 
+#: pe/ui/game_options.cpp
+msgid "Large"
+msgstr "Velké"
+
 #. A switch: the menu's small text is drawn larger.
 #: pe/ui/settings.cpp
 msgid "Larger text"
@@ -850,6 +942,10 @@ msgstr "Větší písmo"
 #: eden_services.cpp
 msgid "Last game opened"
 msgstr "Naposledy spuštěná hra"
+
+#: pe/ui/settings.cpp
+msgid "Launcher"
+msgstr "Spouštěč"
 
 #: pe/ui/multiplayer.cpp
 msgid "Leave / cancel"
@@ -888,6 +984,10 @@ msgstr "Méně přesné výpočty s plovoucí čárkou: rychlejší, několik he
 msgid "Less exact memory transfers to the GPU: faster, and a few games show wrong graphics."
 msgstr "Méně přesné přenosy paměti do GPU: rychlejší, několik her ale zobrazuje chybnou grafiku."
 
+#: pe/ui/library.cpp
+msgid "LIBRARY"
+msgstr "KNIHOVNA"
+
 #: pe/ui/library.cpp, pe/ui/shell.cpp
 msgid "Library"
 msgstr "Knihovna"
@@ -907,6 +1007,18 @@ msgstr "Nejnižší přesnost GPU: rychlejší v náročných hrách, grafika al
 #: pe/ui/settings.cpp
 msgid "Make the menu easier to see and follow."
 msgstr "Udělej si nabídku čitelnější a přehlednější."
+
+#: pe/ui/game_options.cpp
+msgid "Medium"
+msgstr "Střední"
+
+#: pe/ui/settings.cpp
+msgid "Memory"
+msgstr "Paměť"
+
+#: pe/ui/game_options.cpp, pe/ui/settings.cpp
+msgid "Menu keybinds"
+msgstr "Tlačítka nabídky"
 
 #: pe/ui/browse.cpp
 msgid "Menu sound effects made with ElevenLabs."
@@ -959,6 +1071,10 @@ msgstr "Nejbližší soused"
 #: pe/ui/pairing.cpp, pe/ui/settings.cpp
 msgid "Needs attention"
 msgstr "Vyžaduje pozornost"
+
+#: pe/ui/theme.cpp
+msgid "Neutral glass, clean and still."
+msgstr "Neutrální sklo, čisté a klidné."
 
 #: pe/ui/profiles.cpp
 msgid "New profile"
@@ -1111,6 +1227,18 @@ msgstr "Options"
 msgid "Output resolution"
 msgstr "Výstupní rozlišení"
 
+#: pe/ui/game_options.cpp
+msgid "Overlay corner"
+msgstr "Roh počítadla"
+
+#: pe/ui/settings.cpp
+msgid "Overlay options"
+msgstr "Možnosti počítadla"
+
+#: pe/ui/game_options.cpp
+msgid "Overlay size"
+msgstr "Velikost počítadla"
+
 #. Button hint: jump a page of the list (L1 / R1).
 #: pe/ui/browse.cpp, pe/ui/multiplayer.cpp, pe/ui/update.cpp
 msgid "Page"
@@ -1158,6 +1286,10 @@ msgstr "Patch"
 msgid "Performance"
 msgstr "Výkon"
 
+#: pe/ui/settings.cpp
+msgid "Ping"
+msgstr "Ping"
+
 #. Button and button hint: start the game shown. Keep it to one short word.
 #: pe/ui/home.cpp, pe/ui/library.cpp
 msgid "Play"
@@ -1203,6 +1335,10 @@ msgstr "Portugalština"
 msgid "Portuguese (Brazil)"
 msgstr "Portugalština (Brazílie)"
 
+#: pe/ui/game_options.cpp, pe/ui/settings.cpp
+msgid "Post-processing"
+msgstr "Následné zpracování"
+
 #. Eden is the emulator's name (unchanged).
 #: pe/ui/browse.cpp
 msgid "Powered by Eden"
@@ -1225,6 +1361,10 @@ msgstr "Dalším stisknutím nahradíš uložená data této hry. Stávající s
 #: pe/ui/multiplayer.cpp
 msgid "Private room"
 msgstr "Soukromá místnost"
+
+#: pe/ui/multiplayer.cpp
+msgid "PRIVATE ROOM"
+msgstr "SOUKROMÁ MÍSTNOST"
 
 #: pe/ui/game_options.cpp
 msgid "Pro Controller"
@@ -1292,6 +1432,14 @@ msgstr "EDICE PS5"
 msgid "Public rooms"
 msgstr "Veřejné místnosti"
 
+#: pe/ui/multiplayer.cpp
+msgid "PUBLIC ROOMS"
+msgstr "VEŘEJNÉ MÍSTNOSTI"
+
+#: pe/ui/settings.cpp
+msgid "Put images in the wallpapers folder to show them here."
+msgstr "Vložte obrázky do složky wallpapers a zobrazí se zde."
+
 #: pe/ui/remote.cpp
 msgid "Queued"
 msgstr "Ve frontě"
@@ -1347,6 +1495,10 @@ msgstr "Obnovovací frekvence"
 #: pe/ui/browse.cpp
 msgid "REGION"
 msgstr "REGION"
+
+#: pe/ui/game_options.cpp
+msgid "Regular"
+msgstr "Běžné"
 
 #: pe/ui/profiles.cpp
 msgid "Remove"
@@ -1479,6 +1631,10 @@ msgstr "Uloženo. Projeví se při spuštění hry."
 msgid "Saved. Full quality uses four times the graphics memory for these textures and can run out above 1x."
 msgstr "Uloženo. Plná kvalita zabere pro tyto textury čtyřikrát víc grafické paměti a nad 1x může paměť dojít."
 
+#: pe/ui/settings.cpp
+msgid "Saved. Post-processing needs the Vulkan renderer."
+msgstr "Uloženo. Následné zpracování vyžaduje vykreslovač Vulkan."
+
 #: pe/ui/browse.cpp
 msgid "Saved. Reopen ProsperoEden to use this folder."
 msgstr "Uloženo. Pro použití této složky spusť ProsperoEden znovu."
@@ -1491,6 +1647,10 @@ msgstr "Naskenuj kód telefonem, nebo otevři adresu níže."
 #: pe/ui/update.cpp
 msgid "Scroll"
 msgstr "Posunout"
+
+#: pe/ui/game_options.cpp
+msgid "Secondary"
+msgstr "Vedlejší"
 
 #. Button hint beside L1 and R1: they move between the menu's sections (Home, Library, Multiplayer, Settings, About).
 #: pe/ui/browse.cpp, pe/ui/home.cpp, pe/ui/library.cpp, pe/ui/multiplayer.cpp, pe/ui/settings.cpp
@@ -1520,6 +1680,10 @@ msgstr "Server je pro synchronizaci příliš starý"
 msgid "Settings"
 msgstr "Nastavení"
 
+#: pe/ui/settings.cpp
+msgid "SETTINGS"
+msgstr "NASTAVENÍ"
+
 #: eden_services.cpp, host/fake_services.cpp
 msgid "Setup required"
 msgstr "Nutná konfigurace"
@@ -1545,6 +1709,10 @@ msgid "Several sources have this game. Which one should it come from?"
 msgstr "Tuto hru má několik zdrojů. Ze kterého ji stáhnout?"
 
 #: pe/ui/settings.cpp
+msgid "Show an image of your own behind the menu."
+msgstr "Zobrazit za nabídkou vlastní obrázek."
+
+#: pe/ui/settings.cpp
 msgid "Show or hide the FPS overlay"
 msgstr "Zobrazit nebo skrýt počítadlo FPS"
 
@@ -1555,6 +1723,10 @@ msgstr "Zobrazuje se předchozí seznam."
 #: pe/ui/pairing.cpp
 msgid "Sign in to {0} as the user this profile's save data belongs to."
 msgstr "Přihlas se k {0} jako uživatel, kterému patří uložená data tohoto profilu."
+
+#: pe/ui/settings.cpp
+msgid "Size"
+msgstr "Velikost"
 
 #. Button and hint: not now (the dialog shows again the next time the app opens).
 #: pe/ui/update.cpp
@@ -1581,6 +1753,10 @@ msgstr "Španělština"
 #: settings_store.h
 msgid "Spanish (Latin America)"
 msgstr "Španělština (Latinská Amerika)"
+
+#: pe/ui/settings.cpp
+msgid "Speed"
+msgstr "Rychlost"
 
 #. A DualSense button.
 #: pe/ui/game_options.cpp
@@ -1650,6 +1826,10 @@ msgstr "PODĚKOVÁNÍ"
 #: pe/ui/browse.cpp
 msgid "Thanks to the whole PS5 homebrew community and to every developer whose drivers, tools and libraries make ProsperoEden possible."
 msgstr "Děkujeme celé homebrew komunitě PS5 a všem vývojářům, díky jejichž ovladačům, nástrojům a knihovnám mohl ProsperoEden vzniknout."
+
+#: pe/ui/settings.cpp
+msgid "The accent colour of the current theme."
+msgstr "Barva zvýraznění aktuálního motivu."
 
 #: pe/ui/remote.cpp
 msgid "The download stopped"
@@ -1743,6 +1923,10 @@ msgstr "Aktualizaci nelze dokončit"
 msgid "Theme"
 msgstr "Motiv"
 
+#: pe/ui/settings.cpp
+msgid "Theme and launcher settings."
+msgstr "Nastavení motivu a spouštěče."
+
 #: pe/ui/save_sync.cpp
 msgid "This console and the server both have save data the other does not know. Which one should stay? The other is kept as a backup."
 msgstr "Konzole i server mají uložená data, která druhá strana nezná. Která mají zůstat? Ta druhá se uchovají jako záloha."
@@ -1776,6 +1960,14 @@ msgstr "Tato místnost používá jinou verzi protokolu."
 #: eden_services.cpp
 msgid "To import, copy a Ryujinx folder to ryujinx/ or a save to save-import/{0}/, next to roms/."
 msgstr "Pro import zkopíruj složku Ryujinx do ryujinx/ nebo uložená data do save-import/{0}/, vedle roms/."
+
+#: pe/ui/game_options.cpp
+msgid "Top left"
+msgstr "Vlevo nahoře"
+
+#: pe/ui/game_options.cpp
+msgid "Top right"
+msgstr "Vpravo nahoře"
 
 #. The DualSense controller's touch pad, pressed as a button. Use the name players know.
 #: pe/ui/game_options.cpp
@@ -1866,6 +2058,10 @@ msgstr "Filtr škálování"
 msgid "USA"
 msgstr "USA"
 
+#: pe/ui/settings.cpp
+msgid "Use another home screen, library and menu layout."
+msgstr "Použít jiné rozvržení domovské obrazovky, knihovny a nabídky."
+
 #: pe/ui/browse.cpp
 msgid "Use extracted firmware NCA files. Choose the folder in Settings, Game files; restart the app after changing it."
 msgstr "Použij rozbalené soubory NCA firmwaru. Složku vyber v Nastavení, Herní soubory; po změně aplikaci restartuj."
@@ -1902,6 +2098,10 @@ msgid "Vibration on"
 msgstr "Vibrace zapnuty"
 
 #: pe/ui/settings.cpp
+msgid "Vibration strength"
+msgstr "Síla vibrací"
+
+#: pe/ui/settings.cpp
 msgid "Vibration, button mapping and the shortcuts during a game."
 msgstr "Vibrace, mapování tlačítek a zkratky během hry."
 
@@ -1930,6 +2130,14 @@ msgstr "Čeká na {0}"
 msgid "Waiting to download"
 msgstr "Čeká na stažení"
 
+#: pe/ui/settings.cpp
+msgid "Wallpaper"
+msgstr "Tapeta"
+
+#: pe/ui/settings.cpp
+msgid "What the FPS overlay's line says, and how the chip is drawn."
+msgstr "Co řádek počítadla FPS ukazuje a jak se kreslí."
+
 #. Button on the update dialog: opens the new release's notes (what changes in it). Keep it short.
 #: pe/ui/update.cpp
 msgid "What's new"
@@ -1939,6 +2147,10 @@ msgstr "Co je nového"
 #: pe/ui/update.cpp
 msgid "What's new in version {0}"
 msgstr "Co je nového ve verzi {0}"
+
+#: pe/ui/game_options.cpp
+msgid "Which face button does what in the menu."
+msgstr "Které tlačítko na čele ovladače dělá co v nabídce."
 
 #: pe/ui/settings.cpp
 msgid "Who is playing. Each profile keeps its own save data and settings."
@@ -2095,3 +2307,7 @@ msgstr "{0}/ (NSP nebo XCI)"
 #: pe/ui/browse.cpp
 msgid "{0}/ (one folder per game ID)"
 msgstr "{0}/ (složka pro každé ID titulu)"
+
+#: pe/ui/settings.cpp
+msgid "Crash reports (FTP): {0}\nAttach crash-*.txt and its matching logs to your issue."
+msgstr "Zprávy o pádu (FTP): {0}\nK hlášení přiložte crash-*.txt a odpovídající protokoly."

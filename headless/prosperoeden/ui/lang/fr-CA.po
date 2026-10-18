@@ -43,6 +43,10 @@ msgstr "Un fichier NCA du firmware est illisible. Réinstallez les fichiers du f
 msgid "A pairing is running already."
 msgstr "Une association est déjà en cours."
 
+#: pe/ui/browse.cpp
+msgid "ABOUT"
+msgstr "À PROPOS"
+
 #. The menu's last section: about this app (its credits, where its files go). One short word.
 #: pe/ui/shell.cpp
 msgid "About"
@@ -92,9 +96,21 @@ msgstr "Tout le mérite de l'émulateur Eden revient à ses développeurs et con
 msgid "AMD FSR"
 msgstr "AMD FSR"
 
+#: pe/ui/settings.cpp
+msgid "An image of your own behind this menu."
+msgstr "Une image de votre choix derrière ce menu."
+
 #: eden_services.cpp
 msgid "Another language"
 msgstr "Autre langue"
+
+#: pe/ui/settings.cpp
+msgid "Appearance"
+msgstr "Apparence"
+
+#: pe/ui/settings.cpp
+msgid "Apply"
+msgstr "Appliquer"
 
 #. The button mapping has not been changed.
 #: pe/ui/game_options.cpp, pe/ui/settings.cpp
@@ -136,6 +152,10 @@ msgstr "Automatique"
 msgid "Back"
 msgstr "Retour"
 
+#: pe/ui/settings.cpp
+msgid "Backend"
+msgstr "Moteur de rendu"
+
 #: pe/ui/save_sync.cpp
 msgid "Backing up save data"
 msgstr "Copie de secours des sauvegardes"
@@ -149,6 +169,14 @@ msgstr "Bicubique"
 #: settings_store.h
 msgid "Bilinear"
 msgstr "Bilinéaire"
+
+#: pe/ui/game_options.cpp
+msgid "Bottom left"
+msgstr "En bas à gauche"
+
+#: pe/ui/game_options.cpp
+msgid "Bottom right"
+msgstr "En bas à droite"
 
 #. Button hint: move through the list.
 #: pe/ui/browse.cpp, pe/ui/multiplayer.cpp
@@ -236,6 +264,14 @@ msgstr "Choisir"
 msgid "Choose a game from your library."
 msgstr "Choisissez un jeu dans votre bibliothèque."
 
+#: pe/ui/settings.cpp
+msgid "Choose a theme or change the launcher layout."
+msgstr "Choisissez un thème ou changez la disposition du lanceur."
+
+#: pe/ui/settings.cpp
+msgid "Choose the colours and appearance of this menu."
+msgstr "Choisissez les couleurs et l'apparence de ce menu."
+
 #: pe/ui/browse.cpp
 msgid "Choose the folder that holds your keys, firmware and games"
 msgstr "Choisissez le dossier contenant vos clés, votre firmware et vos jeux"
@@ -252,6 +288,14 @@ msgstr "Rond"
 #: pe/ui/remote.cpp, pe/ui/update.cpp
 msgid "Close"
 msgstr "Fermer"
+
+#: pe/ui/settings.cpp
+msgid "Colour"
+msgstr "Couleur"
+
+#: pe/ui/game_options.cpp, pe/ui/settings.cpp
+msgid "Compact memory"
+msgstr "Mémoire compacte"
 
 #. A switch: the program code a game used in earlier sessions is prepared (compiled) while the game starts. Keep it short.
 #: pe/ui/game_options.cpp, pe/ui/settings.cpp
@@ -311,6 +355,10 @@ msgstr "MANETTES DE JEU"
 msgid "Controls"
 msgstr "Commandes"
 
+#: pe/ui/settings.cpp
+msgid "Corner"
+msgstr "Coin"
+
 #: pe/ui/remote.cpp
 msgid "Could not cancel the download."
 msgstr "Impossible d'annuler le téléchargement."
@@ -347,6 +395,14 @@ msgstr "Impossible d'enregistrer. Veuillez réessayer."
 msgid "Could not start the connection or save its settings."
 msgstr "Impossible de lancer la connexion ou d'enregistrer ses paramètres."
 
+#: pe/ui/settings.cpp
+msgid "CPU"
+msgstr "CPU"
+
+#: pe/ui/settings.cpp
+msgid "CPU by core"
+msgstr "CPU par cœur"
+
 #. The DualSense button labelled CREATE: keep the label if the language's players do.
 #: pe/ui/game_options.cpp
 msgid "Create"
@@ -370,6 +426,10 @@ msgstr "Crédits et configuration"
 #: pe/ui/game_options.cpp
 msgid "Cross"
 msgstr "Croix"
+
+#: pe/ui/settings.cpp
+msgid "Default"
+msgstr "Par défaut"
 
 #. A per-game setting that follows the general setting; {0} is its value.
 #: pe/ui/game_options.cpp
@@ -512,6 +572,10 @@ msgid "Edit"
 msgstr "Saisir"
 
 #: pe/ui/settings.cpp
+msgid "Enable colors"
+msgstr "Activer les couleurs"
+
+#: pe/ui/settings.cpp
 msgid "End the game and return to this menu"
 msgstr "Fermer le jeu et revenir à ce menu"
 
@@ -607,6 +671,10 @@ msgstr "Selon Paramètres"
 msgid "For every controller. A game can have its own."
 msgstr "Pour toutes les manettes. Un jeu peut avoir la sienne."
 
+#: pe/ui/settings.cpp
+msgid "FPS"
+msgstr "FPS"
+
 #: pe/ui/game_options.cpp, pe/ui/settings.cpp
 msgid "FPS overlay"
 msgstr "Compteur de FPS"
@@ -626,6 +694,10 @@ msgstr "Génération d'images"
 #: pe/ui/game_options.cpp, pe/ui/settings.cpp
 msgid "Frame generation needs Lossless.dll, from Lossless Scaling, in the lossless folder."
 msgstr "La génération d’images nécessite Lossless.dll, de Lossless Scaling, dans le dossier lossless."
+
+#: pe/ui/settings.cpp
+msgid "Frame time"
+msgstr "Temps d'image"
 
 #: settings_store.h
 msgid "French"
@@ -652,6 +724,10 @@ msgstr "Pleine qualité"
 #: pe/ui/library.cpp, pe/ui/settings.cpp
 msgid "Game audio; PS5 system-menu music is unchanged."
 msgstr "Audio des jeux. La musique du menu de la PS5 reste inchangée."
+
+#: pe/ui/launcher.cpp
+msgid "Game cannot start now."
+msgstr "Le jeu ne peut pas démarrer maintenant."
 
 #. {0} is the reason, a sentence in English; {1} is a file.
 #: eden_services.cpp, host/fake_services.cpp
@@ -702,9 +778,17 @@ msgstr "Allemand"
 msgid "GETTING STARTED"
 msgstr "PREMIERS PAS"
 
+#: pe/ui/settings.cpp
+msgid "Gives back memory a game left empty, 16 KiB at a time. More free memory; a game that writes there again can stutter for a moment."
+msgstr "Rend la mémoire qu'un jeu a laissée vide, 16 Kio à la fois. Plus de mémoire libre; un jeu qui y écrit de nouveau peut saccader un instant."
+
 #: pe/ui/multiplayer.cpp
 msgid "Go offline"
 msgstr "Passer hors ligne"
+
+#: pe/ui/settings.cpp
+msgid "GPU"
+msgstr "GPU"
 
 #: pe/ui/settings.cpp
 msgid "Graphics backend and how games are scaled to your TV."
@@ -732,6 +816,10 @@ msgstr "Accueil"
 #: pe/ui/library.cpp, pe/ui/settings.cpp
 msgid "How games are drawn and scaled to your TV."
 msgstr "Rendu des jeux et mise à l'échelle sur votre téléviseur."
+
+#: pe/ui/settings.cpp
+msgid "Images in this folder: {0}"
+msgstr "Images dans ce dossier : {0}"
 
 #. Button hint: copy a save in.
 #: pe/ui/library.cpp
@@ -841,6 +929,10 @@ msgstr "Langue"
 msgid "LANGUAGES"
 msgstr "LANGUES"
 
+#: pe/ui/game_options.cpp
+msgid "Large"
+msgstr "Grand"
+
 #. A switch: the menu's small text is drawn larger.
 #: pe/ui/settings.cpp
 msgid "Larger text"
@@ -850,6 +942,10 @@ msgstr "Texte plus grand"
 #: eden_services.cpp
 msgid "Last game opened"
 msgstr "Dernier jeu lancé"
+
+#: pe/ui/settings.cpp
+msgid "Launcher"
+msgstr "Lanceur"
 
 #: pe/ui/multiplayer.cpp
 msgid "Leave / cancel"
@@ -888,6 +984,10 @@ msgstr "Calcul en virgule flottante moins exact : plus rapide, mais quelques jeu
 msgid "Less exact memory transfers to the GPU: faster, and a few games show wrong graphics."
 msgstr "Transferts mémoire vers le GPU moins exacts : plus rapide, mais quelques jeux ont un affichage incorrect."
 
+#: pe/ui/library.cpp
+msgid "LIBRARY"
+msgstr "BIBLIOTHÈQUE"
+
 #: pe/ui/library.cpp, pe/ui/shell.cpp
 msgid "Library"
 msgstr "Bibliothèque"
@@ -907,6 +1007,18 @@ msgstr "Précision GPU la plus basse : plus rapide dans les jeux exigeants, mais
 #: pe/ui/settings.cpp
 msgid "Make the menu easier to see and follow."
 msgstr "Rendez le menu plus lisible et plus facile à suivre."
+
+#: pe/ui/game_options.cpp
+msgid "Medium"
+msgstr "Moyen"
+
+#: pe/ui/settings.cpp
+msgid "Memory"
+msgstr "Mémoire"
+
+#: pe/ui/game_options.cpp, pe/ui/settings.cpp
+msgid "Menu keybinds"
+msgstr "Touches du menu"
 
 #: pe/ui/browse.cpp
 msgid "Menu sound effects made with ElevenLabs."
@@ -959,6 +1071,10 @@ msgstr "Au plus proche"
 #: pe/ui/pairing.cpp, pe/ui/settings.cpp
 msgid "Needs attention"
 msgstr "À vérifier"
+
+#: pe/ui/theme.cpp
+msgid "Neutral glass, clean and still."
+msgstr "Verre neutre, net et calme."
 
 #: pe/ui/profiles.cpp
 msgid "New profile"
@@ -1111,6 +1227,18 @@ msgstr "Options"
 msgid "Output resolution"
 msgstr "Résolution de sortie"
 
+#: pe/ui/game_options.cpp
+msgid "Overlay corner"
+msgstr "Coin du compteur"
+
+#: pe/ui/settings.cpp
+msgid "Overlay options"
+msgstr "Options du compteur"
+
+#: pe/ui/game_options.cpp
+msgid "Overlay size"
+msgstr "Taille du compteur"
+
 #. Button hint: jump a page of the list (L1 / R1).
 #: pe/ui/browse.cpp, pe/ui/multiplayer.cpp, pe/ui/update.cpp
 msgid "Page"
@@ -1158,6 +1286,10 @@ msgstr "Patch"
 msgid "Performance"
 msgstr "Performances"
 
+#: pe/ui/settings.cpp
+msgid "Ping"
+msgstr "Ping"
+
 #. Button and button hint: start the game shown. Keep it to one short word.
 #: pe/ui/home.cpp, pe/ui/library.cpp
 msgid "Play"
@@ -1203,6 +1335,10 @@ msgstr "Portugais"
 msgid "Portuguese (Brazil)"
 msgstr "Portugais (Brésil)"
 
+#: pe/ui/game_options.cpp, pe/ui/settings.cpp
+msgid "Post-processing"
+msgstr "Post-traitement"
+
 #. Eden is the emulator's name (unchanged).
 #: pe/ui/browse.cpp
 msgid "Powered by Eden"
@@ -1225,6 +1361,10 @@ msgstr "Appuyez à nouveau pour remplacer la sauvegarde de ce jeu. Une copie de 
 #: pe/ui/multiplayer.cpp
 msgid "Private room"
 msgstr "Salon privé"
+
+#: pe/ui/multiplayer.cpp
+msgid "PRIVATE ROOM"
+msgstr "SALON PRIVÉ"
 
 #: pe/ui/game_options.cpp
 msgid "Pro Controller"
@@ -1292,6 +1432,14 @@ msgstr "ÉDITION PS5"
 msgid "Public rooms"
 msgstr "Salons publics"
 
+#: pe/ui/multiplayer.cpp
+msgid "PUBLIC ROOMS"
+msgstr "SALONS PUBLICS"
+
+#: pe/ui/settings.cpp
+msgid "Put images in the wallpapers folder to show them here."
+msgstr "Mettez des images dans le dossier wallpapers pour les voir ici."
+
 #: pe/ui/remote.cpp
 msgid "Queued"
 msgstr "En file d'attente"
@@ -1347,6 +1495,10 @@ msgstr "Fréquence de rafraîchissement"
 #: pe/ui/browse.cpp
 msgid "REGION"
 msgstr "RÉGION"
+
+#: pe/ui/game_options.cpp
+msgid "Regular"
+msgstr "Normal"
 
 #: pe/ui/profiles.cpp
 msgid "Remove"
@@ -1479,6 +1631,10 @@ msgstr "Enregistré. S'applique au lancement d'un jeu."
 msgid "Saved. Full quality uses four times the graphics memory for these textures and can run out above 1x."
 msgstr "Enregistré. La pleine qualité utilise quatre fois plus de mémoire graphique pour ces textures et peut en manquer au-delà de 1x."
 
+#: pe/ui/settings.cpp
+msgid "Saved. Post-processing needs the Vulkan renderer."
+msgstr "Enregistré. Le post-traitement nécessite le moteur de rendu Vulkan."
+
 #: pe/ui/browse.cpp
 msgid "Saved. Reopen ProsperoEden to use this folder."
 msgstr "Enregistré. Rouvrez ProsperoEden pour utiliser ce dossier."
@@ -1491,6 +1647,10 @@ msgstr "Scannez le code avec votre téléphone ou ouvrez l'adresse ci-dessous."
 #: pe/ui/update.cpp
 msgid "Scroll"
 msgstr "Défiler"
+
+#: pe/ui/game_options.cpp
+msgid "Secondary"
+msgstr "Secondaire"
 
 #. Button hint beside L1 and R1: they move between the menu's sections (Home, Library, Multiplayer, Settings, About).
 #: pe/ui/browse.cpp, pe/ui/home.cpp, pe/ui/library.cpp, pe/ui/multiplayer.cpp, pe/ui/settings.cpp
@@ -1520,6 +1680,10 @@ msgstr "Serveur trop ancien pour la synchronisation"
 msgid "Settings"
 msgstr "Paramètres"
 
+#: pe/ui/settings.cpp
+msgid "SETTINGS"
+msgstr "PARAMÈTRES"
+
 #: eden_services.cpp, host/fake_services.cpp
 msgid "Setup required"
 msgstr "Configuration nécessaire"
@@ -1545,6 +1709,10 @@ msgid "Several sources have this game. Which one should it come from?"
 msgstr "Plusieurs sources ont ce jeu. Depuis laquelle le télécharger?"
 
 #: pe/ui/settings.cpp
+msgid "Show an image of your own behind the menu."
+msgstr "Afficher une image de votre choix derrière le menu."
+
+#: pe/ui/settings.cpp
 msgid "Show or hide the FPS overlay"
 msgstr "Afficher ou masquer le compteur de FPS"
 
@@ -1555,6 +1723,10 @@ msgstr "Affichage de la liste précédente."
 #: pe/ui/pairing.cpp
 msgid "Sign in to {0} as the user this profile's save data belongs to."
 msgstr "Connectez-vous à {0} avec l'utilisateur auquel appartiennent les sauvegardes de ce profil."
+
+#: pe/ui/settings.cpp
+msgid "Size"
+msgstr "Taille"
 
 #. Button and hint: not now (the dialog shows again the next time the app opens).
 #: pe/ui/update.cpp
@@ -1581,6 +1753,10 @@ msgstr "Espagnol"
 #: settings_store.h
 msgid "Spanish (Latin America)"
 msgstr "Espagnol (Amérique latine)"
+
+#: pe/ui/settings.cpp
+msgid "Speed"
+msgstr "Vitesse"
 
 #. A DualSense button.
 #: pe/ui/game_options.cpp
@@ -1650,6 +1826,10 @@ msgstr "REMERCIEMENTS"
 #: pe/ui/browse.cpp
 msgid "Thanks to the whole PS5 homebrew community and to every developer whose drivers, tools and libraries make ProsperoEden possible."
 msgstr "Merci à toute la communauté homebrew PS5 et à tous les développeurs dont les pilotes, outils et bibliothèques rendent ProsperoEden possible."
+
+#: pe/ui/settings.cpp
+msgid "The accent colour of the current theme."
+msgstr "La couleur d'accent du thème actuel."
 
 #: pe/ui/remote.cpp
 msgid "The download stopped"
@@ -1743,6 +1923,10 @@ msgstr "La mise à jour n'a pas pu se terminer"
 msgid "Theme"
 msgstr "Thème"
 
+#: pe/ui/settings.cpp
+msgid "Theme and launcher settings."
+msgstr "Réglages du thème et du lanceur."
+
 #: pe/ui/save_sync.cpp
 msgid "This console and the server both have save data the other does not know. Which one should stay? The other is kept as a backup."
 msgstr "Cette console et le serveur ont chacun des sauvegardes que l'autre ne connaît pas. Lesquelles garder? Les autres sont conservées comme copie de secours."
@@ -1776,6 +1960,14 @@ msgstr "Ce salon utilise une autre version du protocole."
 #: eden_services.cpp
 msgid "To import, copy a Ryujinx folder to ryujinx/ or a save to save-import/{0}/, next to roms/."
 msgstr "Pour importer, copiez un dossier Ryujinx dans ryujinx/ ou une sauvegarde dans save-import/{0}/, à côté de roms/."
+
+#: pe/ui/game_options.cpp
+msgid "Top left"
+msgstr "En haut à gauche"
+
+#: pe/ui/game_options.cpp
+msgid "Top right"
+msgstr "En haut à droite"
 
 #. The DualSense controller's touch pad, pressed as a button. Use the name players know.
 #: pe/ui/game_options.cpp
@@ -1866,6 +2058,10 @@ msgstr "Filtre de mise à l'échelle"
 msgid "USA"
 msgstr "É.-U."
 
+#: pe/ui/settings.cpp
+msgid "Use another home screen, library and menu layout."
+msgstr "Utiliser une autre disposition pour l'accueil, la bibliothèque et le menu."
+
 #: pe/ui/browse.cpp
 msgid "Use extracted firmware NCA files. Choose the folder in Settings, Game files; restart the app after changing it."
 msgstr "Utilisez des fichiers NCA extraits du firmware. Choisissez le dossier dans Paramètres, Fichiers de jeu. Redémarrez l'application après l'avoir modifié."
@@ -1902,6 +2098,10 @@ msgid "Vibration on"
 msgstr "Vibration activée"
 
 #: pe/ui/settings.cpp
+msgid "Vibration strength"
+msgstr "Intensité de la vibration"
+
+#: pe/ui/settings.cpp
 msgid "Vibration, button mapping and the shortcuts during a game."
 msgstr "Vibration, assignation des boutons et raccourcis en cours de jeu."
 
@@ -1930,6 +2130,14 @@ msgstr "En attente de {0}"
 msgid "Waiting to download"
 msgstr "En attente de téléchargement"
 
+#: pe/ui/settings.cpp
+msgid "Wallpaper"
+msgstr "Fond d'écran"
+
+#: pe/ui/settings.cpp
+msgid "What the FPS overlay's line says, and how the chip is drawn."
+msgstr "Ce qu'affiche la ligne du compteur de FPS et son apparence."
+
 #. Button on the update dialog: opens the new release's notes (what changes in it). Keep it short.
 #: pe/ui/update.cpp
 msgid "What's new"
@@ -1939,6 +2147,10 @@ msgstr "Nouveautés"
 #: pe/ui/update.cpp
 msgid "What's new in version {0}"
 msgstr "Nouveautés de la version {0}"
+
+#: pe/ui/game_options.cpp
+msgid "Which face button does what in the menu."
+msgstr "Quelle touche d'action fait quoi dans le menu."
 
 #: pe/ui/settings.cpp
 msgid "Who is playing. Each profile keeps its own save data and settings."
@@ -2095,3 +2307,7 @@ msgstr "{0}/ (NSP ou XCI)"
 #: pe/ui/browse.cpp
 msgid "{0}/ (one folder per game ID)"
 msgstr "{0}/ (un dossier par ID de titre)"
+
+#: pe/ui/settings.cpp
+msgid "Crash reports (FTP): {0}\nAttach crash-*.txt and its matching logs to your issue."
+msgstr "Rapports de plantage (FTP) : {0}\nJoignez crash-*.txt et les journaux correspondants à votre signalement."

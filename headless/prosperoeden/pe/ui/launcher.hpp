@@ -13,6 +13,7 @@
 #include <future>
 #include <string>
 #include <vector>
+#include <utility>
 
 namespace pe::ui
 {
@@ -29,6 +30,8 @@ class Launcher
     Launcher(const Launcher &) = delete;
     Launcher &operator=(const Launcher &) = delete;
 
+    void accept_update_offer(const UpdateOffer& offer) { update_=offer; update_version_=offer.version; notes_laid_out_=false; update_waiting_=offer.installable; }
+    bool take_launcher_picker() { return std::exchange(launcher_picker_, false); }
     void press(Key key);
     void update(float dt);
     void draw(gfx::DrawList &list);
@@ -70,6 +73,7 @@ class Launcher
     }
 
   private:
+    bool launcher_picker_ = false;
     enum class Screen : std::uint8_t
     {
         home,
@@ -93,6 +97,8 @@ class Launcher
         mods,         // a game's mods, opened from its settings
         game_options, // one category of a game's own settings, opened from its settings
         mapping,      // the button mapping: Settings > Controls', or a game's own
+        menu_mapping, // the menu's own buttons: Settings > Controls > Menu keybinds
+        hud,          // the overlay's options: Settings > Video > Overlay options
         profiles,     // who is playing: Settings > Profiles
         update,       // a newer release of the app: install it or not (update.cpp)
         download,     // a game from a download source, started once it is downloaded (remote.cpp)
@@ -101,7 +107,10 @@ class Launcher
         save_sync,    // a game's save data synced before it starts, or a conflict after (save_sync.cpp)
         sync_setup,   // Settings > Save sync: the profiles and their servers (pairing.cpp)
         pairing,      // a profile paired with a server by a QR code (pairing.cpp)
-        theme,        // Settings > Theme: the launcher's look
+        appearance,   // Settings > Appearance: theme and launcher settings
+        theme,        // Settings > Appearance > Theme: the launcher's look
+        wallpaper,    // Settings > Appearance > Wallpaper: the image behind the screens
+        accent,       // Settings > Colour: the accent preset
     };
     // The update dialog's steps: the offer, installing, stopping it, closing for the helper to
     // finish, and a failure.
@@ -133,6 +142,11 @@ class Launcher
     // menu last said (or `status`) at their right.
     void draw_frame(Canvas &c, const char *title, const char *copy);
     void draw_footer(Canvas &c, const Hint *hints, int count, std::string_view status = {});
+    // The remappable menu buttons: a hint or button face that names Cross, Circle, Square or
+    // Triangle shows the face button the user has bound to that action instead (shell.cpp).
+    Pad translate_hint(Pad glyph) const;
+    float draw_menu_hints(Canvas &c, const Hint *hints, int count, float x, float cy, Color color,
+                          float max_width = 0.0f);
 
     // ---- the shell around every screen: the section rail, the clock (shell.cpp) ----
     static constexpr int kSections = 5; // home, library, multiplayer, settings, about
@@ -163,10 +177,13 @@ class Launcher
     // The notification of a newer release the app cannot install itself, at the top right for ten
     // seconds.
     void draw_update_notice(Canvas &c);
+    // A result the player must see over whatever the screen shows ("Could not save settings"): a
+    // card at the middle that any button closes.
+    void draw_message_popup(Canvas &c);
     // quiet: a change that shows at once needs no "Saved" line.
     bool save_preferences(bool quiet = false);
     // The switches of a dialog as the preferences have them, in the order of its rows.
-    std::array<bool, 7> switch_states(Modal modal) const;
+    std::array<bool, 8> switch_states(Modal modal) const;
     // Shows the launcher as the preferences' accessibility switches say.
     void apply_look();
 
@@ -248,6 +265,10 @@ class Launcher
     void open_mapping(bool for_game);
     void press_mapping(Key key);
     void draw_mapping(Canvas &c, float open);
+    // The menu's own buttons, opened from Settings > Controls > Menu keybinds (game_options.cpp).
+    void open_menu_mapping();
+    void press_menu_mapping(Key key);
+    void draw_menu_mapping(Canvas &c, float open);
 
     // ---- settings and its dialogs (settings.cpp) ----
     void press_settings(Key key);
@@ -258,6 +279,10 @@ class Launcher
     void draw_dialog(Canvas &c, Modal modal, float open);
     int dialog_rows(Modal modal) const;
     float dialog_row_top(Modal modal, int row) const;
+    // The overlay's options, opened from Settings > Video > Overlay options (settings.cpp).
+    void open_hud();
+    void press_hud(Key key);
+    void draw_hud(Canvas &c, float open);
 
     // Quick ID entry and HTTPS import are async. On exit the futures are joined.
     std::future<std::optional<std::string>> theme_keyboard_;
@@ -429,6 +454,8 @@ class Launcher
     std::string message_; // the last result ("Saved..."), shown where the screen has room
     bool message_warning_ = false;
     float message_age_ = 0.0f;
+    // A warning's result ("Could not save settings"), a card at the middle any button closes.
+    std::string popup_;
 
     // launching a game
     std::string selected_game_;
@@ -452,7 +479,7 @@ class Launcher
     bool switch_home_dock_ = false;
     int switch_home_action_ = 0;
     tween::Spring switch_home_scroll_;
-    std::array<tween::Spring, 10> home_springs_{};
+    std::array<tween::Spring, 12> home_springs_{};
     float intro_ = 0.0f;
     bool first_start_ = true;
     // The opening, when the app has just been started and the launch picture is there: that
@@ -496,13 +523,19 @@ class Launcher
     // settings and dialogs
     Preferences prefs_;
     ListView settings_;
-    std::array<tween::Spring, 12> settings_springs_{}; // the highlight on each tile
+    std::array<tween::Spring, 14> settings_springs_{}; // the highlight on each tile
     tween::Spring section_;
     int option_ = 0;
     tween::Spring option_cursor_; // highlight position in pixels
-    std::array<tween::Spring, 7> switches_{};
+    std::array<tween::Spring, 8> switches_{};
     ListView video_rows_; // the Video dialog's rows (more than it shows)
+    ListView hud_rows_;   // the overlay's options (Modal::hud, more than it shows)
     ListView performance_rows_; // the Performance dialog's rows (more than it shows)
+    ListView controls_rows_;    // the Controls dialog's rows (more than it shows)
+    ListView accent_rows_;      // the Colour dialog's rows (more than it shows)
+    ListView wallpaper_rows_;   // the Wallpaper dialog's rows (more than it shows)
+    // The images in the wallpapers folder, as the Wallpaper dialog lists them (settings.cpp).
+    std::vector<std::string> wallpaper_files_;
     GameSettings game_settings_;
     bool game_docked_ = true;
     SaveSource import_source_ = SaveSource::none; // what Save data could import for the game
@@ -524,6 +557,8 @@ class Launcher
     std::future<std::optional<std::int64_t>> seed_edit_;  // the keyboard, while it is open
     bool mapping_for_game_ = false; // the mapping dialog edits the game's own mapping
     ListView mapping_rows_;
+    ListView menu_mapping_rows_; // the menu keybinds dialog's rows
+    ListView room_rows_;         // Multiplayer > Public rooms: the rooms (room_row_ - 1 is the one chosen)
     std::vector<Profile> profiles_; // the people who play on this console
     std::string playing_;           // the one games start as
     ListView profile_rows_;

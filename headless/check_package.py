@@ -15,7 +15,7 @@ APP = Path(os.environ.get('EDEN_PACKAGE_DIR', ROOT / 'dist/headless/PPSA99186'))
 if 'EDEN_PACKAGE_DIR' in os.environ:
     assert APP.is_relative_to(ROOT/'build') and APP.name == 'PPSA99186'
 OUT = ROOT / 'build/headless-native'
-BASE_REQUIRED = {'eboot.bin', 'core-homebrew.nro', 'sce_module/libc.prx',
+BASE_REQUIRED = {'launcher-runtime.json', 'eboot.bin', 'core-homebrew.nro', 'sce_module/libc.prx',
             'sce_sys/param.json', 'sce_sys/icon0.png', 'sce_sys/pic0.dds', 'sce_sys/pic1.dds',
             'lapy.elf', 'lapy-manifest.json', 'licenses/Lapy-MIT.txt',
             'self-updater.elf'}

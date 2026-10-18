@@ -43,6 +43,10 @@ msgstr "Salah satu NCA firmware tidak dapat dibaca. Instal ulang dump firmware."
 msgid "A pairing is running already."
 msgstr "Pemasangan sudah berjalan."
 
+#: pe/ui/browse.cpp
+msgid "ABOUT"
+msgstr "TENTANG"
+
 #. The menu's last section: about this app (its credits, where its files go). One short word.
 #: pe/ui/shell.cpp
 msgid "About"
@@ -92,9 +96,21 @@ msgstr "Semua kredit untuk emulator Eden adalah milik para pengembang dan kontri
 msgid "AMD FSR"
 msgstr "AMD FSR"
 
+#: pe/ui/settings.cpp
+msgid "An image of your own behind this menu."
+msgstr "Gambar milikmu di belakang menu ini."
+
 #: eden_services.cpp
 msgid "Another language"
 msgstr "Bahasa lain"
+
+#: pe/ui/settings.cpp
+msgid "Appearance"
+msgstr "Tampilan"
+
+#: pe/ui/settings.cpp
+msgid "Apply"
+msgstr "Terapkan"
 
 #. The button mapping has not been changed.
 #: pe/ui/game_options.cpp, pe/ui/settings.cpp
@@ -136,6 +152,10 @@ msgstr "Otomatis"
 msgid "Back"
 msgstr "Kembali"
 
+#: pe/ui/settings.cpp
+msgid "Backend"
+msgstr "Renderer"
+
 #: pe/ui/save_sync.cpp
 msgid "Backing up save data"
 msgstr "Mencadangkan data simpanan"
@@ -149,6 +169,14 @@ msgstr "Bikubik"
 #: settings_store.h
 msgid "Bilinear"
 msgstr "Bilinear"
+
+#: pe/ui/game_options.cpp
+msgid "Bottom left"
+msgstr "Kiri bawah"
+
+#: pe/ui/game_options.cpp
+msgid "Bottom right"
+msgstr "Kanan bawah"
 
 #. Button hint: move through the list.
 #: pe/ui/browse.cpp, pe/ui/multiplayer.cpp
@@ -236,6 +264,14 @@ msgstr "Pilih"
 msgid "Choose a game from your library."
 msgstr "Pilih game dari perpustakaan Anda."
 
+#: pe/ui/settings.cpp
+msgid "Choose a theme or change the launcher layout."
+msgstr "Pilih tema atau ubah tata letak peluncur."
+
+#: pe/ui/settings.cpp
+msgid "Choose the colours and appearance of this menu."
+msgstr "Pilih warna dan tampilan menu ini."
+
 #: pe/ui/browse.cpp
 msgid "Choose the folder that holds your keys, firmware and games"
 msgstr "Pilih folder yang berisi kunci, firmware, dan game Anda"
@@ -252,6 +288,14 @@ msgstr "Lingkaran"
 #: pe/ui/remote.cpp, pe/ui/update.cpp
 msgid "Close"
 msgstr "Tutup"
+
+#: pe/ui/settings.cpp
+msgid "Colour"
+msgstr "Warna"
+
+#: pe/ui/game_options.cpp, pe/ui/settings.cpp
+msgid "Compact memory"
+msgstr "Memori ringkas"
 
 #. A switch: the program code a game used in earlier sessions is prepared (compiled) while the game starts. Keep it short.
 #: pe/ui/game_options.cpp, pe/ui/settings.cpp
@@ -311,6 +355,10 @@ msgstr "CONTROLLER"
 msgid "Controls"
 msgstr "Kontrol"
 
+#: pe/ui/settings.cpp
+msgid "Corner"
+msgstr "Sudut"
+
 #: pe/ui/remote.cpp
 msgid "Could not cancel the download."
 msgstr "Tidak dapat membatalkan unduhan."
@@ -347,6 +395,14 @@ msgstr "Gagal menyimpan. Silakan coba lagi."
 msgid "Could not start the connection or save its settings."
 msgstr "Tidak dapat memulai koneksi atau menyimpan pengaturannya."
 
+#: pe/ui/settings.cpp
+msgid "CPU"
+msgstr "CPU"
+
+#: pe/ui/settings.cpp
+msgid "CPU by core"
+msgstr "CPU per inti"
+
 #. The DualSense button labelled CREATE: keep the label if the language's players do.
 #: pe/ui/game_options.cpp
 msgid "Create"
@@ -370,6 +426,10 @@ msgstr "Kredit dan penyiapan"
 #: pe/ui/game_options.cpp
 msgid "Cross"
 msgstr "Silang"
+
+#: pe/ui/settings.cpp
+msgid "Default"
+msgstr "Bawaan"
 
 #. A per-game setting that follows the general setting; {0} is its value.
 #: pe/ui/game_options.cpp
@@ -512,6 +572,10 @@ msgid "Edit"
 msgstr "Ketik"
 
 #: pe/ui/settings.cpp
+msgid "Enable colors"
+msgstr "Aktifkan warna"
+
+#: pe/ui/settings.cpp
 msgid "End the game and return to this menu"
 msgstr "Tutup game dan kembali ke menu ini"
 
@@ -607,6 +671,10 @@ msgstr "Mengikuti Pengaturan"
 msgid "For every controller. A game can have its own."
 msgstr "Untuk semua kontroler. Game bisa punya sendiri."
 
+#: pe/ui/settings.cpp
+msgid "FPS"
+msgstr "FPS"
+
 #: pe/ui/game_options.cpp, pe/ui/settings.cpp
 msgid "FPS overlay"
 msgstr "Penghitung FPS"
@@ -626,6 +694,10 @@ msgstr "Pembuatan bingkai"
 #: pe/ui/game_options.cpp, pe/ui/settings.cpp
 msgid "Frame generation needs Lossless.dll, from Lossless Scaling, in the lossless folder."
 msgstr "Pembuatan frame memerlukan Lossless.dll dari Lossless Scaling di folder lossless."
+
+#: pe/ui/settings.cpp
+msgid "Frame time"
+msgstr "Waktu frame"
 
 #: settings_store.h
 msgid "French"
@@ -652,6 +724,10 @@ msgstr "Kualitas penuh"
 #: pe/ui/library.cpp, pe/ui/settings.cpp
 msgid "Game audio; PS5 system-menu music is unchanged."
 msgstr "Audio game; musik menu sistem PS5 tidak berubah."
+
+#: pe/ui/launcher.cpp
+msgid "Game cannot start now."
+msgstr "Game tidak dapat dimulai sekarang."
 
 #. {0} is the reason, a sentence in English; {1} is a file.
 #: eden_services.cpp, host/fake_services.cpp
@@ -702,9 +778,17 @@ msgstr "Jerman"
 msgid "GETTING STARTED"
 msgstr "PERSIAPAN AWAL"
 
+#: pe/ui/settings.cpp
+msgid "Gives back memory a game left empty, 16 KiB at a time. More free memory; a game that writes there again can stutter for a moment."
+msgstr "Mengembalikan memori yang dibiarkan kosong oleh game, 16 KiB setiap kali. Lebih banyak memori kosong; game yang menulis di sana lagi bisa tersendat sesaat."
+
 #: pe/ui/multiplayer.cpp
 msgid "Go offline"
 msgstr "Beralih ke offline"
+
+#: pe/ui/settings.cpp
+msgid "GPU"
+msgstr "GPU"
 
 #: pe/ui/settings.cpp
 msgid "Graphics backend and how games are scaled to your TV."
@@ -732,6 +816,10 @@ msgstr "Beranda"
 #: pe/ui/library.cpp, pe/ui/settings.cpp
 msgid "How games are drawn and scaled to your TV."
 msgstr "Cara game dirender dan diskalakan ke TV Anda."
+
+#: pe/ui/settings.cpp
+msgid "Images in this folder: {0}"
+msgstr "Gambar di folder ini: {0}"
 
 #. Button hint: copy a save in.
 #: pe/ui/library.cpp
@@ -841,6 +929,10 @@ msgstr "Bahasa"
 msgid "LANGUAGES"
 msgstr "BAHASA"
 
+#: pe/ui/game_options.cpp
+msgid "Large"
+msgstr "Besar"
+
 #. A switch: the menu's small text is drawn larger.
 #: pe/ui/settings.cpp
 msgid "Larger text"
@@ -850,6 +942,10 @@ msgstr "Teks lebih besar"
 #: eden_services.cpp
 msgid "Last game opened"
 msgstr "Game terakhir yang dibuka"
+
+#: pe/ui/settings.cpp
+msgid "Launcher"
+msgstr "Peluncur"
 
 #: pe/ui/multiplayer.cpp
 msgid "Leave / cancel"
@@ -888,6 +984,10 @@ msgstr "Perhitungan floating-point kurang akurat: lebih cepat, tetapi beberapa g
 msgid "Less exact memory transfers to the GPU: faster, and a few games show wrong graphics."
 msgstr "Transfer memori ke GPU kurang akurat: lebih cepat, tetapi beberapa game menampilkan grafis yang salah."
 
+#: pe/ui/library.cpp
+msgid "LIBRARY"
+msgstr "PERPUSTAKAAN"
+
 #: pe/ui/library.cpp, pe/ui/shell.cpp
 msgid "Library"
 msgstr "Perpustakaan"
@@ -907,6 +1007,18 @@ msgstr "Akurasi GPU terendah: lebih cepat di game berat, tetapi grafis bisa sala
 #: pe/ui/settings.cpp
 msgid "Make the menu easier to see and follow."
 msgstr "Buat menu lebih mudah dilihat dan diikuti."
+
+#: pe/ui/game_options.cpp
+msgid "Medium"
+msgstr "Sedang"
+
+#: pe/ui/settings.cpp
+msgid "Memory"
+msgstr "Memori"
+
+#: pe/ui/game_options.cpp, pe/ui/settings.cpp
+msgid "Menu keybinds"
+msgstr "Tombol menu"
 
 #: pe/ui/browse.cpp
 msgid "Menu sound effects made with ElevenLabs."
@@ -959,6 +1071,10 @@ msgstr "Terdekat"
 #: pe/ui/pairing.cpp, pe/ui/settings.cpp
 msgid "Needs attention"
 msgstr "Perlu perhatian"
+
+#: pe/ui/theme.cpp
+msgid "Neutral glass, clean and still."
+msgstr "Kaca netral, bersih dan tenang."
 
 #: pe/ui/profiles.cpp
 msgid "New profile"
@@ -1111,6 +1227,18 @@ msgstr "Options"
 msgid "Output resolution"
 msgstr "Resolusi keluaran"
 
+#: pe/ui/game_options.cpp
+msgid "Overlay corner"
+msgstr "Sudut penghitung"
+
+#: pe/ui/settings.cpp
+msgid "Overlay options"
+msgstr "Opsi penghitung"
+
+#: pe/ui/game_options.cpp
+msgid "Overlay size"
+msgstr "Ukuran penghitung"
+
 #. Button hint: jump a page of the list (L1 / R1).
 #: pe/ui/browse.cpp, pe/ui/multiplayer.cpp, pe/ui/update.cpp
 msgid "Page"
@@ -1158,6 +1286,10 @@ msgstr "Patch"
 msgid "Performance"
 msgstr "Performa"
 
+#: pe/ui/settings.cpp
+msgid "Ping"
+msgstr "Ping"
+
 #. Button and button hint: start the game shown. Keep it to one short word.
 #: pe/ui/home.cpp, pe/ui/library.cpp
 msgid "Play"
@@ -1203,6 +1335,10 @@ msgstr "Portugis"
 msgid "Portuguese (Brazil)"
 msgstr "Portugis (Brasil)"
 
+#: pe/ui/game_options.cpp, pe/ui/settings.cpp
+msgid "Post-processing"
+msgstr "Pascaproses"
+
 #. Eden is the emulator's name (unchanged).
 #: pe/ui/browse.cpp
 msgid "Powered by Eden"
@@ -1225,6 +1361,10 @@ msgstr "Tekan lagi untuk mengganti data tersimpan game ini. Data saat ini akan d
 #: pe/ui/multiplayer.cpp
 msgid "Private room"
 msgstr "Ruang pribadi"
+
+#: pe/ui/multiplayer.cpp
+msgid "PRIVATE ROOM"
+msgstr "RUANG PRIBADI"
 
 #: pe/ui/game_options.cpp
 msgid "Pro Controller"
@@ -1292,6 +1432,14 @@ msgstr "EDISI PS5"
 msgid "Public rooms"
 msgstr "Ruang publik"
 
+#: pe/ui/multiplayer.cpp
+msgid "PUBLIC ROOMS"
+msgstr "RUANG PUBLIK"
+
+#: pe/ui/settings.cpp
+msgid "Put images in the wallpapers folder to show them here."
+msgstr "Taruh gambar di folder wallpapers agar tampil di sini."
+
 #: pe/ui/remote.cpp
 msgid "Queued"
 msgstr "Dalam antrean"
@@ -1347,6 +1495,10 @@ msgstr "Laju penyegaran"
 #: pe/ui/browse.cpp
 msgid "REGION"
 msgstr "WILAYAH"
+
+#: pe/ui/game_options.cpp
+msgid "Regular"
+msgstr "Biasa"
 
 #: pe/ui/profiles.cpp
 msgid "Remove"
@@ -1479,6 +1631,10 @@ msgstr "Disimpan. Berlaku saat game dijalankan."
 msgid "Saved. Full quality uses four times the graphics memory for these textures and can run out above 1x."
 msgstr "Tersimpan. Kualitas penuh memakai empat kali memori grafis untuk tekstur ini dan bisa kehabisan di atas 1x."
 
+#: pe/ui/settings.cpp
+msgid "Saved. Post-processing needs the Vulkan renderer."
+msgstr "Tersimpan. Pascaproses memerlukan perender Vulkan."
+
 #: pe/ui/browse.cpp
 msgid "Saved. Reopen ProsperoEden to use this folder."
 msgstr "Disimpan. Buka ulang ProsperoEden untuk menggunakan folder ini."
@@ -1491,6 +1647,10 @@ msgstr "Pindai kode dengan ponsel Anda, atau buka alamat di bawah."
 #: pe/ui/update.cpp
 msgid "Scroll"
 msgstr "Gulir"
+
+#: pe/ui/game_options.cpp
+msgid "Secondary"
+msgstr "Sekunder"
 
 #. Button hint beside L1 and R1: they move between the menu's sections (Home, Library, Multiplayer, Settings, About).
 #: pe/ui/browse.cpp, pe/ui/home.cpp, pe/ui/library.cpp, pe/ui/multiplayer.cpp, pe/ui/settings.cpp
@@ -1520,6 +1680,10 @@ msgstr "Server terlalu lama untuk sinkronisasi"
 msgid "Settings"
 msgstr "Pengaturan"
 
+#: pe/ui/settings.cpp
+msgid "SETTINGS"
+msgstr "PENGATURAN"
+
 #: eden_services.cpp, host/fake_services.cpp
 msgid "Setup required"
 msgstr "Perlu penyiapan"
@@ -1545,6 +1709,10 @@ msgid "Several sources have this game. Which one should it come from?"
 msgstr "Beberapa sumber memiliki game ini. Unduh dari yang mana?"
 
 #: pe/ui/settings.cpp
+msgid "Show an image of your own behind the menu."
+msgstr "Tampilkan gambar milikmu di belakang menu."
+
+#: pe/ui/settings.cpp
 msgid "Show or hide the FPS overlay"
 msgstr "Tampilkan atau sembunyikan penghitung FPS"
 
@@ -1555,6 +1723,10 @@ msgstr "Menampilkan daftar sebelumnya."
 #: pe/ui/pairing.cpp
 msgid "Sign in to {0} as the user this profile's save data belongs to."
 msgstr "Masuk ke {0} sebagai pengguna pemilik data simpanan profil ini."
+
+#: pe/ui/settings.cpp
+msgid "Size"
+msgstr "Ukuran"
 
 #. Button and hint: not now (the dialog shows again the next time the app opens).
 #: pe/ui/update.cpp
@@ -1581,6 +1753,10 @@ msgstr "Spanyol"
 #: settings_store.h
 msgid "Spanish (Latin America)"
 msgstr "Spanyol (Amerika Latin)"
+
+#: pe/ui/settings.cpp
+msgid "Speed"
+msgstr "Kecepatan"
 
 #. A DualSense button.
 #: pe/ui/game_options.cpp
@@ -1650,6 +1826,10 @@ msgstr "TERIMA KASIH"
 #: pe/ui/browse.cpp
 msgid "Thanks to the whole PS5 homebrew community and to every developer whose drivers, tools and libraries make ProsperoEden possible."
 msgstr "Terima kasih kepada seluruh komunitas homebrew PS5 dan setiap pengembang yang driver, alat, dan pustakanya mewujudkan ProsperoEden."
+
+#: pe/ui/settings.cpp
+msgid "The accent colour of the current theme."
+msgstr "Warna aksen tema saat ini."
 
 #: pe/ui/remote.cpp
 msgid "The download stopped"
@@ -1743,6 +1923,10 @@ msgstr "Pembaruan tidak dapat diselesaikan"
 msgid "Theme"
 msgstr "Tema"
 
+#: pe/ui/settings.cpp
+msgid "Theme and launcher settings."
+msgstr "Pengaturan tema dan peluncur."
+
 #: pe/ui/save_sync.cpp
 msgid "This console and the server both have save data the other does not know. Which one should stay? The other is kept as a backup."
 msgstr "Konsol ini dan server sama-sama punya data simpanan yang tidak dikenal pihak lainnya. Mana yang dipertahankan? Yang lain disimpan sebagai cadangan."
@@ -1776,6 +1960,14 @@ msgstr "Ruang ini memakai versi protokol yang berbeda."
 #: eden_services.cpp
 msgid "To import, copy a Ryujinx folder to ryujinx/ or a save to save-import/{0}/, next to roms/."
 msgstr "Untuk mengimpor, salin folder Ryujinx ke ryujinx/ atau data tersimpan ke save-import/{0}/, di samping roms/."
+
+#: pe/ui/game_options.cpp
+msgid "Top left"
+msgstr "Kiri atas"
+
+#: pe/ui/game_options.cpp
+msgid "Top right"
+msgstr "Kanan atas"
 
 #. The DualSense controller's touch pad, pressed as a button. Use the name players know.
 #: pe/ui/game_options.cpp
@@ -1866,6 +2058,10 @@ msgstr "Filter upscaling"
 msgid "USA"
 msgstr "AS"
 
+#: pe/ui/settings.cpp
+msgid "Use another home screen, library and menu layout."
+msgstr "Gunakan tata letak lain untuk beranda, pustaka, dan menu."
+
 #: pe/ui/browse.cpp
 msgid "Use extracted firmware NCA files. Choose the folder in Settings, Game files; restart the app after changing it."
 msgstr "Gunakan file NCA firmware hasil ekstraksi. Pilih folder di Pengaturan, File game; mulai ulang aplikasi setelah mengubahnya."
@@ -1902,6 +2098,10 @@ msgid "Vibration on"
 msgstr "Getaran aktif"
 
 #: pe/ui/settings.cpp
+msgid "Vibration strength"
+msgstr "Kekuatan getaran"
+
+#: pe/ui/settings.cpp
 msgid "Vibration, button mapping and the shortcuts during a game."
 msgstr "Getaran, pemetaan tombol, dan pintasan selama bermain."
 
@@ -1930,6 +2130,14 @@ msgstr "Menunggu {0}"
 msgid "Waiting to download"
 msgstr "Menunggu untuk diunduh"
 
+#: pe/ui/settings.cpp
+msgid "Wallpaper"
+msgstr "Wallpaper"
+
+#: pe/ui/settings.cpp
+msgid "What the FPS overlay's line says, and how the chip is drawn."
+msgstr "Apa yang ditampilkan baris penghitung FPS dan bagaimana tampilannya."
+
 #. Button on the update dialog: opens the new release's notes (what changes in it). Keep it short.
 #: pe/ui/update.cpp
 msgid "What's new"
@@ -1939,6 +2147,10 @@ msgstr "Yang baru"
 #: pe/ui/update.cpp
 msgid "What's new in version {0}"
 msgstr "Yang baru di versi {0}"
+
+#: pe/ui/game_options.cpp
+msgid "Which face button does what in the menu."
+msgstr "Tombol aksi mana yang melakukan apa di menu."
 
 #: pe/ui/settings.cpp
 msgid "Who is playing. Each profile keeps its own save data and settings."
@@ -2095,3 +2307,7 @@ msgstr "{0}/ (NSP atau XCI)"
 #: pe/ui/browse.cpp
 msgid "{0}/ (one folder per game ID)"
 msgstr "{0}/ (satu folder per ID judul)"
+
+#: pe/ui/settings.cpp
+msgid "Crash reports (FTP): {0}\nAttach crash-*.txt and its matching logs to your issue."
+msgstr "Laporan crash (FTP): {0}\nLampirkan crash-*.txt dan log terkait pada laporan masalah Anda."

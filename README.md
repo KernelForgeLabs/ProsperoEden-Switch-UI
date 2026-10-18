@@ -13,7 +13,7 @@
 > [!IMPORTANT]
 > **Release candidate — not yet a public stable release.** Switch UI v6.0 RC2 has been tested on PS5. Its provisional home-screen title ID is `PPSA99186`, separate from the original ProsperoEden title `PPSA99008`. Both use `/data/prosperoeden/` for data; back up configuration and saves before alternating versions, and do not run both at once. The revised Tactile Leaf v3 audio and Canopy-free theme interface have passed a PS5 hardware test. Public beta distribution still requires full clean-install/rollback tests and explicit approval; catalog reservation PR #302 was closed without merge; the title ID remains provisional. Automatic update installation is intentionally disabled until qualified. See the [beta installation and rollback test plan](docs/BETA_INSTALL_AND_ROLLBACK.md), [RC installation and testing](docs/SWITCH_UI_V6_RC.md), and [release-readiness checklist](docs/SWITCH_UI_RELEASE_READINESS.md).
 
-The Switch UI launcher is based on ProsperoEden **v1.001.000**; compatibility and performance vary by game. The newer upstream ProsperoEden releases should not be confused with this separate edition.
+The Switch UI launcher is based on ProsperoEden **v1.004.000**; compatibility and performance vary by game. The newer upstream ProsperoEden releases should not be confused with this separate edition.
 
 ## Source code
 

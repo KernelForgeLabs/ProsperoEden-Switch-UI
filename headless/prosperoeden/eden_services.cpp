@@ -19,6 +19,7 @@
 #include "remote/save_sync.h"
 #include "save_sync_config.h"
 #include "version.h"
+#include "video_core/post_processing/fx_preset.h"
 #include "../system_keyboard.h"
 #include "common/string_util.h"
 
@@ -540,6 +541,8 @@ std::optional<std::int64_t> EdenServices::ask_seed(std::int64_t current, const s
 EdenServices::EdenServices(std::string launch_error, Eden::Multiplayer::RoomClient& rooms)
     : rooms_(rooms), launch_error_(std::move(launch_error)) {
     (void)mkdir(Eden::ConfigDir().c_str(), 0777);
+    // The folder the wallpapers are put in (docs/WALLPAPERS.md), so it exists to be filled.
+    (void)mkdir(Eden::WallpapersDir().c_str(), 0777);
     // Who is playing (profiles.h): the profile this PS5 user chose last, else the one chosen last.
     (void)sceUserServiceInitialize(nullptr); // already done by the controller code: refused, harmless
     if (sceUserServiceGetForegroundUser(&user_) < 0) user_ = -1;
@@ -669,6 +672,9 @@ std::string EdenServices::clock() {
 }
 
 unsigned EdenServices::controllers() { return radio_input_controllers(); }
+void EdenServices::vibration_pulse(int percent) {
+    if (percent > 0) radio_input_pulse(static_cast<unsigned>(percent));
+}
 
 std::string EdenServices::version() {
     // "01.000.040" reads as v1.000.040.
@@ -820,6 +826,11 @@ std::vector<pe::ui::Profile> EdenServices::profiles() {
     return list;
 }
 
+std::string EdenServices::profile_key(int index) {
+    const auto who=Eden::Profiles::Resolve(user_);
+    return index>=0 && index<static_cast<int>(who.profiles.size()) ? who.profiles[index].Key() : std::string{};
+}
+
 bool EdenServices::choose_profile(int index) {
     if (rooms_.GetSnapshot().phase != Eden::Multiplayer::Phase::Idle) return false;
     const auto who = Eden::Profiles::Resolve(user_);
@@ -910,9 +921,13 @@ pe::ui::GameSettings EdenServices::game_settings(std::uint64_t title_id) {
     result.astc = saved.astc_textures;
     result.refresh = saved.refresh;
     result.hud = saved.hud;
+    result.hud_size = saved.hud_size;
+    result.hud_corner = saved.hud_corner;
     result.frame_gen = saved.frame_gen;
     result.frame_gen_target = saved.frame_gen_target;
     result.frame_gen_multiplier = saved.frame_gen_multiplier;
+    ReadPostPresets();
+    result.post_processing = saved.post_processing ? PostPresetIndex(*saved.post_processing) : -1;
     result.volume = saved.volume;
     result.mute = saved.mute;
     result.vibration = saved.vibration;
@@ -933,9 +948,12 @@ bool EdenServices::set_game_settings(std::uint64_t title_id, const pe::ui::GameS
     value.astc_textures = settings.astc;
     value.refresh = settings.refresh;
     value.hud = settings.hud;
+    value.hud_size = settings.hud_size;
+    value.hud_corner = settings.hud_corner;
     value.frame_gen = settings.frame_gen;
     value.frame_gen_target = settings.frame_gen_target;
     value.frame_gen_multiplier = settings.frame_gen_multiplier;
+    if (settings.post_processing >= 0) value.post_processing = PostPresetName(settings.post_processing);
     value.volume = settings.volume;
     value.mute = settings.mute;
     value.vibration = settings.vibration;
@@ -954,6 +972,10 @@ pe::ui::Preferences EdenServices::preferences() {
     const Eden::Preferences saved = Eden::LoadPreferences();
     pe::ui::Preferences result;
     result.hud = saved.hud;
+    result.hud_size = saved.hud_size;
+    result.hud_corner = saved.hud_corner;
+    result.hud_colors = saved.hud_colors;
+    result.hud_fields = saved.hud_fields;
     result.volume = saved.volume;
     result.mute = saved.mute;
     result.detailed_logging = saved.detailed_logging;
@@ -967,13 +989,18 @@ pe::ui::Preferences EdenServices::preferences() {
     result.frame_gen = saved.frame_gen;
     result.frame_gen_target = saved.frame_gen_target;
     result.frame_gen_multiplier = saved.frame_gen_multiplier;
+    ReadPostPresets();
+    result.post_processing = PostPresetIndex(saved.post_processing);
     result.vibration = saved.vibration;
+    result.vibration_strength = saved.vibration_strength;
     result.language = saved.language;
     result.menu_volume = saved.menu_volume;
     result.large_text = saved.large_text;
     result.high_contrast = saved.high_contrast;
     result.reduce_motion = saved.reduce_motion;
     result.theme = saved.theme;
+    result.accent = saved.accent;
+    result.wallpaper = saved.wallpaper;
     // Settings > Performance: the general values (settings_store.h).
     const Eden::PerformanceSettings speed = Eden::LoadPerformance(0);
     result.block_list = speed.block_list;
@@ -983,13 +1010,20 @@ pe::ui::Preferences EdenServices::preferences() {
     result.unsafe_dma = speed.unsafe_dma;
     result.reactive_flushing = speed.reactive_flushing;
     result.skip_invalidation = speed.skip_invalidation;
+    result.compact_memory = speed.compact_memory;
+    result.memory_layout = speed.memory_layout;
     result.mapping = saved.mapping;
+    result.menu_bind = saved.menu_bind;
     return result;
 }
 
 bool EdenServices::set_preferences(const pe::ui::Preferences& preferences) {
     Eden::Preferences value;
     value.hud = preferences.hud;
+    value.hud_size = preferences.hud_size;
+    value.hud_corner = preferences.hud_corner;
+    value.hud_colors = preferences.hud_colors;
+    value.hud_fields = preferences.hud_fields;
     value.volume = preferences.volume;
     value.mute = preferences.mute;
     value.detailed_logging = preferences.detailed_logging;
@@ -1003,14 +1037,19 @@ bool EdenServices::set_preferences(const pe::ui::Preferences& preferences) {
     value.frame_gen = preferences.frame_gen;
     value.frame_gen_target = preferences.frame_gen_target;
     value.frame_gen_multiplier = preferences.frame_gen_multiplier;
+    value.post_processing = PostPresetName(preferences.post_processing);
     value.vibration = preferences.vibration;
+    value.vibration_strength = preferences.vibration_strength;
     value.language = preferences.language;
     value.menu_volume = preferences.menu_volume;
     value.large_text = preferences.large_text;
     value.high_contrast = preferences.high_contrast;
     value.reduce_motion = preferences.reduce_motion;
     value.theme = preferences.theme;
+    value.accent = preferences.accent;
+    value.wallpaper = preferences.wallpaper;
     value.mapping = preferences.mapping;
+    value.menu_bind = preferences.menu_bind;
     Eden::PerformanceSettings speed = Eden::LoadPerformance(0);
     speed.block_list = preferences.block_list;
     speed.async_shaders = preferences.async_shaders;
@@ -1019,6 +1058,11 @@ bool EdenServices::set_preferences(const pe::ui::Preferences& preferences) {
     speed.unsafe_dma = preferences.unsafe_dma;
     speed.reactive_flushing = preferences.reactive_flushing;
     speed.skip_invalidation = preferences.skip_invalidation;
+    speed.compact_memory = preferences.compact_memory;
+    // One of the layouts, whatever reached the launcher: a value outside them would make the whole
+    // save fail, and with it every other setting on the page (settings_store.h's SavePerformance).
+    speed.memory_layout = std::clamp(preferences.memory_layout, 0,
+                                     static_cast<int>(std::size(Eden::kMemoryLayoutKeys)) - 1);
     const bool saved = Eden::SavePreferences(value) && Eden::SavePerformance(0, speed);
     if (!saved) Eden::Report("settings", "Could not write preferences");
     if (saved) Eden::Multiplayer::SetDetailedLogging(value.detailed_logging);
@@ -1049,6 +1093,30 @@ const std::vector<std::string>& EdenServices::filter_labels() {
     return labels;
 }
 
+void EdenServices::ReadPostPresets() {
+    // Eden writes its bundled presets into post_presets the first time, then lists that folder.
+    VideoCore::ReloadFxPresetCatalog();
+    post_presets_ = {tr("Off")};
+    for (const auto& preset : VideoCore::GetFxPresetCatalog())
+        if (!preset.name.empty() && Eden::ValidPostProcessing(preset.name)) post_presets_.push_back(preset.name);
+}
+
+// "" (off) is 0; a name the console has no preset of any more reads as off.
+int EdenServices::PostPresetIndex(const std::string& name) const {
+    for (std::size_t i = 1; i < post_presets_.size(); ++i)
+        if (post_presets_[i] == name) return static_cast<int>(i);
+    return 0;
+}
+
+std::string EdenServices::PostPresetName(int index) const {
+    return index > 0 && index < static_cast<int>(post_presets_.size()) ? post_presets_[index] : std::string{};
+}
+
+const std::vector<std::string>& EdenServices::post_processing_labels() {
+    if (post_presets_.empty()) ReadPostPresets();
+    return post_presets_;
+}
+
 const std::vector<std::string>& EdenServices::astc_labels() {
     static const std::vector<std::string> labels = Labels(Eden::kAstcTextureLabels);
     return labels;
@@ -1066,6 +1134,8 @@ std::string EdenServices::language_region(int language) {
     return tr(kRegions[Eden::kLanguageRegions[language]]);
 }
 
+std::string EdenServices::crash_reports_folder() { return Eden::LogsDir(); }
+
 std::string EdenServices::setup_details() {
     return setup_.empty() ?
         tr("Keys and firmware: startup checks passed. Game-specific compatibility is checked at launch.") :
@@ -1077,6 +1147,13 @@ bool EdenServices::folders(const std::string& directory, std::vector<std::string
     *names = ListEntries(directory, true, ok);
     return ok;
 }
+
+std::vector<std::string> EdenServices::wallpapers() {
+    bool ok = false;
+    return ListEntries(Eden::WallpapersDir(), false, ok);
+}
+
+std::string EdenServices::wallpapers_folder() { return Eden::WallpapersDir(); }
 
 pe::ui::FolderInfo EdenServices::folder_info(const std::string& directory) {
     pe::ui::FolderInfo info;

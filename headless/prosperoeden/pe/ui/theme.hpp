@@ -106,8 +106,28 @@ struct Theme
     int motes = 26;     // 0: none
     float drift = 1.0f; // how far the artwork wanders (0: it stands still)
 
+    // ---- layout variants ----
+    bool list_settings = false;  // settings shows a list instead of tiles
+    bool game_backdrop = false;  // the selected game's cover art fills the background
+    bool minimal_home = false;   // home screen: clean layout, no controller display
+    bool top_nav = false;        // horizontal section tabs at the top instead of the sidebar rail
+    float scrim_opacity = 0.0f;  // >0: flat scrim at this alpha; 0: directional gradient scrim
+    float game_page_offset = 0.0f; // px to push the game settings columns below their base position
+
     // ---- sound: a folder of ui/sounds with its own cues ("": the launcher's) ----
     const char *sounds = "";
+};
+
+// An accent colour preset: a named set of the five accent roles a theme can swap.
+struct AccentPreset
+{
+    const char *id;   // stored in the settings file
+    const char *name; // shown in Settings
+    Color accent;
+    Color accent_deep;
+    Color accent_pale;
+    Color on_accent;
+    Color highlight;
 };
 
 // The theme in use. Read where things are drawn, so a change of theme shows in the next frame.
@@ -124,6 +144,12 @@ void initialize_switch_themes();
 void refresh_switch_themes();
 std::string startup_switch_theme(std::string_view preference);
 void remember_switch_theme(std::string_view id);
+// The accent presets for the theme in use.
+std::span<const AccentPreset> accent_presets();
+// Which accent preset is active (-1: the theme's own colours).
+int accent_index();
+// Applies an accent preset by id on top of the active theme; "" restores the theme's own.
+void use_accent(std::string_view id);
 
 // A kit theme (ps5-homebrew-ui) as a launcher theme: every role filled from the kit's colours, its
 // corners, focus ring and motion. False when the kit has no theme of that id (theme_kit.cpp).
@@ -173,6 +199,10 @@ constexpr float kRight = 1824.0f;  // ... to here
 constexpr float kWidth = kRight - kLeft;
 constexpr float kTop = 44.0f;      // the top bar's line box: 64 high
 constexpr float kFooter = 1026.0f; // the hints' centre line
+constexpr float kPanelLeft = 960.0f;
+constexpr float kPanelWidth = 864.0f;
+constexpr float kPanelTop = 110.0f;
+constexpr float kPanelBottom = 980.0f;
 // A list of settings beside others (a game's page): its rows, and how many show.
 constexpr float kPaneRow = 84.0f;
 constexpr float kPanePitch = 94.0f;

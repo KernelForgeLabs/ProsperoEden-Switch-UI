@@ -6,7 +6,7 @@
   "applicationDrmType": "free",
   "attribute": 0,
   "attribute2": 0,
-  "attribute3": 524352,
+  "attribute3": 4456512,
   "conceptId": "99186",
   "contentBadgeType": 1,
   "contentId": "UP9000-PPSA99186_00-EDENSWITCHUI0001",
@@ -34,5 +34,8 @@
   "requiredSystemSoftwareVersion": "0x0000000000000000",
   "sdkVersion": "0x0000000000000000",
   "titleId": "PPSA99186",
-  "versionFileUri": ""
+  "versionFileUri": "",
+  "kernel": {
+    "flexibleMemorySize": 335544320
+  }
 }

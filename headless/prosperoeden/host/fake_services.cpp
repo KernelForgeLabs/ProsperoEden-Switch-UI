@@ -8,7 +8,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cctype>
 #include <cstdio>
+#include <filesystem>
 
 namespace pe::host
 {
@@ -146,6 +148,7 @@ constexpr int kLanguageRegions[] = {1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 2, 2, 2, 0, 5,
 
 FakeServices::FakeServices(const std::string &covers_directory)
 {
+    wallpapers_directory_ = covers_directory + "/wallpapers";
     int index = 0;
     for (const Sample &sample : kSamples)
     {
@@ -199,6 +202,12 @@ FakeServices::FakeServices(const std::string &covers_directory)
             game.cover.clear();
         remote_.push_back(game);
     }
+    // Runtime preview: exercise the complete scrolling library without shipping game payloads.
+    for(int extra=static_cast<int>(games_.size());extra<64;++extra) {
+        ui::Game game=games_[static_cast<std::size_t>(extra)%games_.size()];
+        game.name="Sample Software "+std::to_string(extra+1); game.file=game.name+".nsp";
+        game.title_id=0x0100C00000000000ull+static_cast<std::uint64_t>(extra); games_.push_back(std::move(game));
+    }
     std::sort(games_.begin(), games_.end(),
               [](const ui::Game &a, const ui::Game &b) { return a.name < b.name; });
 }
@@ -235,7 +244,8 @@ ui::Home FakeServices::home()
         };
         // As the console does: a game taken away is not offered, the next recent one is.
         const char *const recent[] = {"Echoes of the Valley", "Kart Carnival Deluxe", "Starfall Odyssey",
-                                      "Caf\xC3\xA9 Nocturne"};
+                                      "Caf\xC3\xA9 Nocturne", "Neon Drifters", "Pocket Rally Turbo",
+                                      "Cloudline", "Ember Knights II"};
         const char *first = recent[0];
         for (const char *name : recent)
             if (game_exists(find(name).file))
@@ -297,6 +307,13 @@ const std::vector<std::string> &FakeServices::astc_labels()
     static const std::vector<std::string> labels = translated(kAstcLabels);
     return labels;
 }
+// The bundled presets the preview shows, as a console with no presets of its own lists them.
+const std::vector<std::string> &FakeServices::post_processing_labels()
+{
+    static const std::vector<std::string> labels = {
+        tr("Off"), "Anime", "Cinematic", "Clean", "Dreamy", "Retro", "Vivid"};
+    return labels;
+}
 const std::vector<std::string> &FakeServices::language_labels()
 {
     static const std::vector<std::string> labels = translated(kLanguageLabels);
@@ -316,6 +333,26 @@ std::string FakeServices::setup_details()
                tr("Keys and firmware: startup checks passed. Game-specific compatibility is checked at "
                   "launch.") :
                fill(tr("Missing or empty keys/prod.keys in {0}."), {"/data/prosperoeden"});
+}
+
+std::vector<std::string> FakeServices::wallpapers()
+{
+    std::vector<std::string> names;
+    std::error_code error;
+    for (std::filesystem::directory_iterator it{wallpapers_directory_, error}, end; !error && it != end;
+         it.increment(error))
+        if (it->is_regular_file())
+            names.push_back(it->path().filename().string());
+    // Sorted without regard to case, as the console lists a folder (eden_services.cpp).
+    const auto lower = [](std::string text)
+    {
+        for (char &c : text)
+            c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+        return text;
+    };
+    std::sort(names.begin(), names.end(),
+              [&](const std::string &a, const std::string &b) { return lower(a) < lower(b); });
+    return names;
 }
 
 bool FakeServices::folders(const std::string &directory, std::vector<std::string> *names)

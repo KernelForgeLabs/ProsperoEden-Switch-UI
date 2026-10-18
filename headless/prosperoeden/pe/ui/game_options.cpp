@@ -41,6 +41,13 @@ enum Category : int
 // The Video category's rows that say something of their own once chosen.
 constexpr int kAstcRow = 3;
 constexpr int kRefreshRow = 4;
+constexpr int kHudRow = 5;
+constexpr int kHudSizeRow = 6;
+constexpr int kHudCornerRow = 7;
+constexpr int kPostProcessingRow = 8;
+// Frame generation follows the overlay's three rows wherever it is shown (with_option): the last
+// of them needs no row constant, because the chain there falls through to frame_gen_multiplier.
+constexpr int kFrameGenRow = 9, kFrameGenTargetRow = 10;
 // The Controls category's rows.
 constexpr int kVibrationRow = 0;
 constexpr int kMappingRow = 1;
@@ -91,8 +98,8 @@ bool *performance_switch(Preferences &prefs, int index)
 {
     bool *const switches[] = {&prefs.block_list, &prefs.async_shaders,     &prefs.fast_gpu,
                               &prefs.unsafe_cpu, &prefs.unsafe_dma,        &prefs.reactive_flushing,
-                              &prefs.skip_invalidation};
-    return switches[std::clamp(index, 0, 6)];
+                              &prefs.skip_invalidation, &prefs.compact_memory};
+    return switches[std::clamp(index, 0, 7)];
 }
 
 // rates: the refresh rates as the launcher writes them (Launcher::hertz).
@@ -118,9 +125,19 @@ std::vector<Option> options(int category, const GameSettings &game, Preferences 
                         pick(services.astc_labels(), prefs.astc)});
         rows.push_back({tr("Refresh rate"), rates, game.refresh, pick(rates, prefs.refresh)});
         rows.push_back({tr("FPS overlay"), off_on, game.hud, on_off(prefs.hud)});
-        // Appended last on purpose: the rows above keep the indexes with_option() and the
-        // saved game settings use. Vulkan only -- the OpenGL renderer has no frame generation.
-        // Not shown in a build without it; greyed out while the user's Lossless.dll is missing.
+        // The overlay's chip: how large it is drawn, and which corner of the picture it stands in.
+        rows.push_back({tr("Overlay size"), {tr("Regular"), tr("Medium"), tr("Large")}, game.hud_size,
+                        tr(kHudSizeNames[std::clamp(prefs.hud_size, 0, 2)])});
+        rows.push_back({tr("Overlay corner"), {tr("Top left"), tr("Top right"), tr("Bottom left"),
+                                               tr("Bottom right")},
+                        game.hud_corner, tr(kHudCornerNames[std::clamp(prefs.hud_corner, 0, 3)])});
+        // One of Eden's ReShade FX presets, or off (the Vulkan renderer draws it).
+        rows.push_back({tr("Post-processing"), services.post_processing_labels(), game.post_processing,
+                        pick(services.post_processing_labels(), prefs.post_processing)});
+        // Frame generation comes last on purpose: the rows above keep the indexes with_option()
+        // and the saved game settings use. Vulkan only -- the OpenGL renderer has no frame
+        // generation. Not shown in a build without it; greyed out while the user's Lossless.dll
+        // is missing.
         const int frame_gen = services.frame_gen_state();
         if (frame_gen == 0)
             break;
@@ -144,8 +161,8 @@ std::vector<Option> options(int category, const GameSettings &game, Preferences 
         static constexpr const char *kNames[] = {
             TR("Compile ahead"),        TR("Asynchronous shaders"), TR("Faster GPU emulation"),
             TR("Faster CPU emulation"), TR("Faster DMA"),           TR("Reactive flushing"),
-            TR("Skip CPU invalidation")};
-        for (int i = 0; i < 7; ++i)
+            TR("Skip CPU invalidation"), TR("Compact memory")};
+        for (int i = 0; i < 8; ++i)
         {
             // Asynchronous shaders act with Vulkan only (settings.cpp).
             rows.push_back({std::string(tr(kNames[i])) + (i == 1 ? " (Vulkan)" : ""), off_on,
@@ -196,11 +213,14 @@ GameSettings with_option(GameSettings game, int category, int row, int value, co
     {
     case category_video:
         (row == 0 ? game.renderer : row == 1 ? game.resolution : row == 2 ? game.filter :
-         row == kAstcRow ? game.astc : row == kRefreshRow ? game.refresh : row == 5 ? game.hud :
-         row == 6 ? game.frame_gen : row == 7 ? game.frame_gen_target : game.frame_gen_multiplier) = value;
+         row == kAstcRow ? game.astc : row == kRefreshRow ? game.refresh : row == kHudRow ? game.hud :
+         row == kHudSizeRow ? game.hud_size : row == kHudCornerRow ? game.hud_corner :
+         row == kPostProcessingRow ? game.post_processing :
+         row == kFrameGenRow ? game.frame_gen : row == kFrameGenTargetRow ? game.frame_gen_target :
+         game.frame_gen_multiplier) = value;
         break;
     case category_performance:
-        game.performance[static_cast<std::size_t>(std::clamp(row, 0, 6))] = value;
+        game.performance[static_cast<std::size_t>(std::clamp(row, 0, 7))] = value;
         break;
     case category_audio:
         if (row == 0)
@@ -240,7 +260,8 @@ int Launcher::game_overrides(int category) const
     {
     case category_video:
         return (game.renderer >= 0) + (game.resolution >= 0) + (game.filter >= 0) + (game.astc >= 0) +
-               (game.refresh >= 0) + (game.hud >= 0) + (game.frame_gen >= 0) + (game.frame_gen_target >= 0) +
+               (game.refresh >= 0) + (game.hud >= 0) + (game.hud_size >= 0) + (game.hud_corner >= 0) +
+               (game.post_processing >= 0) + (game.frame_gen >= 0) + (game.frame_gen_target >= 0) +
                (game.frame_gen_multiplier >= 0);
     case category_performance:
         return static_cast<int>(
@@ -499,7 +520,7 @@ void Launcher::press_mapping(Key key)
         else
         {
             modal_ = modal_shown_ = Modal::controls;
-            option_ = 1;
+            option_ = 2;
             option_cursor_.snap(dialog_row_top(Modal::controls, option_));
         }
         message_.clear();
@@ -616,7 +637,132 @@ void Launcher::draw_mapping(Canvas &c, float open)
                                              {Pad::leftright, TR("Change")},
                                              {Pad::square, TR("Reset")},
                                              {Pad::circle, TR("Back")}};
-        draw_hints(c, kHintsRow, 4, 592.0f, kHints, th().copy, 736.0f);
+        draw_menu_hints(c, kHintsRow, 4, 592.0f, kHints, th().copy, 736.0f);
+    }
+    list.pop_transform();
+    list.pop_opacity();
+}
+
+void Launcher::open_menu_mapping()
+{
+    menu_mapping_rows_.visible = kRowsShown;
+    menu_mapping_rows_.pitch = kRowPitch;
+    menu_mapping_rows_.reset(kMenuActions, 0);
+    modal_ = modal_shown_ = Modal::menu_mapping;
+    message_.clear();
+    cue(Cue::open);
+}
+
+void Launcher::press_menu_mapping(Key key)
+{
+    MenuBinding binding = prefs_.menu_bind;
+    const int row = std::clamp(menu_mapping_rows_.selected, 0, kMenuActions - 1);
+    switch (key)
+    {
+    case Key::circle:
+        // Back to Settings > Controls, on the Menu keybinds row.
+        modal_ = modal_shown_ = Modal::controls;
+        option_ = 3; // the Menu keybinds row (settings.cpp's ControlRow)
+        option_cursor_.snap(dialog_row_top(Modal::controls, option_));
+        message_.clear();
+        cue(Cue::back);
+        return;
+    case Key::up:
+    case Key::down:
+        if (menu_mapping_rows_.move(key == Key::down ? 1 : -1))
+        {
+            message_.clear();
+            cue(Cue::focus);
+        }
+        return;
+    case Key::square:
+        // Every action back on its usual face button.
+        binding = kDefaultMenuBinding;
+        break;
+    case Key::left:
+    case Key::right:
+    case Key::cross:
+    {
+        // The next face button; the action that had it takes this one's old one.
+        const int step = key == Key::left ? -1 : 1;
+        const int pad = (binding[static_cast<std::size_t>(row)] + step + kMenuActions) % kMenuActions;
+        binding = assign_menu(binding, row, pad);
+        break;
+    }
+    default:
+        return;
+    }
+    const Preferences before = prefs_;
+    prefs_.menu_bind = binding;
+    const bool saved = save_preferences();
+    if (!saved)
+        prefs_ = before;
+    cue(saved ? Cue::toggle : Cue::error);
+}
+
+void Launcher::draw_menu_mapping(Canvas &c, float open)
+{
+    // The four core menu actions, in the binding's order (services.hpp).
+    static constexpr const char *kMenuActionNames[kMenuActions] = {
+        TR("Select"), TR("Back"), TR("Secondary"), TR("Game settings")};
+    gfx::DrawList &list = c.list;
+    list.push_opacity(open);
+    list.push_transform(1.0f - 0.03f * (1.0f - open) * motion(), 960.0f, 540.0f, 0.0f,
+                        (1.0f - open) * 26.0f * motion());
+    glass(c, kDialog, th().radius_panel, th().panel.with_alpha(0.97f), th().panel_edge.with_alpha(0.66f), 1.6f);
+    text_shrink(c, tr("Menu keybinds"), 592.0f, baseline(218.0f, 62.0f, th().size_display), th().size_display,
+                th().title, 736.0f);
+    text_fit(c, std::string{tr("Which face button does what in the menu.")}, 592.0f,
+             baseline(291.0f, 32.0f, th().size_small), th().size_small, th().copy, 736.0f);
+
+    const MenuBinding &binding = prefs_.menu_bind;
+    list.push_clip({kWindow.x - 24.0f, kWindow.y - 6.0f, kWindow.w + 48.0f, kWindow.h + 12.0f});
+    const auto row_top = [&](int row)
+    { return kRowsTop + static_cast<float>(row) * kRowPitch - menu_mapping_rows_.scroll(); };
+    for (int row = menu_mapping_rows_.first_row(); row <= menu_mapping_rows_.last_row(); ++row)
+    {
+        list.push_opacity(menu_mapping_rows_.row_alpha(row, kRowHeight));
+        plate_rest(c, row_plate(), {592.0f, row_top(row), 736.0f, kRowHeight});
+        list.pop_opacity();
+    }
+    plate_focus(c, row_plate(),
+                {592.0f, kRowsTop + menu_mapping_rows_.cursor() - menu_mapping_rows_.scroll(), 736.0f,
+                 kRowHeight},
+                1.0f);
+    for (int row = menu_mapping_rows_.first_row(); row <= menu_mapping_rows_.last_row(); ++row)
+    {
+        const float top = row_top(row);
+        const int pad = binding[static_cast<std::size_t>(row)];
+        const bool usual = pad == kDefaultMenuBinding[static_cast<std::size_t>(row)];
+        list.push_opacity(menu_mapping_rows_.row_alpha(row, kRowHeight));
+        // The face button that presses this action (brighter when moved).
+        const float taken = chooser(c, tr(kPadButtonNames[std::clamp(pad, 0, kMenuActions - 1)]), 1296.0f,
+                                    baseline(top, kRowHeight, th().size_text),
+                                    row == menu_mapping_rows_.selected ? 1.0f : 0.0f,
+                                    usual ? th().accent_pale : th().accent);
+        // The button itself before its name.
+        const Pad mark = kPadButtonMarks[std::clamp(pad, 0, kMenuActions - 1)];
+        const float mark_width = pad_width(mark, 32.0f);
+        draw_pad(c, mark, 1296.0f - taken - 16.0f - mark_width, top + kRowHeight * 0.5f, 32.0f);
+        text_shrink(c, tr(kMenuActionNames[row]), 628.0f, baseline(top, kRowHeight, th().size_text),
+                    th().size_text, th().value, 664.0f - taken - 16.0f - mark_width - 28.0f);
+        list.pop_opacity();
+    }
+    list.pop_clip();
+    scrollbar(c, menu_mapping_rows_, 1340.0f, kWindow.y, kWindow.h);
+
+    if (!message_.empty())
+    {
+        notice_block(c, message_, 592.0f, kHints - 6.0f, th().size_small, 26.0f,
+                     message_warning_ ? th().warning : th().accent_pale, 736.0f, 2, message_warning_);
+    }
+    else
+    {
+        static constexpr Hint kHintsRow[] = {{Pad::updown, TR("Select")},
+                                             {Pad::leftright, TR("Change")},
+                                             {Pad::square, TR("Reset")},
+                                             {Pad::circle, TR("Back")}};
+        draw_menu_hints(c, kHintsRow, 4, 592.0f, kHints, th().copy, 736.0f);
     }
     list.pop_transform();
     list.pop_opacity();

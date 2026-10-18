@@ -43,6 +43,10 @@ msgstr "Laiteohjelmiston NCA-tiedostoa ei voi lukea. Asenna laiteohjelmistovedos
 msgid "A pairing is running already."
 msgstr "Paritus on jo käynnissä."
 
+#: pe/ui/browse.cpp
+msgid "ABOUT"
+msgstr "TIETOJA"
+
 #. The menu's last section: about this app (its credits, where its files go). One short word.
 #: pe/ui/shell.cpp
 msgid "About"
@@ -92,9 +96,21 @@ msgstr "Kaikki kunnia Eden-emulaattorista kuuluu sen kehittäjille ja avustajill
 msgid "AMD FSR"
 msgstr "AMD FSR"
 
+#: pe/ui/settings.cpp
+msgid "An image of your own behind this menu."
+msgstr "Oma kuva tämän valikon taustalla."
+
 #: eden_services.cpp
 msgid "Another language"
 msgstr "Muu kieli"
+
+#: pe/ui/settings.cpp
+msgid "Appearance"
+msgstr "Ulkoasu"
+
+#: pe/ui/settings.cpp
+msgid "Apply"
+msgstr "Käytä"
 
 #. The button mapping has not been changed.
 #: pe/ui/game_options.cpp, pe/ui/settings.cpp
@@ -136,6 +152,10 @@ msgstr "Automaattinen"
 msgid "Back"
 msgstr "Takaisin"
 
+#: pe/ui/settings.cpp
+msgid "Backend"
+msgstr "Renderöijä"
+
 #: pe/ui/save_sync.cpp
 msgid "Backing up save data"
 msgstr "Varmuuskopioidaan tallennuksia"
@@ -149,6 +169,14 @@ msgstr "Bikuubinen"
 #: settings_store.h
 msgid "Bilinear"
 msgstr "Bilineaarinen"
+
+#: pe/ui/game_options.cpp
+msgid "Bottom left"
+msgstr "Vasen alakulma"
+
+#: pe/ui/game_options.cpp
+msgid "Bottom right"
+msgstr "Oikea alakulma"
 
 #. Button hint: move through the list.
 #: pe/ui/browse.cpp, pe/ui/multiplayer.cpp
@@ -236,6 +264,14 @@ msgstr "Valitse"
 msgid "Choose a game from your library."
 msgstr "Valitse peli kirjastostasi."
 
+#: pe/ui/settings.cpp
+msgid "Choose a theme or change the launcher layout."
+msgstr "Valitse teema tai vaihda käynnistimen asettelua."
+
+#: pe/ui/settings.cpp
+msgid "Choose the colours and appearance of this menu."
+msgstr "Valitse tämän valikon värit ja ulkoasu."
+
 #: pe/ui/browse.cpp
 msgid "Choose the folder that holds your keys, firmware and games"
 msgstr "Valitse kansio, jossa avaimesi, laiteohjelmisto ja pelisi ovat"
@@ -252,6 +288,14 @@ msgstr "Ympyrä"
 #: pe/ui/remote.cpp, pe/ui/update.cpp
 msgid "Close"
 msgstr "Sulje"
+
+#: pe/ui/settings.cpp
+msgid "Colour"
+msgstr "Väri"
+
+#: pe/ui/game_options.cpp, pe/ui/settings.cpp
+msgid "Compact memory"
+msgstr "Tiivis muisti"
 
 #. A switch: the program code a game used in earlier sessions is prepared (compiled) while the game starts. Keep it short.
 #: pe/ui/game_options.cpp, pe/ui/settings.cpp
@@ -311,6 +355,10 @@ msgstr "OHJAIMET"
 msgid "Controls"
 msgstr "Ohjaus"
 
+#: pe/ui/settings.cpp
+msgid "Corner"
+msgstr "Kulma"
+
 #: pe/ui/remote.cpp
 msgid "Could not cancel the download."
 msgstr "Latausta ei voitu peruuttaa."
@@ -347,6 +395,14 @@ msgstr "Tallennus epäonnistui. Yritä uudelleen."
 msgid "Could not start the connection or save its settings."
 msgstr "Yhteyttä ei voitu aloittaa tai sen asetuksia tallentaa."
 
+#: pe/ui/settings.cpp
+msgid "CPU"
+msgstr "CPU"
+
+#: pe/ui/settings.cpp
+msgid "CPU by core"
+msgstr "CPU ytimittäin"
+
 #. The DualSense button labelled CREATE: keep the label if the language's players do.
 #: pe/ui/game_options.cpp
 msgid "Create"
@@ -370,6 +426,10 @@ msgstr "Tekijät ja määritys"
 #: pe/ui/game_options.cpp
 msgid "Cross"
 msgstr "Risti"
+
+#: pe/ui/settings.cpp
+msgid "Default"
+msgstr "Oletus"
 
 #. A per-game setting that follows the general setting; {0} is its value.
 #: pe/ui/game_options.cpp
@@ -512,6 +572,10 @@ msgid "Edit"
 msgstr "Muokkaa"
 
 #: pe/ui/settings.cpp
+msgid "Enable colors"
+msgstr "Ota värit käyttöön"
+
+#: pe/ui/settings.cpp
 msgid "End the game and return to this menu"
 msgstr "Lopeta peli ja palaa tähän valikkoon"
 
@@ -607,6 +671,10 @@ msgstr "Kuten Asetuksissa"
 msgid "For every controller. A game can have its own."
 msgstr "Kaikille ohjaimille. Pelillä voi olla oma."
 
+#: pe/ui/settings.cpp
+msgid "FPS"
+msgstr "FPS"
+
 #: pe/ui/game_options.cpp, pe/ui/settings.cpp
 msgid "FPS overlay"
 msgstr "FPS-laskuri"
@@ -626,6 +694,10 @@ msgstr "Kehysten luonti"
 #: pe/ui/game_options.cpp, pe/ui/settings.cpp
 msgid "Frame generation needs Lossless.dll, from Lossless Scaling, in the lossless folder."
 msgstr "Kuvien generointi tarvitsee Lossless Scalingin Lossless.dll-tiedoston kansioon lossless."
+
+#: pe/ui/settings.cpp
+msgid "Frame time"
+msgstr "Kuva-aika"
 
 #: settings_store.h
 msgid "French"
@@ -652,6 +724,10 @@ msgstr "Täysi laatu"
 #: pe/ui/library.cpp, pe/ui/settings.cpp
 msgid "Game audio; PS5 system-menu music is unchanged."
 msgstr "Pelien ääni; PS5:n järjestelmävalikon musiikki ei muutu."
+
+#: pe/ui/launcher.cpp
+msgid "Game cannot start now."
+msgstr "Peliä ei voi käynnistää nyt."
 
 #. {0} is the reason, a sentence in English; {1} is a file.
 #: eden_services.cpp, host/fake_services.cpp
@@ -702,9 +778,17 @@ msgstr "Saksa"
 msgid "GETTING STARTED"
 msgstr "NÄIN ALOITAT"
 
+#: pe/ui/settings.cpp
+msgid "Gives back memory a game left empty, 16 KiB at a time. More free memory; a game that writes there again can stutter for a moment."
+msgstr "Palauttaa muistin, jonka peli jätti tyhjäksi, 16 KiB kerrallaan. Enemmän vapaata muistia; peli, joka kirjoittaa sinne uudelleen, voi nykäistä hetken."
+
 #: pe/ui/multiplayer.cpp
 msgid "Go offline"
 msgstr "Siirry offline-tilaan"
+
+#: pe/ui/settings.cpp
+msgid "GPU"
+msgstr "GPU"
 
 #: pe/ui/settings.cpp
 msgid "Graphics backend and how games are scaled to your TV."
@@ -732,6 +816,10 @@ msgstr "Koti"
 #: pe/ui/library.cpp, pe/ui/settings.cpp
 msgid "How games are drawn and scaled to your TV."
 msgstr "Miten pelit piirretään ja skaalataan televisioosi."
+
+#: pe/ui/settings.cpp
+msgid "Images in this folder: {0}"
+msgstr "Kuvia tässä kansiossa: {0}"
 
 #. Button hint: copy a save in.
 #: pe/ui/library.cpp
@@ -841,6 +929,10 @@ msgstr "Kieli"
 msgid "LANGUAGES"
 msgstr "KIELET"
 
+#: pe/ui/game_options.cpp
+msgid "Large"
+msgstr "Suuri"
+
 #. A switch: the menu's small text is drawn larger.
 #: pe/ui/settings.cpp
 msgid "Larger text"
@@ -850,6 +942,10 @@ msgstr "Suurempi teksti"
 #: eden_services.cpp
 msgid "Last game opened"
 msgstr "Viimeksi avattu peli"
+
+#: pe/ui/settings.cpp
+msgid "Launcher"
+msgstr "Käynnistin"
 
 #: pe/ui/multiplayer.cpp
 msgid "Leave / cancel"
@@ -888,6 +984,10 @@ msgstr "Epätarkempi liukulukulaskenta: nopeampi, mutta muutama peli toimii vä�
 msgid "Less exact memory transfers to the GPU: faster, and a few games show wrong graphics."
 msgstr "Epätarkemmat muistisiirrot GPU:lle: nopeampi, mutta muutamassa pelissä grafiikka näkyy väärin."
 
+#: pe/ui/library.cpp
+msgid "LIBRARY"
+msgstr "KIRJASTO"
+
 #: pe/ui/library.cpp, pe/ui/shell.cpp
 msgid "Library"
 msgstr "Kirjasto"
@@ -907,6 +1007,18 @@ msgstr "Alin GPU-tarkkuus: nopeampi vaativissa peleissä, mutta grafiikka voi n�
 #: pe/ui/settings.cpp
 msgid "Make the menu easier to see and follow."
 msgstr "Tee valikosta helpompi nähdä ja seurata."
+
+#: pe/ui/game_options.cpp
+msgid "Medium"
+msgstr "Keskikoko"
+
+#: pe/ui/settings.cpp
+msgid "Memory"
+msgstr "Muisti"
+
+#: pe/ui/game_options.cpp, pe/ui/settings.cpp
+msgid "Menu keybinds"
+msgstr "Valikon painikkeet"
 
 #: pe/ui/browse.cpp
 msgid "Menu sound effects made with ElevenLabs."
@@ -959,6 +1071,10 @@ msgstr "Lähin"
 #: pe/ui/pairing.cpp, pe/ui/settings.cpp
 msgid "Needs attention"
 msgstr "Vaatii huomiota"
+
+#: pe/ui/theme.cpp
+msgid "Neutral glass, clean and still."
+msgstr "Neutraalia lasia, puhdas ja tyyni."
 
 #: pe/ui/profiles.cpp
 msgid "New profile"
@@ -1111,6 +1227,18 @@ msgstr "Options"
 msgid "Output resolution"
 msgstr "Lähtöresoluutio"
 
+#: pe/ui/game_options.cpp
+msgid "Overlay corner"
+msgstr "Laskurin kulma"
+
+#: pe/ui/settings.cpp
+msgid "Overlay options"
+msgstr "Laskurin asetukset"
+
+#: pe/ui/game_options.cpp
+msgid "Overlay size"
+msgstr "Laskurin koko"
+
 #. Button hint: jump a page of the list (L1 / R1).
 #: pe/ui/browse.cpp, pe/ui/multiplayer.cpp, pe/ui/update.cpp
 msgid "Page"
@@ -1158,6 +1286,10 @@ msgstr "Paikkaus"
 msgid "Performance"
 msgstr "Suorituskyky"
 
+#: pe/ui/settings.cpp
+msgid "Ping"
+msgstr "Ping"
+
 #. Button and button hint: start the game shown. Keep it to one short word.
 #: pe/ui/home.cpp, pe/ui/library.cpp
 msgid "Play"
@@ -1203,6 +1335,10 @@ msgstr "Portugali"
 msgid "Portuguese (Brazil)"
 msgstr "Portugali (Brasilia)"
 
+#: pe/ui/game_options.cpp, pe/ui/settings.cpp
+msgid "Post-processing"
+msgstr "Jälkikäsittely"
+
 #. Eden is the emulator's name (unchanged).
 #: pe/ui/browse.cpp
 msgid "Powered by Eden"
@@ -1225,6 +1361,10 @@ msgstr "Paina uudelleen, niin pelin tallennus korvataan. Nykyinen varmuuskopioid
 #: pe/ui/multiplayer.cpp
 msgid "Private room"
 msgstr "Yksityinen huone"
+
+#: pe/ui/multiplayer.cpp
+msgid "PRIVATE ROOM"
+msgstr "YKSITYINEN HUONE"
 
 #: pe/ui/game_options.cpp
 msgid "Pro Controller"
@@ -1292,6 +1432,14 @@ msgstr "PS5-VERSIO"
 msgid "Public rooms"
 msgstr "Julkiset huoneet"
 
+#: pe/ui/multiplayer.cpp
+msgid "PUBLIC ROOMS"
+msgstr "JULKISET HUONEET"
+
+#: pe/ui/settings.cpp
+msgid "Put images in the wallpapers folder to show them here."
+msgstr "Laita kuvia wallpapers-kansioon, niin ne näkyvät tässä."
+
 #: pe/ui/remote.cpp
 msgid "Queued"
 msgstr "Jonossa"
@@ -1347,6 +1495,10 @@ msgstr "Virkistystaajuus"
 #: pe/ui/browse.cpp
 msgid "REGION"
 msgstr "ALUE"
+
+#: pe/ui/game_options.cpp
+msgid "Regular"
+msgstr "Tavallinen"
 
 #: pe/ui/profiles.cpp
 msgid "Remove"
@@ -1479,6 +1631,10 @@ msgstr "Tallennettu. Tulee voimaan, kun peli käynnistyy."
 msgid "Saved. Full quality uses four times the graphics memory for these textures and can run out above 1x."
 msgstr "Tallennettu. Täysi laatu käyttää näihin tekstuureihin nelinkertaisen grafiikkamuistin, ja muisti voi loppua yli 1x:n."
 
+#: pe/ui/settings.cpp
+msgid "Saved. Post-processing needs the Vulkan renderer."
+msgstr "Tallennettu. Jälkikäsittely vaatii Vulkan-hahmontimen."
+
 #: pe/ui/browse.cpp
 msgid "Saved. Reopen ProsperoEden to use this folder."
 msgstr "Tallennettu. Avaa ProsperoEden uudelleen, niin kansio otetaan käyttöön."
@@ -1491,6 +1647,10 @@ msgstr "Skannaa koodi puhelimella tai avaa alla oleva osoite."
 #: pe/ui/update.cpp
 msgid "Scroll"
 msgstr "Vieritä"
+
+#: pe/ui/game_options.cpp
+msgid "Secondary"
+msgstr "Toissijainen"
 
 #. Button hint beside L1 and R1: they move between the menu's sections (Home, Library, Multiplayer, Settings, About).
 #: pe/ui/browse.cpp, pe/ui/home.cpp, pe/ui/library.cpp, pe/ui/multiplayer.cpp, pe/ui/settings.cpp
@@ -1520,6 +1680,10 @@ msgstr "Palvelin liian vanha synkronointiin"
 msgid "Settings"
 msgstr "Asetukset"
 
+#: pe/ui/settings.cpp
+msgid "SETTINGS"
+msgstr "ASETUKSET"
+
 #: eden_services.cpp, host/fake_services.cpp
 msgid "Setup required"
 msgstr "Määritys vaaditaan"
@@ -1545,6 +1709,10 @@ msgid "Several sources have this game. Which one should it come from?"
 msgstr "Tämä peli on usealla lähteellä. Mistä se ladataan?"
 
 #: pe/ui/settings.cpp
+msgid "Show an image of your own behind the menu."
+msgstr "Näytä oma kuva valikon taustalla."
+
+#: pe/ui/settings.cpp
 msgid "Show or hide the FPS overlay"
 msgstr "Näytä tai piilota FPS-laskuri"
 
@@ -1555,6 +1723,10 @@ msgstr "Näytetään edellinen luettelo."
 #: pe/ui/pairing.cpp
 msgid "Sign in to {0} as the user this profile's save data belongs to."
 msgstr "Kirjaudu palveluun {0} käyttäjänä, jolle tämän profiilin tallennukset kuuluvat."
+
+#: pe/ui/settings.cpp
+msgid "Size"
+msgstr "Koko"
 
 #. Button and hint: not now (the dialog shows again the next time the app opens).
 #: pe/ui/update.cpp
@@ -1581,6 +1753,10 @@ msgstr "Espanja"
 #: settings_store.h
 msgid "Spanish (Latin America)"
 msgstr "Espanja (Latinalainen Amerikka)"
+
+#: pe/ui/settings.cpp
+msgid "Speed"
+msgstr "Nopeus"
 
 #. A DualSense button.
 #: pe/ui/game_options.cpp
@@ -1650,6 +1826,10 @@ msgstr "KIITOKSET"
 #: pe/ui/browse.cpp
 msgid "Thanks to the whole PS5 homebrew community and to every developer whose drivers, tools and libraries make ProsperoEden possible."
 msgstr "Kiitos koko PS5:n homebrew-yhteisölle ja kaikille kehittäjille, joiden ajurien, työkalujen ja kirjastojen ansiosta ProsperoEden on mahdollinen."
+
+#: pe/ui/settings.cpp
+msgid "The accent colour of the current theme."
+msgstr "Nykyisen teeman korostusväri."
 
 #: pe/ui/remote.cpp
 msgid "The download stopped"
@@ -1743,6 +1923,10 @@ msgstr "Päivitystä ei voitu viedä loppuun"
 msgid "Theme"
 msgstr "Teema"
 
+#: pe/ui/settings.cpp
+msgid "Theme and launcher settings."
+msgstr "Teeman ja käynnistimen asetukset."
+
 #: pe/ui/save_sync.cpp
 msgid "This console and the server both have save data the other does not know. Which one should stay? The other is kept as a backup."
 msgstr "Sekä konsolissa että palvelimella on tallennuksia, joita toinen ei tunne. Kummat säilytetään? Toiset jäävät varmuuskopioksi."
@@ -1776,6 +1960,14 @@ msgstr "Tämä huone käyttää eri protokollaversiota."
 #: eden_services.cpp
 msgid "To import, copy a Ryujinx folder to ryujinx/ or a save to save-import/{0}/, next to roms/."
 msgstr "Tuontia varten kopioi Ryujinx-kansio kansioon ryujinx/ tai tallennus kansioon save-import/{0}/, kansion roms/ viereen."
+
+#: pe/ui/game_options.cpp
+msgid "Top left"
+msgstr "Vasen yläkulma"
+
+#: pe/ui/game_options.cpp
+msgid "Top right"
+msgstr "Oikea yläkulma"
 
 #. The DualSense controller's touch pad, pressed as a button. Use the name players know.
 #: pe/ui/game_options.cpp
@@ -1866,6 +2058,10 @@ msgstr "Skaalaussuodatin"
 msgid "USA"
 msgstr "USA"
 
+#: pe/ui/settings.cpp
+msgid "Use another home screen, library and menu layout."
+msgstr "Käytä toista aloitusnäkymän, kirjaston ja valikon asettelua."
+
 #: pe/ui/browse.cpp
 msgid "Use extracted firmware NCA files. Choose the folder in Settings, Game files; restart the app after changing it."
 msgstr "Käytä purettuja laiteohjelmiston NCA-tiedostoja. Valitse kansio kohdasta Asetukset, Pelitiedostot; käynnistä sovellus uudelleen muutoksen jälkeen."
@@ -1902,6 +2098,10 @@ msgid "Vibration on"
 msgstr "Värinä päällä"
 
 #: pe/ui/settings.cpp
+msgid "Vibration strength"
+msgstr "Värinän voimakkuus"
+
+#: pe/ui/settings.cpp
 msgid "Vibration, button mapping and the shortcuts during a game."
 msgstr "Värinä, painikkeiden määritys ja pikanäppäimet pelin aikana."
 
@@ -1930,6 +2130,14 @@ msgstr "Odottaa: {0}"
 msgid "Waiting to download"
 msgstr "Odottaa latausta"
 
+#: pe/ui/settings.cpp
+msgid "Wallpaper"
+msgstr "Taustakuva"
+
+#: pe/ui/settings.cpp
+msgid "What the FPS overlay's line says, and how the chip is drawn."
+msgstr "Mitä FPS-laskurin rivi näyttää ja miten se piirretään."
+
 #. Button on the update dialog: opens the new release's notes (what changes in it). Keep it short.
 #: pe/ui/update.cpp
 msgid "What's new"
@@ -1939,6 +2147,10 @@ msgstr "Uutta"
 #: pe/ui/update.cpp
 msgid "What's new in version {0}"
 msgstr "Uutta versiossa {0}"
+
+#: pe/ui/game_options.cpp
+msgid "Which face button does what in the menu."
+msgstr "Mikä toimintopainike tekee mitäkin valikossa."
 
 #: pe/ui/settings.cpp
 msgid "Who is playing. Each profile keeps its own save data and settings."
@@ -2095,3 +2307,7 @@ msgstr "{0}/ (NSP tai XCI)"
 #: pe/ui/browse.cpp
 msgid "{0}/ (one folder per game ID)"
 msgstr "{0}/ (kansio kutakin nimiketunnusta kohden)"
+
+#: pe/ui/settings.cpp
+msgid "Crash reports (FTP): {0}\nAttach crash-*.txt and its matching logs to your issue."
+msgstr "Kaatumisraportit (FTP): {0}\nLiitä crash-*.txt ja siihen liittyvät lokit virheilmoitukseesi."

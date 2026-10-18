@@ -1,3 +1,4 @@
+#ifndef PE_RUNTIME_PREVIEW
 // ProsperoEden - Launcher preview on a PC: draws the real screens to PNG files.
 // Copyright (C) 2026 BlackBearReloaded
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -119,9 +120,9 @@ struct Stage
     {
         press({Key::l1, Key::l1}); // past About, the last section
     }
-    // Where things lie four to a row (the Library's covers, the Settings tiles): from the one at
-    // `from` to the one at `to`, down or up first, then along the row.
-    void walk(int from, int to, int columns = 4)
+    // Navigate a grid from one index to another, moving vertically first.
+    // The Library has six columns; Settings uses one column.
+    void walk(int from, int to, int columns = 6)
     {
         for (int row = from / columns; row < to / columns; ++row)
             press({Key::down});
@@ -507,7 +508,7 @@ void pictures(Stage &s)
         }
     }
     s.press({Key::circle});
-    s.walk(0, 1);
+    s.walk(0, 1, 1);
     s.press({Key::cross});
     s.wait(0.8f);
     s.shoot("14-video");
@@ -528,7 +529,7 @@ void pictures(Stage &s)
     // Performance: seven switches, four of them showing. Reactive flushing starts on, the
     // others off, and a press on each one reaches the settings.
     s.press({Key::circle});
-    s.walk(1, 2);
+    s.walk(1, 2, 1);
     s.press({Key::cross});
     s.wait(0.8f);
     s.shoot("46-performance");
@@ -536,17 +537,17 @@ void pictures(Stage &s)
         const auto states = [&s]
         {
             const pe::ui::Preferences p = s.services.preferences();
-            return std::array<bool, 7>{p.block_list, p.async_shaders, p.fast_gpu, p.unsafe_cpu,
-                                       p.unsafe_dma, p.reactive_flushing, p.skip_invalidation};
+            return std::array<bool, 8>{p.block_list, p.async_shaders, p.fast_gpu, p.unsafe_cpu,
+                                       p.unsafe_dma, p.reactive_flushing, p.skip_invalidation, p.compact_memory};
         };
-        const std::array<bool, 7> start = states();
-        bool reached = start == std::array<bool, 7>{false, false, false, false, false, true, false};
+        const std::array<bool, 8> start = states();
+        bool reached = start == std::array<bool, 8>{false, false, false, false, false, true, false, false};
         for (std::size_t row = 0; row < start.size(); ++row)
         {
             if (row != 0)
                 s.press({Key::down});
             s.press({Key::cross});
-            std::array<bool, 7> expected = start;
+            std::array<bool, 8> expected = start;
             for (std::size_t changed = 0; changed <= row; ++changed)
                 expected[changed] = !start[changed];
             reached = reached && states() == expected;
@@ -556,7 +557,7 @@ void pictures(Stage &s)
                 s.shoot("47-performance-changed");
             }
         }
-        // The seventh row: the list scrolled to it.
+        // The eighth row: the list scrolled to it.
         s.wait(0.6f);
         s.shoot("48-performance-scrolled");
         if (!reached)
@@ -564,17 +565,54 @@ void pictures(Stage &s)
             std::fprintf(stderr, "error: the Performance switches did not reach the settings\n");
             s.ok = false;
         }
+        // The row after the switches: the memory a game's console is told it has. Left and right
+        // move over the layouts, and the choice reaches the settings file the launcher writes.
+        s.press({Key::down});
+        s.wait(0.4f);
+        s.press({Key::right});
+        s.wait(0.4f);
+        s.shoot("49-performance-memory");
+        if (s.services.preferences().memory_layout != 1)
+        {
+            std::fprintf(stderr, "error: the console memory did not reach the settings\n");
+            s.ok = false;
+        }
+        s.press({Key::right});
+        s.wait(0.4f);
+        if (s.services.preferences().memory_layout != 2)
+        {
+            std::fprintf(stderr, "error: the console memory did not go past 6 GiB\n");
+            s.ok = false;
+        }
+        // The last of them wraps to the first, which is what a game's console really has.
+        s.press({Key::right});
+        s.wait(0.4f);
+        if (s.services.preferences().memory_layout != 0)
+        {
+            std::fprintf(stderr, "error: the console memory did not wrap to 4 GiB\n");
+            s.ok = false;
+        }
     }
     s.press({Key::circle});
-    s.walk(2, 3);
+    s.walk(2, 3, 1);
     s.press({Key::cross});
     s.wait(0.8f);
     s.shoot("16-audio");
     s.press({Key::circle});
-    s.walk(3, 4);
+    s.walk(3, 4, 1);
     s.press({Key::cross});
     s.wait(0.8f);
     s.shoot("17-controls");
+    // The vibration's strength: a quarter less, and back.
+    s.press({Key::down, Key::left});
+    s.wait(0.4f);
+    s.shoot("17-controls-strength");
+    if (s.services.preferences().vibration_strength != 75 || s.services.last_pulse != 75 || s.services.pulses != 1)
+    {
+        std::fprintf(stderr, "error: the vibration strength did not reach the settings or the controller\n");
+        s.ok = false;
+    }
+    s.press({Key::right});
     // The button mapping: B moved to Circle takes A's place (A gets Cross), then all back.
     s.press({Key::down});
     s.wait(0.4f);
@@ -593,7 +631,7 @@ void pictures(Stage &s)
     s.press({Key::circle});
     s.wait(0.4f);
     s.press({Key::circle});
-    s.walk(4, 5);
+    s.walk(4, 5, 1);
     s.press({Key::cross});
     s.wait(0.8f);
     s.shoot("30-accessibility");
@@ -601,7 +639,7 @@ void pictures(Stage &s)
     s.wait(0.6f);
     s.shoot("31-accessibility-motion");
     s.press({Key::circle});
-    s.walk(5, 6);
+    s.walk(5, 6, 1);
     s.press({Key::cross});
     s.wait(0.8f);
     s.shoot("18-diagnostics");
@@ -609,7 +647,7 @@ void pictures(Stage &s)
     s.wait(0.6f);
     s.shoot("18b-diagnostics-logs-at-once");
     s.press({Key::circle});
-    s.walk(6, 7);
+    s.walk(6, 7, 1);
     s.press({Key::cross});
     s.wait(1.0f);
     s.shoot("19-game-files");
@@ -649,7 +687,7 @@ void pictures(Stage &s)
     s.shoot("C1-multiplayer-connecting");
     if (s.services.room.phase != Eden::Multiplayer::Phase::Connecting) s.ok = false;
     s.services.room = {Eden::Multiplayer::Phase::Connected, "", "Friends' room",
-        {"PlayerPS5 - Mario Kart 8 Deluxe (3.0.3)", "Desktop player - Mario Kart 8 Deluxe (3.0.3)"}};
+        {"PlayerPS5 - Kart Carnival Deluxe (3.0.3)", "Desktop player - Kart Carnival Deluxe (3.0.3)"}};
     s.wait(0.8f);
     s.shoot("C2-multiplayer-connected");
     s.press({Key::circle, Key::down, Key::cross});
@@ -684,7 +722,7 @@ void pictures(Stage &s)
     if (s.services.room.phase != Eden::Multiplayer::Phase::Idle) s.ok = false;
     s.press({Key::circle, Key::r1}); // back to Settings, where Game files still has the highlight
     s.wait(1.0f);
-    s.walk(7, 10);
+    s.walk(7, 10, 1);
     s.press({Key::cross});
     s.wait(1.0f);
     s.shoot("21-language");
@@ -695,7 +733,7 @@ void pictures(Stage &s)
     // Settings > Theme: the themes this build has, the one in use marked.
     s.press({Key::circle});
     s.wait(0.6f);
-    s.walk(10, 11);
+    s.walk(10, 11, 1);
     s.wait(0.6f);
     s.shoot("T0-settings-theme");
     s.press({Key::cross});
@@ -1213,6 +1251,13 @@ int main(int argc, char **argv)
         preferences.reduce_motion = names.find("calm") != std::string_view::npos;
         services.set_preferences(preferences);
     }
+    // PE_THEME=slate: the tour in another of the build's themes.
+    if (const char *theme = std::getenv("PE_THEME"); theme != nullptr && theme[0] != 0)
+    {
+        pe::ui::Preferences preferences = services.preferences();
+        preferences.theme = theme;
+        services.set_preferences(preferences);
+    }
     pe::ui::Textures textures(batch, services);
     pe::ui::use_theme(services.preferences().theme);
     if (!textures.load_art(assets))
@@ -1314,3 +1359,5 @@ int main(int argc, char **argv)
         std::fprintf(stderr, "%s %.2f: %s\n", fit.second ? "cut" : "shrunk", fit.first, text.c_str());
     return stage.ok ? 0 : 1;
 }
+
+#endif

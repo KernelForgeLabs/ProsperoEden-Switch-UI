@@ -253,7 +253,7 @@ struct Home
     std::string last_language;
     int last_mods = 0;
     int last_mods_on = 0;
-    std::vector<Recent> recents; // at most four
+    std::vector<Recent> recents; // at most eight
     std::string system_status;
 };
 
@@ -275,12 +275,49 @@ inline ButtonMapping assign_button(ButtonMapping mapping, int game, int pad)
     return mapping;
 }
 
+// The launcher's own menu buttons (Settings > Controls > Menu keybinds): which face button presses
+// each core menu action. Only the four face buttons take part, each once; the D-pad, the shoulders
+// and Options stay fixed (headless/button_mapping.h). The action order is select, back, secondary,
+// game settings, matching Key's first four (cross, circle, square, triangle).
+constexpr int kMenuActions = 4;
+using MenuBinding = std::array<int, kMenuActions>; // menu action -> face button (Cross 0 Triangle 3)
+constexpr MenuBinding kDefaultMenuBinding = {0, 1, 2, 3};
+// The menu action a pressed face button means under this binding; the buttons that are not part of
+// it pass through unchanged.
+inline Key menu_key_for(Key pressed, const MenuBinding &binding)
+{
+    const int physical = static_cast<int>(pressed);
+    if (physical < 0 || physical >= kMenuActions)
+        return pressed;
+    for (int action = 0; action < kMenuActions; ++action)
+        if (binding[static_cast<std::size_t>(action)] == physical)
+            return static_cast<Key>(action);
+    return pressed;
+}
+// An action takes the face button; the action that had it gets this one's old one.
+inline MenuBinding assign_menu(MenuBinding binding, int action, int pad)
+{
+    if (action < 0 || action >= kMenuActions || pad < 0 || pad >= kMenuActions) return binding;
+    for (int other = 0; other < kMenuActions; ++other)
+        if (other != action && binding[static_cast<std::size_t>(other)] == pad)
+            binding[static_cast<std::size_t>(other)] = binding[static_cast<std::size_t>(action)];
+    binding[static_cast<std::size_t>(action)] = pad;
+    return binding;
+}
+
 // One of the people who play on this console.
 struct Profile
 {
     std::string name;
     bool playing = false; // games start as this one
 };
+
+// The overlay's chip corners, in the order Preferences::hud_corner counts them (settings_store.h
+// persists the same four by key). Shared by Settings > Video and a game's own Video settings.
+inline constexpr const char *kHudCornerNames[] = {"Top left", "Top right", "Bottom left", "Bottom right"};
+// The overlay's chip sizes, in the order Preferences::hud_size counts them (settings_store.h
+// persists the same three by key): regular is 1x, medium one and a half, large twice over.
+inline constexpr const char *kHudSizeNames[] = {"Regular", "Medium", "Large"};
 
 struct Preferences
 {
@@ -300,10 +337,13 @@ struct Preferences
     bool frame_gen = false;
     int frame_gen_target = 0;      // index into kFrameGenTargetKeys: 0 auto, then 60/90/120/144/240
     int frame_gen_multiplier = 0;  // index into kFrameGenMultiplierKeys: 2x, 3x, 4x
+    int post_processing = 0;       // index into Services::post_processing_labels: 0 off, then a preset
     bool vibration = true;
+    int vibration_strength = 100; // percent of what a game asks for: 25, 50, 75 or 100
     int language = 0;
     int menu_volume = 70; // launcher sounds, 0-100
     std::string theme = "canopy"; // the launcher's look (theme.hpp); one this build lacks reads as the first
+    std::string accent;           // Settings > Colour: one of the theme's accent presets ("": its own colours)
     // Accessibility: how the launcher itself is shown (theme.hpp, Look).
     bool large_text = false;
     bool high_contrast = false;
@@ -316,7 +356,23 @@ struct Preferences
     bool unsafe_dma = false;    // unsafe DMA accuracy
     bool reactive_flushing = true;  // off is faster; some effects break
     bool skip_invalidation = false; // fewer invalidations of what the GPU caches hold
+    bool compact_memory = false;    // the game's memory given back 16 KiB at a time where it is empty
+    // How much memory a game's console is told it has (settings_store.h's kMemoryLayoutKeys): an
+    // index into them, and the memory a mod that keeps a heap of its own asks the kernel for.
+    int memory_layout = 0;
     ButtonMapping mapping = kDefaultMapping; // Settings > Controls > Button mapping
+    // Settings > Video: the overlay's chip (the same values Eden::Preferences keeps).
+    int hud_size = 0;   // 0 regular, 1 medium, 2 large
+    int hud_corner = 0; // 0 top left, 1 top right, 2 bottom left, 3 bottom right
+    bool hud_colors = true;  // the line in its inks rather than one
+    // What the overlay's line may say, bit by bit (hud.h's kHudField*): the pieces the user has
+    // chosen to show. All of them by default, the game's own resolution (bit 9) with the rest.
+    int hud_fields = 0x2ff;
+    // Which face button presses each core menu action (Settings > Controls > Menu keybinds).
+    MenuBinding menu_bind = kDefaultMenuBinding;
+    // Settings > Appearance > Wallpaper: the image file's name in the wallpapers folder ("" when
+    // the theme's own art shows).
+    std::string wallpaper;
 };
 
 // What one game does differently from Settings (Library > Game settings). Each value is -1 while
@@ -329,9 +385,12 @@ struct GameSettings
     int astc = -1;       // index into Services::astc_labels
     int refresh = -1;    // 0 60 Hz, 1 120 Hz
     int hud = -1;        // FPS overlay
+    int hud_size = -1;   // the overlay's chip: 0 regular, 1 large
+    int hud_corner = -1; // 0 top left, 1 top right, 2 bottom left, 3 bottom right
     int frame_gen = -1;  // Lossless Scaling frame generation (Vulkan only)
     int frame_gen_target = -1;      // index into kFrameGenTargetKeys
     int frame_gen_multiplier = -1;  // index into kFrameGenMultiplierKeys
+    int post_processing = -1;       // index into Services::post_processing_labels (0 off)
     int volume = -1;     // game volume, 0-100
     int mute = -1;
     int vibration = -1;
@@ -340,8 +399,8 @@ struct GameSettings
     bool own_mapping = false; // the game has a button mapping of its own
     ButtonMapping mapping = kDefaultMapping;
     // The Performance switches, in the order of Preferences: block list, async shaders, fast GPU,
-    // unsafe CPU, unsafe DMA, reactive flushing, skip invalidation.
-    std::array<int, 7> performance{-1, -1, -1, -1, -1, -1, -1};
+    // unsafe CPU, unsafe DMA, reactive flushing, skip invalidation, compact memory.
+    std::array<int, 8> performance{-1, -1, -1, -1, -1, -1, -1, -1};
     int64_t rng_seed = -1;
 };
 
@@ -389,6 +448,12 @@ class Services
     virtual unsigned controllers()
     {
         return 1u;
+    }
+    // A short vibration of the controller at `percent` of full strength: what the strength
+    // being set in Settings > Controls feels like.
+    virtual void vibration_pulse(int percent)
+    {
+        (void)percent;
     }
     virtual std::string version() = 0; // "v1.000.040"
     // A newer release than this one is listed (asked once per launch): handed over once, when the
@@ -441,6 +506,13 @@ class Services
     virtual const std::vector<std::string> &resolution_keys() = 0;   // "1x"
     virtual const std::vector<std::string> &filter_labels() = 0;
     virtual const std::vector<std::string> &astc_labels() = 0; // "Compressed", "Full quality"
+    // Post-processing: "Off", then the presets the console has (Eden's bundled ones and the .fxp
+    // files in post_presets), by name. Read again each time the settings are read.
+    virtual const std::vector<std::string> &post_processing_labels()
+    {
+        static const std::vector<std::string> off{"Off"};
+        return off;
+    }
     // Frame generation: 0 this build has none (its settings are not shown), 1 the user's
     // Lossless.dll is missing (they are shown greyed out), 2 ready.
     virtual int frame_gen_state()
@@ -450,6 +522,19 @@ class Services
     virtual const std::vector<std::string> &language_labels() = 0;
     virtual std::string language_region(int language) = 0;
     virtual std::string setup_details() = 0;
+    virtual std::string crash_reports_folder() { return {}; }
+
+    // ---- wallpaper: an image behind the launcher's screens (Settings > Appearance) ----
+    // The image file names in the wallpapers folder, sorted; and the folder itself (empty when
+    // this build has no folder to put wallpapers in).
+    virtual std::vector<std::string> wallpapers()
+    {
+        return {};
+    }
+    virtual std::string wallpapers_folder()
+    {
+        return {};
+    }
 
     // ---- game files ----
     // The subfolder names of a folder; false when it cannot be opened.
@@ -470,6 +555,10 @@ class Services
         return {};
     }
     // The profile games start with from now on.
+    virtual std::string profile_key(int index) {
+        const auto list=profiles();
+        return index>=0 && index<static_cast<int>(list.size()) ? std::to_string(index)+":"+list[index].name : std::string{};
+    }
     virtual bool choose_profile(int)
     {
         return false;

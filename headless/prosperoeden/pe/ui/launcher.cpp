@@ -5,6 +5,7 @@
 #include "pe/ui/launcher.hpp"
 #include "pe/ui/switch_home_model.hpp"
 #include "pe/ui/switch_pages.hpp"
+#include "pe/ui/launch_commit.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -48,8 +49,9 @@ Launcher::Launcher(Services &services, Textures &textures, const Fonts &fonts, b
     home_springs_[0].snap(1.0f);
     rail_active_[0].snap(1.0f);
     settings_.wrap = false;
-    settings_.visible = 12;
-    settings_.reset(12, 0);
+    settings_.visible = 14;
+    settings_.pitch = 54.0f;
+    settings_.reset(14, 0);
     section_.snap(1.0f);
     detail_.snap(1.0f);
     cue(home_.launch_failed ? Cue::notify : first_start ? Cue::welcome : Cue::resume);
@@ -82,7 +84,15 @@ std::vector<Cue> Launcher::take_cues()
 
 void Launcher::say(const std::string &text, bool warning)
 {
-    message_ = text;
+    // A warning goes over whatever the menu shows as a card any button closes
+    // (draw_message_popup); "Saved..." and status lines stay where the screen has room for them.
+    if (warning)
+    {
+        popup_ = text;
+        message_.clear();
+    }
+    else
+        message_ = text;
     message_warning_ = warning;
     message_age_ = 0.0f;
 }
@@ -96,6 +106,7 @@ void Launcher::open(Screen screen, bool forward)
     screen_time_ = 0.0f;
     transition_.start(th().screen_seconds);
     message_.clear();
+    popup_.clear();
     cue(forward ? Cue::open : Cue::back);
 }
 
@@ -106,14 +117,15 @@ void Launcher::open_modal(Modal modal)
     option_ = 0;
     option_cursor_.snap(dialog_row_top(modal, 0));
     message_.clear();
+    popup_.clear();
     // Switches show their state at once; they only animate when changed.
-    const std::array<bool, 7> states = switch_states(modal);
+    const std::array<bool, 8> states = switch_states(modal);
     for (std::size_t i = 0; i < states.size(); ++i)
         switches_[i].snap(states[i] ? 1.0f : 0.0f);
     cue(Cue::modal_open);
 }
 
-std::array<bool, 7> Launcher::switch_states(Modal modal) const
+std::array<bool, 8> Launcher::switch_states(Modal modal) const
 {
     switch (modal)
     {
@@ -121,13 +133,16 @@ std::array<bool, 7> Launcher::switch_states(Modal modal) const
         return {prefs_.hud, false, false};
     case Modal::performance:
         return {prefs_.block_list,  prefs_.async_shaders,     prefs_.fast_gpu, prefs_.unsafe_cpu,
-                prefs_.unsafe_dma,  prefs_.reactive_flushing, prefs_.skip_invalidation};
+                prefs_.unsafe_dma,  prefs_.reactive_flushing, prefs_.skip_invalidation,
+                prefs_.compact_memory};
     case Modal::audio:
         return {prefs_.mute, false, false};
     case Modal::controls:
         return {prefs_.vibration, false, false};
     case Modal::accessibility:
         return {prefs_.large_text, prefs_.high_contrast, prefs_.reduce_motion};
+    case Modal::wallpaper:
+        return {}; // no switches: the dialog only lists the folder's images
     default:
         return {prefs_.detailed_logging, prefs_.immediate_logs, false};
     }
@@ -139,6 +154,7 @@ void Launcher::close_modal()
     theme_mapping_open_ = false;
     textures_.invalidate_page_art();
     message_.clear();
+    popup_.clear();
     cue(Cue::modal_close);
 }
 
@@ -196,8 +212,8 @@ void Launcher::start_game(const std::string &file, const std::string &title, con
         cue(Cue::error);
         return;
     }
-    services_.will_play(file);
-    selected_game_ = services_.game_path(file);
+    selected_game_ = commit_launch(services_, file);
+    if (selected_game_.empty()) { say(tr("Game cannot start now."), true); cue(Cue::error); return; }
     launch_title_ = title;
     launch_cover_ = cover;
     launch_.start(th().launch_seconds);
@@ -215,6 +231,10 @@ void Launcher::press(Key key)
         opening_ = opening_reveal();
         return;
     }
+    key = menu_key_for(key, prefs_.menu_bind); // the core menu buttons the user has chosen
+    // Any button closes a warning's card, and the press still does its own work: "press again"
+    // stays one press, and a change that fails again says so in the same frame.
+    popup_.clear();
     if (modal_ == Modal::game)
         return press_game(key);
     if (modal_ == Modal::mods)
@@ -223,6 +243,10 @@ void Launcher::press(Key key)
         return press_game_options(key);
     if (modal_ == Modal::mapping)
         return press_mapping(key);
+    if (modal_ == Modal::menu_mapping)
+        return press_menu_mapping(key);
+    if (modal_ == Modal::hud)
+        return press_hud(key);
     if (modal_ == Modal::profiles)
         return press_profiles(key);
     if (modal_ == Modal::update)
@@ -246,7 +270,10 @@ void Launcher::press(Key key)
         return press_rail(key);
     if ((key == Key::l1 || key == Key::r1) && at_section())
     {
-        go_section((section() + (key == Key::r1 ? 1 : kSections - 1)) % kSections);
+        int next = (section() + (key == Key::r1 ? 1 : kSections - 1)) % kSections;
+        if (th().top_nav && next == 1)
+            next = key == Key::r1 ? 2 : 0;
+        go_section(next);
         return;
     }
     switch (screen_)
@@ -291,6 +318,22 @@ void Launcher::update(float dt)
     screen_time_ += dt;
     message_age_ += dt;
     backdrop_.update(dt);
+    // The wallpaper (Settings > Appearance > Wallpaper): the same call with the same file does
+    // nothing, so the choice is only read when it changed.
+    {
+        const std::string folder = services_.wallpapers_folder();
+        textures_.load_wallpaper(
+            prefs_.wallpaper.empty() || folder.empty() ? std::string{} : folder + "/" + prefs_.wallpaper);
+    }
+    if (th().game_backdrop)
+    {
+        if (screen_ == Screen::home && !home_.last_cover.empty())
+            textures_.load_game_backdrop(home_.last_cover);
+        else if (screen_ == Screen::library && !games_.empty())
+            textures_.load_game_backdrop(games_[static_cast<std::size_t>(library_.selected)].cover);
+        else
+            textures_.clear_game_backdrop();
+    }
     textures_.pump(dt);
     finish_scan(false);
     poll_sources(dt);
@@ -307,7 +350,9 @@ void Launcher::update(float dt)
     modal_open_.update(dt, 20.0f);
     if (modal_ == Modal::none && modal_open_.value < 0.01f)
         modal_shown_ = Modal::none;
-    dim_.target = screen_ == Screen::home ? 0.0f : 1.0f;
+    const bool home_dim = screen_ == Screen::home ||
+                         (th().top_nav && (screen_ == Screen::library || screen_ == Screen::settings));
+    dim_.target = home_dim ? 0.0f : 1.0f;
     dim_.update(dt, 8.0f);
 
     // Show four full covers and the leading half of a fifth, with soft scrolling.
@@ -352,10 +397,16 @@ void Launcher::update(float dt)
     language_.update(dt);
     video_rows_.update(dt);
     performance_rows_.update(dt);
+    controls_rows_.update(dt);
+    accent_rows_.update(dt);
+    wallpaper_rows_.update(dt);
     game_rows_.update(dt);
     mod_rows_.update(dt);
     option_rows_.update(dt);
     mapping_rows_.update(dt);
+    menu_mapping_rows_.update(dt);
+    room_rows_.update(dt);
+    hud_rows_.update(dt);
     profile_rows_.update(dt);
     source_rows_.update(dt);
     choice_rows_.update(dt);
@@ -369,14 +420,15 @@ void Launcher::update(float dt)
     mods_switch_.update(dt, 22.0f);
     detail_.target = 1.0f;
     detail_.update(dt, 14.0f);
-    if (!selected_read_ && screen_ == Screen::library && detail_.value > 0.5f)
+    if (!selected_read_ && (screen_ == Screen::library || (screen_ == Screen::home && th().minimal_home)) &&
+        detail_.value > 0.5f)
         read_selected_details();
     section_.target = 1.0f;
     section_.update(dt, 14.0f);
     if (modal_ != Modal::none)
         option_cursor_.target = dialog_row_top(modal_, option_);
     option_cursor_.update(dt, t.cursor_spring);
-    const std::array<bool, 7> states = switch_states(modal_shown_);
+    const std::array<bool, 8> states = switch_states(modal_shown_);
     for (std::size_t i = 0; i < states.size(); ++i)
     {
         switches_[i].target = states[i] ? 1.0f : 0.0f;
@@ -462,6 +514,35 @@ void Launcher::update_offer(float dt)
 void Launcher::draw_screen(Canvas &c, Screen screen)
 {
     drawing_shown_ = screen == screen_;
+    if (th().top_nav)
+    {
+        draw_home(c);
+        if (screen == Screen::home)
+        {
+            draw_library(c);
+            return;
+        }
+        {
+            switch (screen)
+            {
+            case Screen::library:
+                return draw_library(c);
+            case Screen::multiplayer:
+                return draw_multiplayer(c);
+            case Screen::settings:
+                return draw_settings(c);
+            case Screen::files:
+                return draw_files(c);
+            case Screen::language:
+                return draw_language(c);
+            case Screen::about:
+                return draw_about(c);
+            default:
+                break;
+            }
+        }
+        return;
+    }
     switch (screen)
     {
     case Screen::home:
@@ -511,6 +592,29 @@ void Launcher::draw_update_notice(Canvas &c)
     const float left = tween::clamp01(update_notice_left_ / kUpdateNoticeSeconds);
     list.rounded_rect({card.x + 22.0f, card.y + card.h - 12.0f, (card.w - 44.0f) * left, 3.0f}, 1.5f,
                       t.accent.with_alpha(0.8f));
+    list.pop_transform();
+    list.pop_opacity();
+}
+
+void Launcher::draw_message_popup(Canvas &c)
+{
+    if (popup_.empty())
+        return;
+    gfx::DrawList &list = c.list;
+    const Theme &t = th();
+    // At the middle, over whatever the menu shows: it fades in and settles in place.
+    const Rect card{480.0f, 400.0f, 960.0f, 240.0f};
+    const float shown = tween::clamp01(message_age_ * 4.0f);
+    list.push_opacity(shown);
+    list.push_transform(1.0f - 0.03f * (1.0f - shown) * motion(), 960.0f, 520.0f, 0.0f,
+                        (1.0f - shown) * 18.0f * motion());
+    glass(c, card, t.radius_card, t.panel.with_alpha(0.97f), t.warning.with_alpha(0.7f), 1.6f);
+    // The result with the warning's mark, as a dialog's own line draws it.
+    notice_block(c, popup_, card.x + 44.0f, baseline(card.y + 44.0f, 36.0f, t.size_text),
+                 t.size_text, 36.0f, t.warning, card.w - 88.0f, 3, true);
+    // Any button closes it.
+    static constexpr Hint kClose[] = {{Pad::cross, TR("Close")}};
+    draw_menu_hints(c, kClose, 1, card.x + 44.0f, card.y + card.h - 44.0f, t.copy, card.w - 88.0f);
     list.pop_transform();
     list.pop_opacity();
 }
@@ -714,6 +818,10 @@ void Launcher::draw(gfx::DrawList &list)
         list.rounded_rect(kScreen, 0.0f, th().scrim.with_alpha(scrim * opened));
         if (modal_shown_ == Modal::mapping)
             draw_mapping(c, opened);
+        else if (modal_shown_ == Modal::menu_mapping)
+            draw_menu_mapping(c, opened);
+        else if (modal_shown_ == Modal::hud)
+            draw_hud(c, opened);
         else if (modal_shown_ == Modal::profiles)
             draw_profiles(c, opened);
         else if (modal_shown_ == Modal::update)
@@ -736,6 +844,7 @@ void Launcher::draw(gfx::DrawList &list)
     list.pop_transform();
     draw_update_notice(c);
     draw_save_sync_notice(c);
+    draw_message_popup(c);
     if (launching)
         draw_launch(c);
     // Closing for the update: the screen goes dark over the last moments.

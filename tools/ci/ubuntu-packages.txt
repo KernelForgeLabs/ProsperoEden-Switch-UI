@@ -11,7 +11,7 @@ patch
 # Build tools (make toolchain)
 cmake ninja-build ccache nasm meson rsync bison flex glslang-tools spirv-tools
 # Python 3 with venv (the image step's MkPFS), mako and yaml (Mesa)
-python3 python3-venv python3-pip python3-mako python3-yaml python3-packaging python3-ply
+python3 python3-venv python3-pip python3-mako python3-yaml python3-packaging python3-ply python3-numpy python3-pil
 # LLVM 18: the compiler of Eden, FFmpeg and the boilerplate (make toolchain)
 clang-18 lld-18 llvm-18 libclang-rt-18-dev
 # LLVM 21: the Payload SDK's prospero-* wrappers (the RADV build and the final link) take the

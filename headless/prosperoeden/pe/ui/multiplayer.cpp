@@ -81,10 +81,13 @@ void Launcher::press_multiplayer(Key key) {
                                    static_cast<int>(room_directory_.rooms.size()));
             cue(Cue::focus);
         }
-        if (key == Key::left || key == Key::right) { // a page at a time: public lists are long
-            room_row_ = std::clamp(room_row_ + (key == Key::right ? kVisibleRooms : -kVisibleRooms), 0,
-                                   static_cast<int>(room_directory_.rooms.size()));
-            cue(Cue::focus);
+        // A page at a time: public lists are long. L1 and R1, as in the other long lists; Left and
+        // Right too.
+        if (key == Key::l1 || key == Key::r1 || key == Key::left || key == Key::right) {
+            const bool on = key == Key::r1 || key == Key::right;
+            const int next = std::clamp(room_row_ + (on ? kVisibleRooms : -kVisibleRooms), 0,
+                                        static_cast<int>(room_directory_.rooms.size()));
+            if (next != room_row_) { room_row_ = next; cue(Cue::focus); }
         }
         if (key != Key::cross) return;
         if (room_row_ > 0) {
@@ -256,13 +259,21 @@ void Launcher::draw_public_rooms(Canvas& c, const Rect& pane) {
     text_fit(c, fill(tr("Nickname: {0}"), {room_connection_.nickname}), nick.x + 72, baseline(nick.y, 72, t.size_text),
              t.size_text, t.title, nick.w - 96);
     const int visible = room_status_.error.empty() ? kVisibleRooms : kVisibleRooms - 2;
-    const int first = std::max(0, room_row_ - visible);
-    for (int i = 0; i < visible && first + i < static_cast<int>(room_directory_.rooms.size()); ++i) {
-        const auto& room = room_directory_.rooms[first + i];
-        const float top = pane.y + 130.0f + i * 84.0f;
+    // The rooms scroll under the nickname row as the cursor moves (room_row_ 0 is the nickname).
+    const int rooms = static_cast<int>(room_directory_.rooms.size());
+    room_rows_.wrap = false;
+    room_rows_.pitch = 84.0f;
+    room_rows_.visible = visible;
+    if (room_rows_.count != rooms)
+        room_rows_.reset(rooms, std::max(0, room_row_ - 1));
+    else
+        room_rows_.select(std::max(0, room_row_ - 1));
+    for (int index = room_rows_.first_row(); index <= room_rows_.last_row() && index < rooms; ++index) {
+        const auto& room = room_directory_.rooms[index];
+        const float top = pane.y + 130.0f + index * 84.0f - room_rows_.scroll();
         const Rect row{pane.x, top, pane.w, 76};
-        const bool on = room_row_ == first + i + 1;
-        c.list.push_opacity(room.compatible ? 1.0f : 0.55f);
+        const bool on = room_row_ == index + 1;
+        c.list.push_opacity((room.compatible ? 1.0f : 0.55f) * room_rows_.row_alpha(index, 76.0f));
         if (on)
             c.list.bordered_rect(row, 3.0f, t.row_focus.with_alpha(0.62f),
                                  2.0f, t.accent_pale);
@@ -289,6 +300,7 @@ void Launcher::draw_public_rooms(Canvas& c, const Rect& pane) {
         text_fit(c, detail, row.x + 72, baseline(top + 40, 28, 18), 18, t.meta, room_w);
         c.list.pop_opacity();
     }
+    scrollbar(c, room_rows_, pane.x + pane.w + 12.0f, pane.y + 130.0f, visible * 84.0f - 8.0f);
     std::string words;
     if (!message_.empty() && message_age_ < 6) words = message_;
     else if (!room_directory_.error.empty()) {
@@ -427,9 +439,9 @@ void Launcher::draw_multiplayer(Canvas& c) {
     if (room_page_ == RoomPage::public_rooms && room_status_.phase != Phase::Connecting &&
         room_status_.phase != Phase::Disconnecting) {
         draw_public_rooms(c, kPane);
-        static constexpr Hint kHints[]{{Pad::cross, TR("Select")}, {Pad::leftright, TR("Page")},
+        static constexpr Hint kHints[]{{Pad::cross, TR("Select")}, {Pad::l1, TR("Page"), Pad::r1},
                                        {Pad::triangle, TR("Refresh")}, {Pad::circle, TR("Back")}};
-        draw_hints(c, kHints, 4, layout::kLeft, layout::kFooter, t.copy, layout::kWidth);
+        draw_menu_hints(c, kHints, 4, layout::kLeft, layout::kFooter, t.copy, layout::kWidth);
         return;
     }
     // The private room's form (also what shows while a room is being joined or left).
@@ -443,8 +455,8 @@ void Launcher::draw_multiplayer(Canvas& c) {
         const float f = row == room_row_ ? 1.0f : 0.0f;
         if (row == 4) {
             // The form's action, as a button.
-            if (idle) primary_button(c, {rect.x, rect.y + 8, 420, 76}, tr(labels[row]), Pad::cross, f, press_);
-            else secondary_button(c, {rect.x, rect.y + 8, 420, 76}, tr(labels[row]), Pad::cross, f, press_);
+            if (idle) primary_button(c, {rect.x, rect.y + 8, 420, 76}, tr(labels[row]), translate_hint(Pad::cross), f, press_);
+            else secondary_button(c, {rect.x, rect.y + 8, 420, 76}, tr(labels[row]), translate_hint(Pad::cross), f, press_);
             continue;
         }
         plate(c, row_plate(), rect, f);
@@ -459,6 +471,6 @@ void Launcher::draw_multiplayer(Canvas& c) {
                      message_warning_ ? t.warning : t.accent_pale, kPane.w, 2, message_warning_);
     static constexpr Hint kHints[]{{Pad::cross, TR("Select")}, {Pad::square, TR("Go offline")},
                                    {Pad::circle, TR("Back")}};
-    draw_hints(c, kHints, 3, layout::kLeft, layout::kFooter, t.copy, layout::kWidth);
+    draw_menu_hints(c, kHints, 3, layout::kLeft, layout::kFooter, t.copy, layout::kWidth);
 }
 } // namespace pe::ui

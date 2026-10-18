@@ -14,7 +14,7 @@
 #define STBI_NO_STDIO
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
-#include <stb_image.h>
+#include "stb/stb_image.h"
 #pragma GCC diagnostic pop
 
 #include <algorithm>

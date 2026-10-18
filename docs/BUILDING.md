@@ -79,9 +79,12 @@ Downloads are cached in `~/.cache/prosperoeden-deps` (`PROSPEROEDEN_DEPS_CACHE`)
 Inside this repository, in `.deps/`:
 
 - **Eden** at commit `67bada77f8a43a90da2e94e89b8e7da73c256989` (GitHub mirror archive), with
-  Eden's own hash-pinned packages, which its configure step downloads. ProsperoEden does not
-  modify Eden's files: the PS5 frontend in `headless/` replaces and derives sources at
-  configure time (`headless/inject.cmake`).
+  Eden's own hash-pinned packages, which its configure step downloads. The PS5 frontend in
+  `headless/` replaces and derives sources at configure time (`headless/inject.cmake`). This
+  fork also patches a few of Eden's files when `make prepare` extracts them
+  (`tools/eden-patches/*.diff`, in name order, each applied once): faster reads of game files,
+  per-game cache storage, bounds-checked shader local memory, and CPU reads of GPU-cached
+  pages without reactive flushing.
 - **FFmpeg** at the commit Eden pins, built with only the decoders games use.
 - **PS5 OpenGL 4.6 SDK 1.0.2** (release archive), for the launcher and the OpenGL renderer.
 - **OpenSSL, zlib, libcurl and libpsl** from pacbrew v0.40.2.
@@ -202,9 +205,11 @@ the build step's limit (315 minutes), ccache is still saved, and running the wor
 continues from there. A pull request starts from `main`'s caches and, when it builds, saves no
 ccache of its own.
 
-GitHub drops a cache that nobody used for a week, and `main` is only built by hand, so ccache has
-a second source: `ccache-u24.tar`, a file of the `build-cache` release. A run that finds no ccache
-downloads it. To replace it, start the workflow on `main` by hand with "snapshot" ticked;
+GitHub drops a cache that nobody used for a week, and the build of a tag or of a pull request can
+use only the caches of `main`. So `main` is built by itself every night: a release's build then
+compiles only what was merged since the night before. For a run that finds no ccache at
+all there is a second source: `ccache-u24.tar`, a file of the `build-cache` release, which it
+downloads. To replace it, start the workflow on `main` by hand with "snapshot" ticked;
 `.github/workflows/build-cache.yml` then publishes that run's ccache.
 
 `tools/ci/build-release.sh` still accepts `EDEN_DEV_CHECKOUT` (a development checkout whose
@@ -214,12 +219,13 @@ dependencies are reused instead of fetched) for a build on your own machine.
   Run workflow): builds the release files, checks the ZIP (intact, `eboot.bin` present, every
   entry stored as 0777) and keeps `dist/` (the ZIP, `SHA256SUMS` and `release-notes.md`) as a
   7-day artifact. Nothing is published. A push to
-  `main` builds nothing: a build of `main` is a manual run. The artifact is `ProsperoEden`; for
+  `main` builds nothing; `main` is built the same way every night, to keep the caches a
+  release's build starts from. The artifact is `ProsperoEden`; for
   a pull request it is `ProsperoEden-PR<number>-<commit>`, with the first seven characters of
-  the pull request's own head commit. A newer push to a pull request, or a newer manual run on
-  the same branch, cancels the run in progress.
+  the pull request's own head commit. A newer push to a pull request, or a newer manual or
+  nightly run on the same branch, cancels the run in progress.
 - **Tag `vX.Y.Z`** (by itself, when the tag is pushed): builds and checks them the same way, checks that the tag matches the package
-  version, and publishes a pre-release with the ZIP and `SHA256SUMS` (a second job). The release notes come from the README's "Changes in vX.Y.Z" section.
+  version, and publishes a pre-release with the ZIP and `SHA256SUMS` (a second job). The release notes come from the "vX.Y.Z" section of [the changelog](CHANGELOG.md).
 - Every run also keeps `build/symbols/` as an artifact with `-symbols` after the name: 90 days
   for a tag, 7 days otherwise.
 - A tag's or a manual run's ZIP is attested (signed build provenance): a release ZIP built by
@@ -240,7 +246,8 @@ To cut a release:
 
 1. Bump `contentVersion` in `sce_sys/param.json` (the launcher is built with it, and the package
    carries the file).
-2. Add the "Changes in" section to the README.
+2. Add the version's section at the top of [the changelog](CHANGELOG.md), and name the version as the
+   current release in the README.
 3. Test the build on a console.
 4. Push a `vX.Y.Z` tag.
 5. Keep `build/symbols/ProsperoEden-vX.Y.Z.elf` from the build that was published (crash reports
