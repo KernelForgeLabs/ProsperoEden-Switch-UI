@@ -4,8 +4,18 @@
 # branch and NEVER commits, pushes, tags, or resolves conflicts automatically.
 set -euo pipefail
 
+# Read-only preflight: do not fetch, switch branches, or start a merge.
+if [[ ${1:-} == "--check" ]]; then
+  if [[ $# -ne 3 ]]; then
+    echo "Usage: bash tools/upstream-merge.sh --check <upstream-tag> <tested-base-branch>" >&2
+    exit 2
+  fi
+  exec bash "$(dirname -- "${BASH_SOURCE[0]}")/upstream-preflight.sh" "$2" "$3"
+fi
+
 usage() {
   echo "Usage: bash tools/upstream-merge.sh <upstream-tag> <tested-base-branch>" >&2
+  echo "       bash tools/upstream-merge.sh --check <upstream-tag> <tested-base-branch>" >&2
   echo "Example: bash tools/upstream-merge.sh v1.005.000 integration/upstream-v1.004.000" >&2
   exit 2
 }
