@@ -5,16 +5,20 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: bash tools/upstream-merge.sh v1.004.000 [tested-switch-ui-base]" >&2
-  echo "Example: bash tools/upstream-merge.sh v1.004.000 feature/switch-ui-v6.0-release-prep" >&2
+  echo "Usage: bash tools/upstream-merge.sh <upstream-tag> <tested-base-branch>" >&2
+  echo "Example: bash tools/upstream-merge.sh v1.005.000 integration/upstream-v1.004.000" >&2
   exit 2
 }
-[[ $# -ge 1 && $# -le 2 ]] || usage
+[[ $# -eq 2 ]] || usage
 version=$1
-base=${2:-feature/switch-ui-v6.0-release-prep}
+base=$2
 [[ $version =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || usage
 [[ $base =~ ^[A-Za-z0-9][A-Za-z0-9._/-]*$ && $base != *..* && $base != */*/*/* ]] || usage
 branch="integration/upstream-$version"
+[[ $base != "$branch" ]] || {
+  echo "ERROR: Integration branch cannot be its own base." >&2
+  exit 2
+}
 root=$(git rev-parse --show-toplevel)
 cd "$root"
 [[ -z $(git status --porcelain) ]] || { echo "ERROR: Commit/stash local changes before starting." >&2; exit 2; }
@@ -32,7 +36,15 @@ esac
 # Explicit tag rather than moving main: the SHA is recorded in the merge commit.
 git fetch --no-tags upstream "refs/tags/$version:refs/tags/$version"
 upstream_commit=$(git rev-parse "$version^{commit}")
-git fetch origin "refs/heads/$base:refs/remotes/origin/$base"
+# The tested base may be a local checkpoint not yet pushed to GitHub.
+if git show-ref --verify --quiet "refs/heads/$base"; then
+  base_ref="refs/heads/$base"
+  echo "Using local tested base: $base ($(git rev-parse --short "$base_ref"))"
+else
+  git fetch origin "refs/heads/$base:refs/remotes/origin/$base"
+  base_ref="refs/remotes/origin/$base"
+  echo "Using remote tested base: $base ($(git rev-parse --short "$base_ref"))"
+fi
 
 if git ls-remote --exit-code --heads origin "$branch" >/dev/null; then
   git fetch origin "refs/heads/$branch:refs/remotes/origin/$branch"
@@ -48,9 +60,9 @@ elif git show-ref --verify --quiet "refs/heads/$branch"; then
   echo "ERROR: Local $branch exists but remote does not. Resolve manually." >&2
   exit 2
 else
-  git switch -c "$branch" "origin/$base"
+  git switch -c "$branch" "$base_ref"
 fi
-git merge-base --is-ancestor "origin/$base" HEAD || {
+git merge-base --is-ancestor "$base_ref" HEAD || {
   echo "ERROR: Integration branch does not include the tested $base branch." >&2
   exit 2
 }
