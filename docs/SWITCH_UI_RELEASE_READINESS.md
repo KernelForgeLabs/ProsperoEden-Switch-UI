@@ -1,12 +1,25 @@
 # Switch UI v6.0 public-release readiness
 
-**Audit date:** 2026-10-16  
-**Candidate:** `feature/switch-ui-v6.0-rc` at `11abb230bab69bfe98c55c4164ba04fe3bae8548`  
-**Preparation:** `feature/switch-ui-v6.0-release-prep` (do not tag or release yet)
+**Audit updated:** 2026-10-20
 
-This is a *separate* PS5 title and an interface edition of BlackBearReloaded's
-ProsperoEden, based on the v1.001.000 emulator. This checklist records verified
-results and outstanding gates; it is **not a claim of full release qualification**.
+**Current integration baseline:** `8c5a797`, upstream v1.005.000,
+branch `integration/upstream-v1.005.000`.
+
+**Current candidate:** `PPSA99186`, content version `06.000.000`.
+Executable SHA-256:
+`d700ff6c5d9eec0d1dbd70d6754d2ff830ca63dab0e5a364403872acfe669777`.
+
+The current integration has passed compilation, packaging checks and
+initial PS5 hardware testing, including launcher navigation and game
+launches. This is not a claim of full clean-install or rollback
+qualification. Controller shortcut and frame-generation selector issues
+were also reproduced on the original upstream emulator; investigating
+them is deferred. Lossless Scaling and MihawkGen performance remain
+unqualified.
+
+The October 14–16 RC2 and release-preparation findings below are
+preserved as historical test evidence, not claims that every scenario
+has been retested on the v1.005.000 candidate.
 
 ## Hardware test evidence
 
@@ -94,7 +107,7 @@ were updated by the maintainer on 2026-10-15.
 
 ## Title identity and catalog
 
-The provisional Switch UI title ID is **`PPSA99186`**; original
+The reserved Switch UI title ID is **`PPSA99186`**; original
 ProsperoEden is **`PPSA99008`**. The Switch UI package currently includes:
 - `sce_sys/param.json` `titleId=PPSA99186`, `conceptId=99186`,
   `contentId=UP9000-PPSA99186_00-EDENSWITCHUI0001`,
@@ -102,25 +115,19 @@ ProsperoEden is **`PPSA99008`**. The Switch UI package currently includes:
 - Title-specific `lapy.elf` and manifest checked by package validation.
 - `/data/prosperoeden/` as shared emulator root.
 
-The catalog reservation [PR #302](https://github.com/blackbearreloaded/ps5-homebrew-catalog/pull/302)
-was submitted by **KernelForgeX**, and dedicated submission checks passed,
-but **BlackBearReloaded closed it without merge on 2026-10-16**. They explained
-that the catalog favors distinct emulator applications over multiple
-alternative frontends for ProsperoEden, while encouraging forks and
-upstream collaboration. **`PPSA99186` is not reserved in the catalog.** This
-is a catalog policy decision, not a restriction on a properly licensed
-independent fork. Before a public beta, decide how to distribute the app
-independently, verify title-ID collisions and document manual upgrades.
-The repository's default `main` still displays the inherited ProsperoEden
-README; the maintained work is on `feature/switch-ui-v6.0-release-prep`.
-Promote the actual release branch when qualified and explicitly approved.
+The catalog reservation
+[PR #302](https://github.com/darkxex/ps5-homebrew-catalog/pull/302)
+was initially closed on October 16, then approved and **merged on
+October 18, 2026**. `PPSA99186` is reserved. The store entry remains
+Coming soon until a tagged GitHub release is published and a separate
+catalog update PR is approved.
 
-Catalog guidance:
-https://github.com/blackbearreloaded/ps5-homebrew-catalog#reserve-a-title-id
+The public repository's inherited `main` branch still needs to be
+aligned with the qualified Switch UI release source. The reservation
+is owned by `KernelForgeX`; a release-listing PR must use that account.
 
 See [HOMEBREW_CATALOG_RESERVATION.md](HOMEBREW_CATALOG_RESERVATION.md)
-for the prepared reservation JSON, public-organization-membership requirement,
-submitter-account ownership rule, and beta-vs-catalog release sequence.
+for the release submission process and ownership requirements.
 
 Do not change `PPSA99186` casually: the identifier is embedded in the app
 mount paths, helper, package validation, and update state. Rebuilding and
@@ -176,9 +183,10 @@ retesting is required if a different ID is chosen or assigned.
 - [x] Choose the long-term GitHub repository owner: KernelForgeLabs,
       preserving the original fork.
 - [x] Submit `PPSA99186` reservation PR #302 as KernelForgeX.
-- [x] Record PR #302 closure without merge; catalog registration was declined.
-- [ ] Decide an independent beta distribution channel and verify provisional
-      `PPSA99186` collision risk before giving users installation files.
+- [x] Record PR #302's initial closure and subsequent approval/merge.
+- [ ] Publish an independently versioned GitHub prerelease and submit
+      the catalog listing update after final qualification.
+
 - [ ] Promote the qualified Switch UI release line to repository default so
       visitors see the actual app instead of the upstream base.
 - [ ] Follow [beta installation and rollback plan](BETA_INSTALL_AND_ROLLBACK.md):

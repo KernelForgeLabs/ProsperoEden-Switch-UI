@@ -1,6 +1,6 @@
 # Switch UI v6.0 — beta installation and rollback
 
-**Status: test plan only. No public beta or release yet.**
+**Status (2026-10-20): v1.005.000 has passed initial PS5 hardware testing. Clean-install, data-preservation and rollback acceptance remain pending. No public beta release yet.**
 
 ProsperoEden Switch UI installs under `/data/homebrew/PPSA99186/`, separately
 from the upstream application at `/data/homebrew/PPSA99008/`. **Both applications
@@ -108,9 +108,11 @@ mark a row passed until that behavior has been observed on console.
 
 - [ ] Pass applicable PS5 manual install/data/rollback tests and record evidence.
 - [ ] Verify the **final** CI release ZIP, SHA256SUMS and attestation.
-- [ ] Decide and document independent non-catalog beta distribution after
-      title reservation [PR #302](https://github.com/blackbearreloaded/ps5-homebrew-catalog/pull/302)
-      was closed without merge. Verify provisional title-ID collision risk.
+- [x] Confirm `PPSA99186` reservation PR #302 was merged on
+      October 18, 2026.
+- [ ] Publish a verified prerelease and submit the catalog update from
+      the reserving account, `KernelForgeX`.
+
 - [ ] Publish clear limitations, original Eden/BlackBearReloaded credit,
       GPL source availability and manual rollback instructions.
 - [ ] Obtain explicit maintainer approval before tagging or publishing.

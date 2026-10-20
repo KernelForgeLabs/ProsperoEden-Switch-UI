@@ -1,9 +1,15 @@
 # Homebrew catalog — Switch UI title-ID reservation
 
-**Status (2026-10-16):** Catalog reservation [PR #302](https://github.com/blackbearreloaded/ps5-homebrew-catalog/pull/302) was **closed without merge** by maintainer BlackBearReloaded. The catalog does **not** reserve `PPSA99186` for this edition. The maintainer supports forks but explained that the catalog limits multiple variants of the same emulator, and offered collaboration on reusable themes/changes. This is a catalog-listing decision, **not a ban on independently maintaining or distributing a GPL-compliant fork**. The individual `KernelForgeX` had submitted from `reserve-ppsa99186` at `6809c9d` and submission checks had passed. No beta or public release has been published. Before an independent release, consider title-ID collision risk, user-facing project identity, and a manual update/rollback policy.
+**Current status (2026-10-20): RESERVED.** Catalog
+[PR #302](https://github.com/darkxex/ps5-homebrew-catalog/pull/302)
+was initially closed on October 16, then reconsidered, approved and
+**merged October 18, 2026**. `PPSA99186` is reserved for the KernelForgeLabs
+Switch UI edition. The ProsperoStore entry currently says Coming soon;
+no public release artifact has been published. A separate catalog update
+PR is required to activate downloads.
 
 This edition is a separate PS5 app from the original ProsperoEden.
-Its intended title identity is:
+Its reserved title identity is:
 
 - Title ID: `PPSA99186`
 - Display title: `ProsperoEden Switch UI`
@@ -12,17 +18,18 @@ Its intended title identity is:
 - Original upstream: https://github.com/blackbearreloaded/ProsperoEden
 - License: GPL-3.0 (matches GitHub's detected repository license)
 
-## Historical reservation record (not approved)
+## Approved reservation record
 
-The reservation submission used the following JSON. It is retained solely
-as a historical record; **do not resubmit it unchanged or treat it as a
-live catalog listing**:
+The catalog currently contains this reservation. The `null` release
+fields must be filled in through a subsequent catalog PR; they are not
+download links.
 
 ```json
 {
   "titleid": "PPSA99186",
   "name": "ProsperoEden Switch UI",
   "kind": "app",
+  "category": "emulators",
   "description": "An independent Switch-inspired PS5 interface edition of BlackBearReloaded's ProsperoEden emulator.",
   "license": "GPL-3.0",
   "author": "KernelForgeLabs",
@@ -36,53 +43,34 @@ live catalog listing**:
 
 ## Submission/ownership rules
 
-**Do not assume that owning the project GitHub organization automatically
-owns the catalog reservation.** The catalog records the **individual
-GitHub account that opens the reservation pull request**. It requires
-that same account to submit the later release/update. The recommended
-persistent submitting account is `KernelForgeX`.
+The reservation belongs to the GitHub account `KernelForgeX`, which
+submitted PR #302. The release-listing PR must be submitted from that
+same account, with public membership in the source repository's
+`KernelForgeLabs` organization.
 
-For an **organization-owned source repository**, the catalog submission
-guide explicitly requires the submitter's GitHub organization membership
-to be **public**. Make `KernelForgeX`'s membership of `KernelForgeLabs`
-public before opening a release listing PR; verify that catalog CI
-accepts ownership before announcing a catalog installation.
+1. Publish and verify a tagged GitHub prerelease from the approved source.
+2. Attach the complete installable ZIP and record its SHA-256.
+3. Verify the release icon matches the installed application icon.
+4. Update `apps/PPSA99186.json` in a new catalog PR as `KernelForgeX`.
+5. Wait for catalog validation and maintainer approval before claiming
+   the application is downloadable through ProsperoStore.
 
-1. Check the catalog's `apps/PPSA99186.json` and open PRs for existing
-   claims/conflicts immediately before preparing the reservation.
-2. From the same account you will maintain long-term (`KernelForgeX`),
-   fork the catalog and add the JSON above.
-3. Open a reservation pull request from that account, fixing any
-   automated validation messages. The ID is **not reserved** until the
-   catalog maintainers merge the PR.
-4. Keep the reservation updated and do not let it become stale for
-   180 days.
-5. For public listing, first publish and verify an approved source
-   tagged GitHub release with the full installable app ZIP and exact
-   sha256, then **update the reservation in a second PR from the same
-   submitting account**.
+The initial October 16 rejection and subsequent October 18 approval
+are recorded in PR #302. Preserve that discussion as project history.
+Never replace the bytes of an already published release asset.
 
-The catalog accepts GitHub pre-releases, and its automated daily
-release-update job may advance listed releases. A Reddit beta can remain
-**outside** the catalog because the proposed reservation was not accepted. Decide explicit beta/stable versioning before pushing any
-`v*` tag: this repository's release workflow publishes a prerelease
-automatically on matching tags. Never replace already-public release
-ZIPs with different bytes.
-
-Official guide:
-https://github.com/blackbearreloaded/ps5-homebrew-catalog/blob/main/docs/submitting.md#reserving-a-title-id
+Official instructions:
+https://github.com/darkxex/ps5-homebrew-catalog/blob/main/docs/submitting.md
 
 ## Outstanding verification
 
-- [ ] Confirm title ID is still free at submission time (including open PRs).
-- [ ] Make KernelForgeX's KernelForgeLabs organization membership public.
-- [x] Submit reservation PR #302 as KernelForgeX.
-- [x] Record maintainer response: PR #302 closed unmerged 2026-10-16; title ID not reserved.
-- [ ] Decide whether to release an independently maintained beta outside the catalog, taking title-ID collision risk and manual install/update implications into account.
-- [ ] Verify fresh CI build, clean PS5 install, safe rollback and complete
-      source/release documentation before inviting public beta users.
-- [ ] Validate the new organization's release assets and uploader/attestation.
-- [ ] Qualify automatic catalog-based updates independently before claiming
-      that updates work in the Switch UI Edition.
+- [x] Reserve `PPSA99186` through approved, merged PR #302.
+- [x] Preserve a PS5-tested v1.005.000 integration baseline.
+- [ ] Confirm public `KernelForgeX` membership in `KernelForgeLabs`.
+- [ ] Complete remaining release hardware and rollback gates.
+- [ ] Verify CI release ZIP, provenance, licensing and checksums.
+- [ ] Publish the first GitHub prerelease.
+- [ ] Convert the reservation into a downloadable catalog listing.
+- [ ] Qualify optional in-app update notifications/installations later.
 
-Nothing in this guide reserves a title ID or publishes a release.
+The reservation is approved; publication remains pending.

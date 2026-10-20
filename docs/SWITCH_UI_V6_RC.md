@@ -1,8 +1,14 @@
 # ProsperoEden Switch UI Edition — v6.0 release candidate
 
-This is a **separate-title development build**, not an update for original ProsperoEden.
-The PS5 app identity is provisionally `PPSA99186` (not yet reserved in the catalog).
-`PPSA99008` remains the upstream application's title ID and must not be replaced.
+This is a **separate-title Switch UI release candidate**, based on
+ProsperoEden v1.005.000. Its own PS5 title ID, `PPSA99186`, was reserved
+through catalog PR #302, merged October 18, 2026.
+
+The integration source was finalized in merge commit `8c5a797`.
+The candidate has passed initial PS5 startup, navigation, audio and game
+launch testing. Full clean-install and rollback qualification remains
+pending. Original ProsperoEden (`PPSA99008`) is installed separately
+and must not be overwritten.
 
 ## Installation layout
 
@@ -38,9 +44,10 @@ The updater's catalog query reads `titleId` from this package's
 disabled during release-candidate testing until the new listing, signing,
 rollback and data-compatibility checks have been verified on hardware.
 
-Do not publish/tag this experimental branch as a stable release.
-The ID must be reserved, and any future organization transfer coordinated with
-the catalog maintainer, before public distribution.
+Do not tag or publish the public release until the final ZIP,
+checksums, licensing, documentation and applicable PS5 release gates
+are accepted. The title-ID reservation is complete, but the downloadable
+catalog listing still requires a separate submission.
 
 ## v6.0 RC2 visual smoke test
 
