@@ -59,7 +59,7 @@
       "name": "opengl-sdk",
       "about": "PS5 OpenGL 4.6 SDK 1.0.2 (launcher UI and the OpenGL renderer)",
       "kind": "archive",
-      "url": "https://github.com/blackbearreloaded/ps5-opengl/releases/download/v1.0.2/ps5-opengl-sdk-1.0.2.tar.gz",
+      "url": "https://github.com/KernelForgeLabs/ps5-opengl-sdk-mirror/releases/download/sdk-v1.0.2/ps5-opengl-sdk-1.0.2.tar.gz",
       "sha256": "30d8e51dd062739b629346102be5932728ba714bc50b1bdcdf08306c8843d9a4",
       "extract": ".deps",
       "creates": ".deps/ps5-opengl-sdk-1.0.2/sdk/lib/libps5_opengl_core33.a"
