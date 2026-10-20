@@ -319,6 +319,10 @@ inline constexpr const char *kHudCornerNames[] = {"Top left", "Top right", "Bott
 // persists the same three by key): regular is 1x, medium one and a half, large twice over.
 inline constexpr const char *kHudSizeNames[] = {"Regular", "Medium", "Large"};
 
+// Settings > Performance > Speed limit, as percentages of the console a game was made for; 0 is no
+// limit. The same steps as settings_store.h's kSpeedLimitKeys (eden_services.cpp checks).
+inline constexpr int kSpeedLimitPercents[] = {100, 150, 200, 300, 0};
+
 struct Preferences
 {
     bool hud = true;
@@ -335,6 +339,7 @@ struct Preferences
     // Lossless Scaling frame generation (Vulkan only): between a game's own frames, show
     // frames generated from them, up to the output's rate.
     bool frame_gen = false;
+    int frame_gen_method = 0;      // 0 Lossless Scaling, 1 MihawkGen
     int frame_gen_target = 0;      // index into kFrameGenTargetKeys: 0 auto, then 60/90/120/144/240
     int frame_gen_multiplier = 0;  // index into kFrameGenMultiplierKeys: 2x, 3x, 4x
     int post_processing = 0;       // index into Services::post_processing_labels: 0 off, then a preset
@@ -360,6 +365,8 @@ struct Preferences
     // How much memory a game's console is told it has (settings_store.h's kMemoryLayoutKeys): an
     // index into them, and the memory a mod that keeps a heap of its own asks the kernel for.
     int memory_layout = 0;
+    // How fast a game may run: an index into kSpeedLimitPercents (0 is 100%, the console's own pace).
+    int speed_limit = 0;
     ButtonMapping mapping = kDefaultMapping; // Settings > Controls > Button mapping
     // Settings > Video: the overlay's chip (the same values Eden::Preferences keeps).
     int hud_size = 0;   // 0 regular, 1 medium, 2 large
@@ -373,6 +380,9 @@ struct Preferences
     // Settings > Appearance > Wallpaper: the image file's name in the wallpapers folder ("" when
     // the theme's own art shows).
     std::string wallpaper;
+    // Settings > Diagnostics: the dialog (or notification) at the start when homebrew.page lists a
+    // newer release. Off, the check still runs and About names the newer version.
+    bool update_notices = true;
 };
 
 // What one game does differently from Settings (Library > Game settings). Each value is -1 while
@@ -388,6 +398,7 @@ struct GameSettings
     int hud_size = -1;   // the overlay's chip: 0 regular, 1 large
     int hud_corner = -1; // 0 top left, 1 top right, 2 bottom left, 3 bottom right
     int frame_gen = -1;  // Lossless Scaling frame generation (Vulkan only)
+    int frame_gen_method = -1;      // 0 Lossless Scaling, 1 MihawkGen
     int frame_gen_target = -1;      // index into kFrameGenTargetKeys
     int frame_gen_multiplier = -1;  // index into kFrameGenMultiplierKeys
     int post_processing = -1;       // index into Services::post_processing_labels (0 off)
@@ -402,6 +413,7 @@ struct GameSettings
     // unsafe CPU, unsafe DMA, reactive flushing, skip invalidation, compact memory.
     std::array<int, 8> performance{-1, -1, -1, -1, -1, -1, -1, -1};
     int64_t rng_seed = -1;
+    int speed_limit = -1; // index into kSpeedLimitPercents
 };
 
 // One cheat of a mod that lists several: each is chosen on its own.
@@ -411,13 +423,24 @@ struct Cheat
     bool enabled = false; // chosen: runs when its mod is on
 };
 
-// A mod of one game, from the game files folder's mods/<title ID>/.
+// A mod of one game, from its mods folder.
 struct Mod
 {
     std::string name;    // its folder's name
     std::string kind;    // what it is made of: "Patch", "Files", "Cheats"
     bool enabled = true; // used when the game starts
     std::vector<Cheat> cheats; // its cheats when it lists several; empty for a single one
+    // Cheats and nothing else: the Cheats list has it (Services::cheats), not the Mods list.
+    bool cheats_only = false;
+};
+
+// One cheat of a game as the Cheats list has it, whichever file it came from: a mod's cheats
+// folder, a loose cheat file, or the game's cheats folder.
+struct GameCheat
+{
+    std::string mod;      // the mod it comes from, as Services::set_cheat_enabled names it
+    std::string name;     // shown
+    bool enabled = false; // runs when the game starts (with the game's Cheats switch on)
 };
 
 // Where a save to import was found, in the game files folder.
@@ -513,9 +536,20 @@ class Services
         static const std::vector<std::string> off{"Off"};
         return off;
     }
+    // How many of those the general settings offer: "Off" and the shared presets. A game's own
+    // presets (its game folder's reshade/) come after them, in its settings only.
+    virtual int post_processing_shared()
+    {
+        return static_cast<int>(post_processing_labels().size());
+    }
     // Frame generation: 0 this build has none (its settings are not shown), 1 the user's
     // Lossless.dll is missing (they are shown greyed out), 2 ready.
     virtual int frame_gen_state()
+    {
+        return 0;
+    }
+    // MihawkGen neural frame generation: 0 not compiled, 1 weights missing, 2 ready.
+    virtual int mihawkgen_state()
     {
         return 0;
     }
@@ -599,7 +633,7 @@ class Services
         return false;
     }
 
-    // ---- mods: patches, replacement files and cheats the player added for a game ----
+    // ---- mods and cheats: patches, replacement files and cheats the player added for a game ----
     virtual std::vector<Mod> mods(std::uint64_t)
     {
         return {};
@@ -608,11 +642,36 @@ class Services
     {
         return false;
     }
-    // One cheat of a mod that lists several. Choosing one of a group (two frame rates) takes the
-    // other out: the list is read again afterwards.
+    // One cheat of a mod (GameCheat::mod and GameCheat::name). Choosing one of a group (two frame
+    // rates) takes the other out: the list is read again afterwards. A mod of one cheat alone is
+    // switched as a whole.
     virtual bool set_cheat_enabled(std::uint64_t, const std::string &, const std::string &, bool)
     {
         return false;
+    }
+    // Every cheat of a game, for its Cheats list. By default: those of mods() that list several.
+    virtual std::vector<GameCheat> cheats(std::uint64_t title_id)
+    {
+        std::vector<GameCheat> result;
+        for (const Mod &mod : mods(title_id))
+            for (const Cheat &cheat : mod.cheats)
+                result.push_back({mod.name, cheat.name, cheat.enabled});
+        return result;
+    }
+    // One switch for all of a game's cheats, apart from the Mods switch, on unless turned off.
+    // The cheats keep their own switches behind it.
+    virtual bool cheats_enabled(std::uint64_t)
+    {
+        return true;
+    }
+    virtual bool set_cheats_enabled(std::uint64_t, bool)
+    {
+        return false;
+    }
+    // Where a game's cheat files go, as the player would write it.
+    virtual std::string cheats_folder(std::uint64_t)
+    {
+        return {};
     }
     // One switch for all of a game's mods (the Library's Mods switch), on unless turned off. The
     // mods keep their own switches behind it.
@@ -624,7 +683,7 @@ class Services
     {
         return false;
     }
-    // Where a game's mods go, as the player would write it: "mods/0100.../".
+    // Where a game's mods go, as the player would write it: "roms/<game>/mods/".
     virtual std::string mods_folder(std::uint64_t)
     {
         return {};

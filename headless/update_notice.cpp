@@ -9,6 +9,7 @@
 #include <string>
 
 #include "diagnostics.h"
+#include "prosperoeden/version.h"
 #include "storage_paths.h"
 #include "update_check/self_update.h"
 #include "update_check/update_check.h"
@@ -27,6 +28,13 @@ extern "C" const char* eden_self_update_path(int which) {
 
 namespace Eden::UpdateNotice {
 namespace {
+
+// KernelForgeLabs Switch UI: no catalog checking or self-installation
+// until PPSA99186 has an independently verified release channel,
+// update package, title-identity validation, and rollback procedure.
+// This is deliberately independent of the user's notification preference.
+constexpr bool kSwitchUiSelfUpdateQualified = false;
+
 // libcurl and OpenSSL want more stack than a default thread of the console has.
 constexpr std::size_t kStackSize = 1024 * 1024;
 
@@ -81,6 +89,17 @@ void* Check(void*) {
         state = SELF_UPDATE_AVAILABLE;
     }
 #endif
+    // The program's own version counts too (issue 230): an install that replaced the program but
+    // kept an older sce_sys/param.json read as that older version, and the version the console
+    // already ran was offered at every start.
+    int comparable = 0;
+    if ((state == SELF_UPDATE_AVAILABLE || state == SELF_UPDATE_NOT_INSTALLABLE) &&
+        update_check_version_compare(result.available, kAppVersion, &comparable) <= 0 && comparable) {
+        Report("update check", (std::string{"sce_sys/param.json names "} + (result.installed[0] ? result.installed : "-") +
+                                ", the program is " + kAppVersion + ": nothing newer to offer")
+                                   .c_str());
+        state = SELF_UPDATE_UP_TO_DATE;
+    }
     char line[300];
     std::snprintf(line, sizeof(line), "result=%s installed=%s available=%s version=%s size=%llu",
                   ResultName(state), result.installed[0] ? result.installed : "-",
@@ -111,6 +130,8 @@ Phase FromKit(self_update_phase phase) {
 } // namespace
 
 void Start() {
+    if (!kSwitchUiSelfUpdateQualified)
+        return;
     {
         const std::lock_guard guard(lock);
         if (started) return;
@@ -142,6 +163,8 @@ bool Take(Offer* out) {
 }
 
 bool Begin() {
+    if (!kSwitchUiSelfUpdateQualified)
+        return false;
     const std::lock_guard guard(lock);
     if (answer != SELF_UPDATE_AVAILABLE) return false;
     if (begun) self_update_finish(&job);
@@ -170,6 +193,8 @@ void Cancel() {
 }
 
 bool Apply() {
+    if (!kSwitchUiSelfUpdateQualified)
+        return false;
     const std::lock_guard guard(lock);
     if (!begun) return false;
     const bool going = self_update_apply(&job) == 1;

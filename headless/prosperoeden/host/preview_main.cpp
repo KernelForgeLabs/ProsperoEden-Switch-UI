@@ -255,6 +255,11 @@ void pictures(Stage &s)
     s.press({Key::circle, Key::down, Key::cross, Key::right, Key::right});
     s.wait(0.6f);
     s.shoot("50-game-performance");
+    // Its own speed limit, the row after the switches: 100%, 150%, then 200%.
+    s.press({Key::down, Key::down, Key::down, Key::down, Key::down, Key::down, Key::down, Key::down});
+    s.press({Key::right, Key::right, Key::right});
+    s.wait(0.6f);
+    s.shoot("50b-game-speed-limit");
     // Its own Controls: a button mapping of its own, and A moved to another button.
     s.press({Key::circle, Key::down, Key::down, Key::cross, Key::down, Key::right});
     s.wait(0.6f);
@@ -264,7 +269,8 @@ void pictures(Stage &s)
     s.shoot("52-game-mapping");
     {
         const pe::ui::GameSettings game = s.services.game_settings(0);
-        if (game.renderer != 0 || game.refresh != 1 || game.performance[0] != 1 || !game.own_mapping ||
+        if (game.renderer != 0 || game.refresh != 1 || game.performance[0] != 1 || game.speed_limit != 2 ||
+            !game.own_mapping ||
             game.mapping[0] != 2 || game.mapping[3] != 1)
         {
             std::fprintf(stderr, "error: the game's own settings did not reach the settings\n");
@@ -318,11 +324,6 @@ void pictures(Stage &s)
     s.press({Key::down, Key::cross});
     s.wait(0.4f);
     s.shoot("37-mods-switched");
-    // A mod that lists several cheats: each has its switch, and one frame rate takes the place
-    // of the other.
-    s.press({Key::down, Key::down, Key::down, Key::cross});
-    s.wait(0.6f);
-    s.shoot("46-mods-cheats");
     s.services.has_mods = false;
     s.press({Key::circle, Key::cross});
     s.wait(0.6f);
@@ -330,6 +331,26 @@ void pictures(Stage &s)
     s.press({Key::square});
     s.wait(0.4f);
     s.shoot("39-mods-folder-made");
+    s.services.has_mods = true;
+    // The game's cheats: the row, the list with the switch for all of them first, one frame rate
+    // taking the other's place, all of them off, and a game that has none.
+    s.press({Key::circle, Key::down});
+    s.wait(0.6f);
+    s.shoot("46-game-cheats-row");
+    s.press({Key::cross});
+    s.wait(0.6f);
+    s.shoot("46b-cheats");
+    s.press({Key::down, Key::down, Key::cross});
+    s.wait(0.4f);
+    s.shoot("46c-cheats-chosen");
+    s.press({Key::up, Key::up, Key::cross});
+    s.wait(0.4f);
+    s.shoot("46d-cheats-off");
+    s.press({Key::cross});
+    s.services.has_mods = false;
+    s.press({Key::circle, Key::cross});
+    s.wait(0.6f);
+    s.shoot("46e-cheats-none");
     s.services.has_mods = true;
     s.press({Key::circle, Key::down});
     s.wait(0.6f);
@@ -453,6 +474,31 @@ void pictures(Stage &s)
     s.shoot("89-update-notes-truncated-end");
     s.services.update_notes_truncated = false;
 
+    // Update notices off (Settings > Diagnostics): the check runs, but the app opens without the
+    // offer; About names the newer version.
+    {
+        pe::ui::Preferences quiet = s.services.preferences();
+        quiet.update_notices = false;
+        s.services.set_preferences(quiet);
+        s.services.update_version = "v1.000.060";
+        s.restart(true);
+        s.heard.clear();
+        s.wait(2.6f);
+        s.shoot("70b-update-notices-off");
+        const bool offered =
+            std::find(s.heard.begin(), s.heard.end(), pe::audio::Cue::notify) != s.heard.end();
+        if (offered || !s.services.update_version.empty())
+        {
+            std::fprintf(stderr, "error: the update offer showed with Update notices off\n");
+            s.ok = false;
+        }
+        s.press({Key::l1}); // About, the last section
+        s.wait(1.0f);
+        s.shoot("70c-update-notices-off-about");
+        quiet.update_notices = true;
+        s.services.set_preferences(quiet);
+    }
+
     // A game's file taken away while the menu shows it: within a moment it leaves the home screen
     // (another recent game takes its place) and the Library.
     s.restart();
@@ -565,8 +611,27 @@ void pictures(Stage &s)
             std::fprintf(stderr, "error: the Performance switches did not reach the settings\n");
             s.ok = false;
         }
-        // The row after the switches: the memory a game's console is told it has. Left and right
-        // move over the layouts, and the choice reaches the settings file the launcher writes.
+        // The row after the switches: how fast a game may run. Right goes up a step, left from
+        // 100% wraps to Unlimited, and each choice reaches the settings.
+        s.press({Key::down});
+        s.wait(0.4f);
+        s.press({Key::right});
+        s.wait(0.4f);
+        s.shoot("48b-performance-speed-limit");
+        const int faster = s.services.preferences().speed_limit;
+        s.press({Key::left, Key::left});
+        s.wait(0.4f);
+        s.shoot("48c-performance-speed-unlimited");
+        const int unlimited = s.services.preferences().speed_limit;
+        s.press({Key::right});
+        s.wait(0.4f);
+        if (faster != 1 || unlimited != 4 || s.services.preferences().speed_limit != 0)
+        {
+            std::fprintf(stderr, "error: the speed limit did not reach the settings\n");
+            s.ok = false;
+        }
+        // The last row: the memory a game's console is told it has. Left and right move over the
+        // layouts, and the choice reaches the settings file the launcher writes.
         s.press({Key::down});
         s.wait(0.4f);
         s.press({Key::right});
@@ -646,6 +711,21 @@ void pictures(Stage &s)
     s.press({Key::down});
     s.wait(0.6f);
     s.shoot("18b-diagnostics-logs-at-once");
+    // Update notices: off and back on, saved each time.
+    s.press({Key::down});
+    s.wait(0.6f);
+    s.shoot("18c-diagnostics-update-notices");
+    s.press({Key::right});
+    s.wait(0.4f);
+    s.shoot("18d-diagnostics-update-notices-off");
+    const bool notices_off = !s.services.preferences().update_notices;
+    s.press({Key::right});
+    s.wait(0.4f);
+    if (!notices_off || !s.services.preferences().update_notices)
+    {
+        std::fprintf(stderr, "error: the Update notices switch did not reach the settings\n");
+        s.ok = false;
+    }
     s.press({Key::circle});
     s.walk(6, 7, 1);
     s.press({Key::cross});
@@ -867,7 +947,7 @@ void pictures(Stage &s)
     s.press({Key::triangle});
     s.wait(0.6f);
     s.press({Key::down, Key::down, Key::down, Key::down, Key::down, Key::down, Key::down, Key::down,
-             Key::down});
+             Key::down, Key::down});
     s.wait(0.6f);
     s.shoot("95-game-delete-row");
     s.press({Key::cross});

@@ -508,7 +508,7 @@ void Launcher::draw_about(Canvas &c)
         info_line(764.0f, tr("GAMES"), folder + "/roms");
         info_line(798.0f, tr("UPDATES, DLC"), folder + "/updates");
         info_line(832.0f, tr("MODS"), folder + "/mods");
-        text_shrink(c, tr("Menu sound effects made with ElevenLabs."), x,
+        text_shrink(c, tr("Switch UI v6.0 is provided by KernelForgeX."), x,
                     baseline(880.0f, 26.0f, t.size_small), t.size_small, t.meta, w);
         text(c, version_, kPanelLeft + kPanelWidth - 32.0f, baseline(920.0f, 26.0f, t.size_small),
              t.size_small, t.accent_pale, Align::right);
@@ -560,7 +560,7 @@ void Launcher::draw_about(Canvas &c)
                 baseline(782.0f, 30.0f, th().size_small), th().size_small, th().accent_pale, 548.0f);
     text_shrink(c, "Independent edition by KernelForgeX", 144.0f,
                 baseline(820.0f, 28.0f, th().size_small), th().size_small, th().body, 548.0f);
-    text_shrink(c, "Built on ProsperoEden v1.004.000", 144.0f,
+    text_shrink(c, "Built on ProsperoEden v1.005.000", 144.0f,
                 baseline(858.0f, 28.0f, th().size_small), th().size_small, th().meta, 548.0f);
 
     if (look().high_contrast)

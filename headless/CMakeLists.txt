@@ -174,6 +174,68 @@ eden_sparse_replace("    std::size_t alloc_size{};\n"
 write_derived("${PORT_BUILD_DIR}/sparse/common/sparse_large_vector.h" "${sparse_header}")
 include("${EDEN_PORT_DIR}/jit-page-table.cmake")
 
+# A pixel shader's colour that is not a number (NaN) is written as zero. The guest's shaders
+# were written against the guest GPU, and an expression that gives a finite colour there can give
+# NaN here; a later pass that blurs or reprojects the frame (glow, bloom, temporal history) then
+# spreads it, so a few such pixels became dark boxes that grew from frame to frame until they
+# covered the screen (issue 245). Zero keeps a bad pixel to itself. Only float outputs change.
+file(READ "${PROJECT_SOURCE_DIR}/src/shader_recompiler/backend/spirv/emit_spirv_context_get_set.cpp" frag_color_source)
+set(frag_color_site "        const Id pointer{ctx.OpAccessChain(ctx.output_f32, ctx.frag_color.at(index), component_id)};\n        ctx.OpStore(pointer, value);\n")
+string(FIND "${frag_color_source}" "${frag_color_site}" frag_color_at)
+if(frag_color_at LESS 0)
+    message(FATAL_ERROR "Pinned fragment colour output changed; review the NaN colour output.")
+endif()
+string(REPLACE "${frag_color_site}"
+    "        const Id pointer{ctx.OpAccessChain(ctx.output_f32, ctx.frag_color.at(index), component_id)};\n        ctx.OpStore(pointer, ctx.OpSelect(ctx.F32[1], ctx.OpIsNan(ctx.U1, value), ctx.Const(0.0f), value));\n"
+    frag_color_source "${frag_color_source}")
+write_derived("${PORT_BUILD_DIR}/emit_spirv_context_get_set.cpp" "${frag_color_source}")
+get_target_property(recompiler_sources shader_recompiler SOURCES)
+list(FILTER recompiler_sources EXCLUDE REGEX "(^|/)emit_spirv_context_get_set\\.cpp$")
+set_property(TARGET shader_recompiler PROPERTY SOURCES "${recompiler_sources}")
+target_sources(shader_recompiler PRIVATE "${PORT_BUILD_DIR}/emit_spirv_context_get_set.cpp")
+
+# The GPU's address space table (Common::MultiLevelPageTable, one per address space a game asks
+# for) reserves its whole range with an anonymous mmap and relies on the system to back a page
+# only when it is first written. On the PS5 an anonymous mapping comes out of the flexible pool
+# (a few hundred MiB): a game that asked for a larger GPU address space (40 bits: a 1 GiB table)
+# got no table at all, and the next mapping wrote through a null base ("assert base" in Eden's
+# log, then SIGSEGV on nvservices). It is reserved like the other large tables instead, sparse
+# (AllocateSparsePages, src/memory_pages.cpp), and each first-level chunk is committed when the
+# table reserves it for a mapping (AllocateLevel), which is the only way a mapping is written.
+file(READ "${PROJECT_SOURCE_DIR}/src/common/multi_level_page_table.inc" mlpt_source)
+foreach(mlpt_site
+        "    void* base{mmap(nullptr, alloc_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0)};\n    if (base == MAP_FAILED)\n        base = nullptr;\n"
+        "    ASSERT(munmap(base_ptr, alloc_size) == 0);\n"
+        "#else\n    void* base = ptr;\n#endif\n")
+    string(FIND "${mlpt_source}" "${mlpt_site}" mlpt_at)
+    if(mlpt_at LESS 0)
+        message(FATAL_ERROR "Pinned multi_level_page_table.inc changed; review how the GPU page table is reserved.")
+    endif()
+endforeach()
+string(REPLACE
+    "    void* base{mmap(nullptr, alloc_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0)};\n    if (base == MAP_FAILED)\n        base = nullptr;\n"
+    "    void* base{AllocateSparsePages(alloc_size)};\n" mlpt_source "${mlpt_source}")
+string(REPLACE "    ASSERT(munmap(base_ptr, alloc_size) == 0);\n"
+    "    FreeSparsePages(base_ptr, alloc_size);\n" mlpt_source "${mlpt_source}")
+string(REPLACE "#else\n    void* base = ptr;\n#endif\n"
+    "#else\n    void* base = ptr;\n    // The chunk is written next (MemoryManager::PageTableOp): give its slots memory of their own.\n    const auto chunk_begin = reinterpret_cast<std::uintptr_t>(ptr);\n    const auto chunk_end = chunk_begin + first_level_chunk_size;\n    for (std::uintptr_t page = chunk_begin; page < chunk_end; page += 0x200000)\n        CommitSparsePage(page);\n    CommitSparsePage(chunk_end - 1);\n#endif\n"
+    mlpt_source "${mlpt_source}")
+string(REPLACE "namespace Common {\n"
+    "namespace Common {\nvoid* AllocateSparsePages(std::size_t size) noexcept;\nvoid FreeSparsePages(void* base, std::size_t size) noexcept;\nvoid CommitSparsePage(std::uintptr_t page) noexcept;\n"
+    mlpt_source "${mlpt_source}")
+string(PREPEND mlpt_source "#include <cstdint>\n")
+file(READ "${PROJECT_SOURCE_DIR}/src/common/multi_level_page_table.cpp" mlpt_unit)
+string(REPLACE "#include \"common/multi_level_page_table.inc\"\n" "${mlpt_source}\n" mlpt_unit "${mlpt_unit}")
+string(FIND "${mlpt_unit}" "AllocateSparsePages(alloc_size)" mlpt_done)
+if(mlpt_done LESS 0)
+    message(FATAL_ERROR "Pinned multi_level_page_table.cpp changed; it no longer includes the .inc as expected.")
+endif()
+write_derived("${PORT_BUILD_DIR}/multi_level_page_table.cpp" "${mlpt_unit}")
+get_target_property(common_sources common SOURCES)
+list(REMOVE_ITEM common_sources multi_level_page_table.cpp)
+list(APPEND common_sources "${PORT_BUILD_DIR}/multi_level_page_table.cpp")
+set_property(TARGET common PROPERTY SOURCES "${common_sources}")
+
 # An abandoned fiber stack is not unwound. Empty the by-value weak reference
 # before switching; jump_fcontext returns the live destination supplied by the
 # resumer, under that fiber's guard, just as the initial entry trampoline does.
@@ -2280,6 +2342,115 @@ else()
 endif()
 list(REMOVE_ITEM video_sources video_core.cpp gpu.cpp)
 list(APPEND video_sources "${PORT_BUILD_DIR}/video_core.cpp")
+# A game's own post-processing (headless/reshade_folder.h): its game folder's reshade/ is read
+# before post_presets/ and post_shaders/. Presets: listed first. Effects: listed first, and one of
+# the same name in post_shaders/ is left out; the renderer reads a chain's effect from the game's
+# folder when it has it, and includes and textures are looked for there too.
+file(READ "${PROJECT_SOURCE_DIR}/src/video_core/post_processing/fx_preset.cpp" fx_preset_source)
+eden_patch(fx_preset_source [=[    std::vector<std::filesystem::path> preset_files;
+    Common::FS::IterateDirEntriesRecursively(
+        root,]=] [=[    std::vector<std::filesystem::path> preset_files;
+    if (const auto own = Eden::Reshade::GameFolder(); !own.empty() && Common::FS::Exists(own))
+        Common::FS::IterateDirEntriesRecursively(
+            own,
+            [&](const std::filesystem::directory_entry& entry) {
+                if (entry.path().extension() == ".fxp") {
+                    preset_files.push_back(entry.path());
+                }
+                return true;
+            },
+            Common::FS::DirEntryFilter::File);
+    const auto own_presets = static_cast<std::ptrdiff_t>(preset_files.size());
+    Common::FS::IterateDirEntriesRecursively(
+        root,]=])
+eden_patch(fx_preset_source [=[    std::sort(preset_files.begin(), preset_files.end());
+
+    for (const auto& file : preset_files) {]=] [=[    std::sort(preset_files.begin(), preset_files.begin() + own_presets);
+    std::sort(preset_files.begin() + own_presets, preset_files.end());
+
+    for (const auto& file : preset_files) {]=])
+string(PREPEND fx_preset_source "#include \"${EDEN_PORT_DIR}/reshade_folder.h\"\n")
+write_derived("${PORT_BUILD_DIR}/fx_preset.cpp" "${fx_preset_source}")
+file(READ "${PROJECT_SOURCE_DIR}/src/video_core/post_processing/fx_effect.cpp" fx_effect_source)
+eden_patch(fx_effect_source [=[    std::vector<std::filesystem::path> paths;
+    paths.push_back(effect_path.parent_path());
+    paths.push_back(root);]=] [=[    std::vector<std::filesystem::path> paths;
+    paths.push_back(effect_path.parent_path());
+    if (const auto own = Eden::Reshade::GameFolder(); !own.empty()) {
+        paths.push_back(own);
+        paths.push_back(own / "Shaders");
+    }
+    paths.push_back(root);]=])
+eden_patch(fx_effect_source [=[    const std::array candidates{
+        effect_path.parent_path() / name,
+        root / "Textures" / name,
+        root / name,
+    };]=] [=[    const auto own = Eden::Reshade::GameFolder();
+    const std::array candidates{
+        effect_path.parent_path() / name,
+        own.empty() ? effect_path.parent_path() / name : own / "Textures" / name,
+        root / "Textures" / name,
+        root / name,
+    };]=])
+eden_patch(fx_effect_source [=[    std::vector<std::filesystem::path> effect_files;
+    Common::FS::IterateDirEntriesRecursively(
+        root,
+        [&](const std::filesystem::directory_entry& entry) {
+            if (entry.path().extension() == ".fx") {
+                effect_files.push_back(entry.path());
+            }
+            return true;
+        },
+        Common::FS::DirEntryFilter::File);
+
+    std::sort(effect_files.begin(), effect_files.end());
+
+    for (const auto& file : effect_files) {
+        FxEffectDesc desc = DescribeEffect(file, root);]=] [=[    // Each effect with the folder its name is relative to: the game's own first.
+    std::vector<std::pair<std::filesystem::path, std::filesystem::path>> effect_files;
+    std::set<std::string> own_names;
+    const auto own = Eden::Reshade::GameFolder();
+    for (const auto& folder : {own, root}) {
+        if (folder.empty() || !Common::FS::Exists(folder)) {
+            continue;
+        }
+        std::vector<std::filesystem::path> found;
+        Common::FS::IterateDirEntriesRecursively(
+            folder,
+            [&](const std::filesystem::directory_entry& entry) {
+                if (entry.path().extension() == ".fx") {
+                    found.push_back(entry.path());
+                }
+                return true;
+            },
+            Common::FS::DirEntryFilter::File);
+        std::sort(found.begin(), found.end());
+        for (auto& path : found) {
+            const auto name = Common::FS::PathToUTF8String(std::filesystem::relative(path, folder));
+            if (folder == own) {
+                own_names.insert(name);
+            } else if (own_names.contains(name)) {
+                continue;
+            }
+            effect_files.emplace_back(std::move(path), folder);
+        }
+    }
+
+    for (const auto& [file, folder] : effect_files) {
+        FxEffectDesc desc = DescribeEffect(file, folder);]=])
+string(PREPEND fx_effect_source "#include <set>\n#include <utility>\n#include \"${EDEN_PORT_DIR}/reshade_folder.h\"\n")
+write_derived("${PORT_BUILD_DIR}/fx_effect.cpp" "${fx_effect_source}")
+list(REMOVE_ITEM video_sources post_processing/fx_preset.cpp post_processing/fx_effect.cpp)
+list(APPEND video_sources "${PORT_BUILD_DIR}/fx_preset.cpp" "${PORT_BUILD_DIR}/fx_effect.cpp")
+if(EDEN_PS5_VULKAN)
+    file(READ "${PROJECT_SOURCE_DIR}/src/video_core/renderer_vulkan/present/post_process.cpp" post_process_source)
+    eden_patch(post_process_source "        const auto path = root / entry.file;\n"
+        "        const auto path = Eden::Reshade::EffectPath(root, entry.file);\n")
+    string(PREPEND post_process_source "#include \"${EDEN_PORT_DIR}/reshade_folder.h\"\n")
+    write_derived("${PORT_BUILD_DIR}/vulkan_post_process.cpp" "${post_process_source}")
+    list(REMOVE_ITEM video_sources renderer_vulkan/present/post_process.cpp)
+    list(APPEND video_sources "${PORT_BUILD_DIR}/vulkan_post_process.cpp")
+endif()
 # Remove a derived header left by the isolated classic-uniform experiment.
 file(REMOVE "${PORT_BUILD_DIR}/include/video_core/buffer_cache/buffer_cache_base.h")
 # Join the worker before its renderer/context and scheduler are destroyed.
@@ -2733,8 +2904,8 @@ ${paths_source}")
     # and never created here (Eden makes one for every game that starts).
     eden_patch(bis_source
         "    return GetOrCreateDirectoryRelative(load_root, fmt::format(\"/{:016X}\", title_id));\n}\n\nVirtualDir BISFactory::GetModificationDumpRoot"
-        "    const auto wanted = fmt::format(\"{:016X}\", title_id);\n    if (load_root != nullptr)\n        for (const auto& folder : load_root->GetSubdirectories())\n            if (Common::ToUpper(folder->GetName()) == wanted) return folder;\n    return nullptr;\n}\n\nVirtualDir BISFactory::GetModificationDumpRoot")
-    string(PREPEND bis_source "#include \"common/string_util.h\"\n")
+        "    const auto wanted = fmt::format(\"{:016X}\", title_id);\n    VirtualDir shared;\n    if (load_root != nullptr)\n        for (const auto& folder : load_root->GetSubdirectories())\n            if (Common::ToUpper(folder->GetName()) == wanted) shared = folder;\n    // With the game's own folder's mods and the cheats/ folders' cheats (game_folder_vfs.h).\n    return Eden::GameFolderMods::Root(std::move(shared), title_id, wanted);\n}\n\nVirtualDir BISFactory::GetModificationDumpRoot")
+    string(PREPEND bis_source "#include \"common/string_util.h\"\n#include \"${EDEN_PORT_DIR}/game_folder_vfs.h\"\n")
     write_derived("${PORT_BUILD_DIR}/bis_factory.cpp" "${bis_source}")
     list(REMOVE_ITEM core_sources file_sys/bis_factory.cpp)
     list(APPEND core_sources "${PORT_BUILD_DIR}/bis_factory.cpp")

@@ -11,9 +11,9 @@
 **ProsperoEden Switch UI Edition** is an independently maintained interface edition of [BlackBearReloaded's ProsperoEden](https://github.com/blackbearreloaded/ProsperoEden), the unofficial PS5 port of [Eden](https://github.com/eden-emulator/mirror). The original PS5 port and its many dependencies remain the work of their respective developers. Switch UI modifications are provided by **KernelForgeX**. This project is not affiliated with or endorsed by Nintendo, Sony, Eden, or BlackBearReloaded.
 
 > [!IMPORTANT]
-> **Release candidate — not yet a public stable release.** Switch UI v6.0 RC2 has been tested on PS5. Its provisional home-screen title ID is `PPSA99186`, separate from the original ProsperoEden title `PPSA99008`. Both use `/data/prosperoeden/` for data; back up configuration and saves before alternating versions, and do not run both at once. The revised Tactile Leaf v3 audio and Canopy-free theme interface have passed a PS5 hardware test. Public beta distribution still requires full clean-install/rollback tests and explicit approval; catalog reservation PR #302 was closed without merge; the title ID remains provisional. Automatic update installation is intentionally disabled until qualified. See the [beta installation and rollback test plan](docs/BETA_INSTALL_AND_ROLLBACK.md), [RC installation and testing](docs/SWITCH_UI_V6_RC.md), and [release-readiness checklist](docs/SWITCH_UI_RELEASE_READINESS.md).
+> **Release candidate — not yet a public stable release.** Switch UI v6.0 RC2, based on v1.004.000, has been tested on PS5. The v1.005.000 integration has not yet passed PS5 testing. Its provisional home-screen title ID is `PPSA99186`, separate from the original ProsperoEden title `PPSA99008`. Both use `/data/prosperoeden/` for data; back up configuration and saves before alternating versions, and do not run both at once. The revised Tactile Leaf v3 audio and Canopy-free theme interface have passed a PS5 hardware test. Public beta distribution still requires full clean-install/rollback tests and explicit approval; catalog reservation PR #302 was closed without merge; the title ID remains provisional. Automatic update installation is intentionally disabled until qualified. See the [beta installation and rollback test plan](docs/BETA_INSTALL_AND_ROLLBACK.md), [RC installation and testing](docs/SWITCH_UI_V6_RC.md), and [release-readiness checklist](docs/SWITCH_UI_RELEASE_READINESS.md).
 
-The Switch UI launcher is based on ProsperoEden **v1.004.000**; compatibility and performance vary by game. The newer upstream ProsperoEden releases should not be confused with this separate edition.
+The last PS5-tested Switch UI build uses ProsperoEden **v1.004.000**. Integration of upstream **v1.005.000** is in progress and has not yet passed build or PS5 hardware qualification. Compatibility and performance vary by game. This edition is separate from upstream ProsperoEden releases. See the [upstream changelog](docs/CHANGELOG.md#v1005000).
 
 ## Source code
 
@@ -48,7 +48,8 @@ Local-wireless multiplayer through Eden rooms is new in v1.000.110 and experimen
 - **Output resolution** - the picture is made at 1080p, 1440p or 2160p: **Output resolution** in **Settings > Video**. The menu is drawn at that size too, and the PS5 scales it to your TV.
 - **A steadier frame rate in heavy scenes** - some games time their own frames and drop to a lower frame rate (30 to 20, or 60 to 30) as soon as a frame takes a little too long. ProsperoEden lets the game's clock give by up to 15% in those moments, so the game keeps its frame rate and runs a few percent slower instead of losing a third of its frames.
 - **120 Hz output** - on a display that shows 120 Hz, games can run on a 120 Hz output: **Refresh rate** in **Settings > Video**, or in one game's settings. A frame that is a little late is then shown 8 ms later instead of 17 ms, and patches for more than 60 FPS need it. The menu stays at 60 Hz.
-- **Frame generation** - between two of a game's own pictures ProsperoEden can show one made up from them, so a 30 FPS game looks like 60: **Frame generation** in **Settings > Video**, or in one game's settings. It needs your own copy of Lossless Scaling; see [Frame generation](#frame-generation).
+- **Frame generation** - between two of a game's own pictures ProsperoEden can show one made up from them, so a 30 FPS game looks like 60: **Frame generation** in **Settings > Video**, or in one game's settings. Two methods: **MihawkGen**, whose model must be included in this edition's build, or Lossless Scaling with your own copy of it; see [Frame generation](docs/SETTINGS.md#frame-generation).
+- **Post-processing (ReShade FX)** - a look drawn over the game's picture: **Post-processing** in **Settings > Video**, or in one game's settings, with the Vulkan renderer. Six presets come with the app (Anime, Cinematic, Clean, Dreamy, Retro, Vivid). Presets of your own (`.fxp`) go in `/data/prosperoeden/user/post_presets/` and the ReShade FX effects they use (`.fx`, with any `.fxh` they include) in `/data/prosperoeden/user/post_shaders/`; a game's own presets and effects go in its game folder's `reshade/`, and are offered for that game only. They are listed after a restart. See [Post-processing](docs/SETTINGS.md#post-processing).
 - **Game files anywhere** - keys, firmware, and games can live in any folder the PS5 can read: internal storage, an M.2 or external drive, or a USB device.
 - **Folder browser** - pick the game files folder in **Settings > Game files**. It shows how many keys, firmware files, and games each folder holds. Hold L1/R1 to page quickly.
 - **Library** - your games as covers, with the selected game's details beside them. The home screen has **Continue Playing** and **Recently Played**, which keep working after you move your files.
@@ -60,16 +61,17 @@ Local-wireless multiplayer through Eden rooms is new in v1.000.110 and experimen
 - **Your language** - the launcher follows the language the PS5 is set to (29 languages; English otherwise).
 - **Accessibility** - larger text, high contrast and reduced motion, in **Settings > Accessibility**.
 - **Save data in and out** - import a game's save from a folder or from a Ryujinx data folder, and export a copy (Triangle in the Library, then **Save data**).
-- **Game updates and DLC** - put update and DLC files (NSP or XCI) in the `updates` folder next to `roms`. They apply when the game starts, and each game's details show the update version and DLC count.
-- **Download sources** - the games on servers in your network, such as a [RomM](https://github.com/rommapp/romm) server, appear in the Library next to the ones on the console. A game is downloaded when you play it, or ahead of time through a download queue, and then runs from the console like any other: nothing is streamed. Downloads need an FTP server running on the console; see [Download sources](#download-sources).
-- **Save sync** - each profile can keep its save data on a server, such as a [RomM](https://github.com/rommapp/romm) server, as Steam does: it is synced before a game starts and after it ended, and when it changed on two devices you choose which one stays. A profile is paired with its server by a QR code, no typing. See [Save sync](#save-sync).
-- **Mods** - patches, replacement game files and cheats for a game, from a `mods` folder next to `roms`, each switched on or off in the game's settings (Triangle in the Library, then **Mods**).
-- **Performance switches** - seven switches that trade accuracy for speed (compiling a game's code ahead, asynchronous shaders, faster GPU, CPU and DMA emulation, and more) in **Settings > Performance**; see [Performance settings](#performance-settings).
+- **Game updates and DLC** - games can remain directly in `roms/` with updates and DLC in `updates/`, or use individual `roms/<Game>/` folders with updates and DLC beside the base game; see [Game files folder](docs/INSTALL.md#game-files-folder). They apply when the game starts, and each game's details show the update version and DLC count.
+- **Download sources** - the games on servers in your network, such as a [RomM](https://github.com/rommapp/romm) server, appear in the Library next to the ones on the console. A game is downloaded when you play it, or ahead of time through a download queue, and then runs from the console like any other: nothing is streamed. Downloads need an FTP server running on the console; see [Download sources](docs/DOWNLOADS.md#download-sources).
+- **Save sync** - each profile can keep its save data on a server, such as a [RomM](https://github.com/rommapp/romm) server, as Steam does: it is synced before a game starts and after it ended, and when it changed on two devices you choose which one stays. A profile is paired with its server by a QR code, no typing. See [Save sync](docs/SAVES.md#save-sync).
+- **Mods and cheats** - use per-game `roms/<Game>/mods/` and `roms/<Game>/cheats/` folders, or the existing global `mods/<title ID>/` and `cheats/<title ID>/` folders. Each has a list of its own in the game's settings (Triangle in the Library, then **Mods** or **Cheats**), where every mod and every cheat is switched on or off, and a switch for all of them at once.
+- **Performance settings** - eight switches that trade accuracy for speed (compiling a game's code ahead, asynchronous shaders, faster GPU, CPU and DMA emulation, and more) in **Settings > Performance**; see [Performance settings](docs/SETTINGS.md#performance-settings).
 - **Shader cache** - shaders compiled in earlier sessions are loaded when a game starts, so an effect stutters only the first time it appears.
 - **In-game shortcuts** - a performance overlay (Touchpad + R1), and Touchpad + L1 to end the game and return to the library. Leaving takes ten seconds at most, also while a game is still loading.
 - **Settings in one place** - a single JSON file under `/data/prosperoeden`, with game volume, mute, and detailed logging options. Logs keep the previous session.
-- **Updates from the menu** - the original update infrastructure consults [homebrew.page](https://homebrew.page/) using the installed title ID. Automatic install/update for Switch UI is **not yet qualified** for public release; see [release readiness](docs/SWITCH_UI_RELEASE_READINESS.md).
-- **Crash reports** - if ProsperoEden stops because of an error, it saves a report with that session's logs, starts again and shows where the report is.
+- **Speed limit** - **Settings > Performance > Speed limit** (and each game's own) lets a game run at 150%, 200%, 300% or without a limit: a game locked to 30 FPS can reach 60 at 200% when the console has time to spare, and a game timed by its frames plays faster with it; see [Speed limit](docs/SETTINGS.md#speed-limit).
+- **Manual updates only** - Switch UI does not currently check the upstream catalog or install updates automatically. Only verified, independently identified Switch UI packages should be installed; see [Updating](#updating) and [release readiness](docs/SWITCH_UI_RELEASE_READINESS.md).
+- **Crash reports** - if ProsperoEden stops because of an error, it saves a report with that session's logs, starts again and shows where the report is. **Settings > Diagnostics** also keeps the FTP log-folder path visible; attach the dated `crash-*.txt` report and its matching logs.
 - **Controllers, audio, and saves** - up to four DualSense controllers (one per signed-in PS5 user) with rumble and motion controls, game audio, and save data work out of the box. A game that gives a player a single Joy-Con is played with the whole DualSense: the shapes are that Joy-Con's four buttons, the D-pad and either stick are its stick, and L1/R1 and L2/R2 are its shoulder buttons. When the game has the Joy-Con held sideways, the DualSense is still held as usual: the stick, the buttons and the motion sensors are turned to match.
 - **Controller type per game** - some games take a Pro Controller and then only work with another controller. In **Library > Game settings > Controls**, **Controller type** gives the game a Pro Controller, the Handheld controller, Dual Joy-Cons, a Left Joy-Con or a Right Joy-Con. Left on **Automatic**, the game gets what it takes, a Pro Controller first.
 - **Typing text** - when a game asks for text (a character's name, an answer during an event), the PS5's own on-screen keyboard opens, and what you enter goes to the game. A USB or Bluetooth keyboard the PS5 supports types into it too.
@@ -81,7 +83,7 @@ Local-wireless multiplayer through Eden rooms is new in v1.000.110 and experimen
 
 1. Download and extract the release ZIP.
 2. For this **Switch UI release candidate**, copy the included `PPSA99186` folder to `/data/homebrew/PPSA99186` on the PS5 (or another folder ShadowMountPlus scans, such as `/mnt/usb0/homebrew/PPSA99186`). Do **not** replace or rename the original `PPSA99008` app folder.
-3. Make sure your jailbreak environment's local ELF loader is listening on TCP port 9021 (most setups have it). [Updates from the menu](#updating) use it, and with a ShadowMountPlus older than 1.7beta4 ProsperoEden sends its bundled Lapy helper through it.
+3. With ShadowMountPlus older than 1.7beta4, the bundled Lapy helper may require your jailbreak environment's local ELF loader on TCP port 9021. Automatic update installation is disabled in this Switch UI release candidate.
 4. Put your own legally dumped keys, firmware, and games in a **game files folder** (layout below). It can be anywhere the PS5 can read: internal storage, an M.2 or external drive, or a USB device.
 5. Launch **ProsperoEden**, open **Settings > Game files**, browse to that folder and select it. The default is `/data/prosperoeden`.
 6. Close and reopen ProsperoEden, then open **Library**. Setup is checked when the app opens, so reopen it after changing the folder or adding keys or firmware.
@@ -116,6 +118,8 @@ Only these subfolders matter; the folder itself can have any name and location.
 └── .remote-downloads/                  # downloads that are not finished yet (see Download sources)
 ```
 
+The layout above remains supported. Starting with the v1.005.000 integration, games may also be stored in individual folders such as `roms/Game/Game.nsp`. Updates and DLC may sit beside the base game in that folder, with optional `mods/<mod name>/`, `cheats/<build ID>.txt`, and `reshade/` subfolders. The existing global `updates/`, `mods/<title ID>/`, and `cheats/<title ID>/` layouts remain supported. No migration is required.
+
 The folder browser shows how many keys, firmware files, and games each folder holds, so you can check a folder before selecting it. Moving your files later only needs a new selection in Settings; saved settings, covers, and recently played games carry over.
 
 ### App data
@@ -135,7 +139,7 @@ ProsperoEden keeps its own data in `/data/prosperoeden`, separately from the gam
 ├── backup/save-sync/                   # save data the save sync replaced, the last three per game
 ├── covers/                             # cached game covers
 ├── logs/                               # current and previous session logs, crash reports
-├── previous-version/PPSA99186-backup/  # Switch UI's previous self-updated version (once qualified)
+├── previous-version/PPSA99186-backup/  # reserved for a future qualified updater; manual installs do not create it
 └── user/                               # every profile's saves, and emulator user data
     └── lossless/Lossless.dll           # optional: your copy, for frame generation
 ```
@@ -151,29 +155,47 @@ If an early upstream ProsperoEden installation has user files under `/data/homeb
 ### Updating
 
 > [!CAUTION]
-> **Switch UI RC2's automatic update installation has not been qualified.** The following describes the inherited update mechanism, not an assurance that catalog updates already work for this new title. For RC testing use the [separate-title instructions](docs/SWITCH_UI_V6_RC.md), and back up data first.
+> **Switch UI automatic updates are disabled.** This edition does not currently
+> check the upstream homebrew catalog, present qualified update offers, or
+> automatically install a newer version. The separate `PPSA99186` release
+> channel has not yet completed its qualification.
 
-Close ProsperoEden first. Your settings, saves, covers and logs are in `/data/prosperoeden`, outside the app, so an update keeps them. Afterwards the About screen shows the version that is running.
+For a future **verified Switch UI Edition** release:
 
-Once each time it opens, ProsperoEden asks [homebrew.page](https://homebrew.page/ps5) which release of it is listed there. The request carries the app's title ID and nothing else. If the listed release is newer than the one running, a dialog offers it, with its version and download size:
+1. Close the application. Make a backup of the existing
+   `/data/homebrew/PPSA99186` application folder before replacing any files.
+2. Back up important data in `/data/prosperoeden`, particularly configuration
+   and saves. The original ProsperoEden edition shares this data location,
+   so do not erase or reset it during installation.
+3. Verify that the new package is explicitly identified as the independent
+   Switch UI Edition with title ID `PPSA99186`. Do not use the upstream
+   `PPSA99008` package to update this edition.
+4. Replace only the Switch UI application files in
+   `/data/homebrew/PPSA99186`, preserving user-owned files. Leave
+   `/data/homebrew/PPSA99008` and `/data/prosperoeden` untouched.
+5. Reopen the application and verify its version, games, themes, settings,
+   and save-data access before discarding your backups.
 
-- **Update now** downloads the release ZIP from its GitHub release, checks it against the SHA-256 in the catalog's signed list, and unpacks it beside the app. A ring shows how far it is and the time left; Circle cancels, and nothing has changed until the end. Then ProsperoEden closes, the update helper (`self-updater.elf`, sent to the console's payload loader on port 9021) replaces the app's files, and the console shows a notification. Open ProsperoEden again to use the new version. The version it replaced is kept; see [Going back to the previous version](#going-back-to-the-previous-version).
-- **What's new** (when the release has notes) shows what changes in it before you decide: the release notes as homebrew.page lists them. Up/Down scroll, L1/R1 jump a page, Cross updates and Circle goes back to the offer. Triangle opens them from the offer too.
-- **Skip** keeps the version you have. The dialog shows again the next time ProsperoEden opens, not when you come back from a game.
-
-If the download or the unpacking fails, the dialog says why and offers **Try again**; the app stays as it was. Without a network, or without an answer, nothing is shown. When ProsperoEden cannot install the release itself (no payload loader, or an install it cannot find), the menu says **Update available** at the top right for ten seconds instead, and the steps below still work:
-
-- **Folder install.** Copy the `PPSA99186` folder from a verified new **Switch UI** release ZIP over `/data/homebrew/PPSA99186`, replacing only files for that separate title, then start the Switch UI edition. Files you put there yourself, such as `language.txt`, stay.
+No automatic update notification or rollback backup is expected in this
+release candidate. Any bundled update-helper executable is inactive while
+the independent update system remains disabled.
 
 ### Going back to the previous version
 
-When the Switch UI edition eventually uses its qualified updater, the version it replaces is kept in `/data/prosperoeden/previous-version/PPSA99186-backup`, until the next update replaces it in turn. If a new version misbehaves, you can put the previous one back:
+Manual installation does **not** automatically retain the previous
+application. Rollback requires the backup made before the update:
 
-1. Close ProsperoEden.
-2. Copy everything inside `/data/prosperoeden/previous-version/PPSA99186-backup` over the Switch UI app's folder (`/data/homebrew/PPSA99186`), replacing the files it has, for example over FTP.
-3. Start ProsperoEden. The About screen shows the version that is running.
+1. Close the Switch UI application.
+2. Restore your backed-up `PPSA99186` application files to
+   `/data/homebrew/PPSA99186`. Do not overwrite the original
+   `PPSA99008` application.
+3. Reopen Switch UI and check the version, settings, and game library.
+   If the earlier build cannot read newer configuration correctly,
+   use your separately backed-up configuration and saves as appropriate
+   rather than deleting or resetting shared data.
 
-The update will be offered again the next time ProsperoEden opens; choose **Skip** to stay on the version you put back. Settings, saves and game files are not part of this: they stay as they are. An update done by hand, by copying a release over the app's folder, keeps no previous version.
+The `previous-version/PPSA99186-backup` folder is reserved for a future
+qualified automatic updater; do not assume it exists after a manual update.
 
 ### Moving save data
 
@@ -302,17 +324,18 @@ Resolution, the upscaling filter, the renderer and the refresh rate, which chang
 
 Frame generation shows, between two pictures a game draws, one that is made up from them. A game that runs at 30 FPS then looks like 60. It does not make the game itself faster, it adds a little delay between a button and its effect, and fast motion can show faults in the made-up pictures. It works with the Vulkan renderer.
 
-It uses the frame generation of [Lossless Scaling](https://store.steampowered.com/app/993090/Lossless_Scaling/), which ProsperoEden cannot include: you need your own copy of that program.
+The v1.005.000 base supports MihawkGen, when its required model is packaged with the build, and Lossless Scaling, which requires your own copy of [Lossless Scaling](https://store.steampowered.com/app/993090/Lossless_Scaling/).
 
 1. On the PC where Lossless Scaling is installed, find `Lossless.dll` in its folder (with Steam: `steamapps/common/Lossless Scaling`).
 2. Copy it to the console as `/data/prosperoeden/user/lossless/Lossless.dll`.
 3. Set **Frame generation** to on in **Settings > Video**, or for one game: Triangle on the game in the Library, then **Video**. It applies the next time the game starts.
 
-Without the file, the three settings are greyed out and say **Unavailable**.
+Without `Lossless.dll`, the Lossless Scaling method is unavailable. MihawkGen requires its separate model assets; method availability depends on the completed build.
 
 | Setting | What it does |
 |---|---|
 | Frame generation | On or off |
+| Frame gen method | MihawkGen or Lossless Scaling, when available in this build |
 | Frame gen target | The rate to reach: as many pictures are added as it takes. **60 Hz** suits a 30 FPS game on the usual output; more than 60 needs **Refresh rate** at 120 Hz and a display that shows it. **Auto** leaves it to the multiplier |
 | Frame gen multiplier | With the target on Auto: 2x, 3x or 4x the game's own pictures |
 
@@ -338,7 +361,7 @@ The menu opens with the profile that the PS5 user in front chose last. If you us
 | Kind | What a game can have of its own |
 |---|---|
 | Video | Renderer, resolution, upscaling filter, ASTC textures, refresh rate, FPS overlay, frame generation with its target and multiplier |
-| Performance | Each of the seven switches |
+| Performance | Eight switches, Speed limit, and guest Memory configuration |
 | Audio | Game volume, mute |
 | Controls | Vibration, and a button mapping of its own |
 | System | RNG seed: with a seed the game is loaded at the same place in memory at every start, which some mods need (HewDraw Remix asks for seed 0). Left and right switch between **Random** and the seed; Cross opens the keyboard to type another one. The game's own random numbers still change from start to start |
@@ -356,7 +379,7 @@ The D-pad, the sticks and the [in-game shortcuts](#in-game-shortcuts) do not cha
 
 ### Language and accessibility
 
-The launcher follows the language the PS5 is set to: Arabic, Chinese (simplified and traditional), Czech, Danish, Dutch, Finnish, French, German, Greek, Hungarian, Indonesian, Italian, Japanese, Korean, Norwegian, Polish, Portuguese, Romanian, Russian, Spanish, Swedish, Thai, Turkish, Ukrainian and Vietnamese (with the regional variants the PS5 has for French, Portuguese and Spanish), and English otherwise. Arabic, Chinese, Greek, Japanese, Korean and Thai are drawn with the PS5's own system fonts. Arabic text runs right to left; the screens themselves are not mirrored. To use another one, put a file named `language.txt` holding its tag (for example `en-US` or `pt-BR`) in `/data/homebrew/PPSA99008`. The language *games* use is a separate setting, **Settings > Language**.
+The launcher follows the language the PS5 is set to: Arabic, Chinese (simplified and traditional), Czech, Danish, Dutch, Finnish, French, German, Greek, Hungarian, Indonesian, Italian, Japanese, Korean, Norwegian, Polish, Portuguese, Romanian, Russian, Spanish, Swedish, Thai, Turkish, Ukrainian and Vietnamese (with the regional variants the PS5 has for French, Portuguese and Spanish), and English otherwise. Arabic, Chinese, Greek, Japanese, Korean and Thai are drawn with the PS5's own system fonts. Arabic text runs right to left; the screens themselves are not mirrored. To use another one, put a file named `language.txt` holding its tag (for example `en-US` or `pt-BR`) in the Switch UI application folder (normally `/data/homebrew/PPSA99186`). The language *games* use is a separate setting, **Settings > Language**.
 
 **Settings > Accessibility** has three switches. **Larger text** draws the menu's small text about a third larger. **High contrast** uses solid panels, brighter text and an outlined highlight. **Reduce motion** stops the background drifting and the screens sliding, in the menu and on the loading screen. There is no screen reader.
 
@@ -601,7 +624,7 @@ Thank you to the people who test ProsperoEden on their own consoles and report w
 
 And to the people who contribute code:
 
-- **Mihawk** ([GitHub](https://github.com/mihawk-99)), besides the driver the Vulkan renderer runs on: cheats that can be chosen one by one, the fix for the crash when a game with cheats stops, the driver's shader cache working on the console, a fix for games that come without control data, and the driver build reading its versions from one place.
+- **Mihawk** ([GitHub](https://github.com/mihawk-99)), besides the driver the Vulkan renderer runs on and the MihawkGen frame generation: cheats that can be chosen one by one, the fix for the crash when a game with cheats stops, the driver's shader cache working on the console, a fix for games that come without control data, and the driver build reading its versions from one place.
 - **quatrixone** ([GitHub](https://github.com/quatrixone)), for the Performance settings and their seven switches, also per game, and for a much faster first compilation of a game's code.
 - **Martin Pham** ([GitHub](https://github.com/MartinPham)), for starting a game straight from its path, which is what forwarders on the home screen use.
 - **matschi95** ([GitHub](https://github.com/matschi95)), for the RomM integration (browsing, downloading and playing games from your own server, and save sync) and for finding and fixing the stutter that log writes caused every few seconds.

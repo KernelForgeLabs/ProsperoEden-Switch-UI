@@ -66,6 +66,10 @@ msgstr ""
 msgid "About {0} s left"
 msgstr ""
 
+#: pe/ui/settings.cpp
+msgid "Above 100%, a game locked to 30 FPS can reach 60, and a game that counts its frames plays faster too."
+msgstr ""
+
 #. Label: which folders the app can read.
 #: pe/ui/browse.cpp
 msgid "ACCESS"
@@ -86,6 +90,10 @@ msgstr ""
 
 #: pe/ui/profiles.cpp
 msgid "Added. Cross plays as this profile; left and right change its name."
+msgstr ""
+
+#: pe/ui/library.cpp
+msgid "All cheats"
 msgstr ""
 
 #: pe/ui/browse.cpp
@@ -227,8 +235,13 @@ msgid "Changed"
 msgstr ""
 
 #. What a mod is made of: cheat codes.
-#: eden_services.cpp, host/fake_services.cpp
+#: eden_services.cpp, host/fake_services.cpp, pe/ui/library.cpp
 msgid "Cheats"
+msgstr ""
+
+#. Shown under a cheat that came from the game's cheats folder (not from a mod).
+#: pe/ui/library.cpp
+msgid "Cheats folder"
 msgstr ""
 
 #: pe/ui/pairing.cpp
@@ -1097,6 +1110,15 @@ msgstr ""
 msgid "Nickname: {0}"
 msgstr ""
 
+#: pe/ui/library.cpp
+msgid "No cheats"
+msgstr ""
+
+#. <build ID>.txt stays as it is: a cheat file is named after the game version's build ID. {0} is a folder such as roms/Game/cheats/.
+#: pe/ui/library.cpp
+msgid "No cheats for this game yet. Copy its cheat files (<build ID>.txt) to {0}."
+msgstr ""
+
 #: pe/ui/remote.cpp
 msgid "No download source is set up. Save a file named {0} that lists your sources, as this one does with a RomM server, then open this menu again. Downloads need an FTP server running on the console, on port {1}."
 msgstr ""
@@ -1122,9 +1144,8 @@ msgstr ""
 msgid "No mods"
 msgstr ""
 
-#. {0} is a folder; roms/ is a folder name (unchanged).
 #: pe/ui/library.cpp
-msgid "No mods for this game yet. Copy each mod's folder to {0}, next to roms/."
+msgid "No mods for this game yet. Copy each mod's folder to {0}."
 msgstr ""
 
 #: pe/ui/multiplayer.cpp
@@ -1626,6 +1647,10 @@ msgstr ""
 msgid "Saved. A display that cannot show 120 Hz stays at 60 Hz."
 msgstr ""
 
+#: pe/ui/settings.cpp
+msgid "Saved. Applies the next time ProsperoEden opens."
+msgstr ""
+
 #: pe/ui/browse.cpp, pe/ui/launcher.cpp, pe/ui/settings.cpp
 msgid "Saved. Applies when a game starts."
 msgstr ""
@@ -1641,6 +1666,11 @@ msgstr ""
 
 #: pe/ui/browse.cpp
 msgid "Saved. Reopen ProsperoEden to use this folder."
+msgstr ""
+
+#. About the Update notices switch; homebrew.page is a site's name and stays as it is; About is the menu's last section (use its translation).
+#: pe/ui/settings.cpp
+msgid "Says when homebrew.page has a newer version. Off, only About names it."
 msgstr ""
 
 #: pe/ui/pairing.cpp
@@ -1760,6 +1790,11 @@ msgstr ""
 
 #: pe/ui/settings.cpp
 msgid "Speed"
+msgstr ""
+
+#. Settings > Performance: how fast a game may run, as a percentage of the console it was made for.
+#: pe/ui/game_options.cpp, pe/ui/settings.cpp
+msgid "Speed limit"
 msgstr ""
 
 #. A DualSense button.
@@ -2013,6 +2048,11 @@ msgstr ""
 msgid "Understood"
 msgstr ""
 
+#. A Speed limit choice: no limit at all (as fast as the console can).
+#: pe/ui/game_options.cpp, pe/ui/settings.cpp
+msgid "Unlimited"
+msgstr ""
+
 #: pe/ui/pairing.cpp
 msgid "Unlink"
 msgstr ""
@@ -2034,6 +2074,11 @@ msgstr ""
 #. Notification title: a newer release of this app is listed (not a game update).
 #: pe/ui/launcher.cpp, pe/ui/update.cpp
 msgid "Update available"
+msgstr ""
+
+#. Settings switch: whether the app says at its start that a newer release of this app is listed (not game updates).
+#: pe/ui/settings.cpp
+msgid "Update notices"
 msgstr ""
 
 #. Button: download and install the newer release of this app now.
@@ -2080,7 +2125,7 @@ msgid "Version {0}"
 msgstr ""
 
 #. {0}: the newer release's number, for example 1.000.050; homebrew.page is a site's name and stays as it is.
-#: pe/ui/launcher.cpp
+#: pe/ui/browse.cpp, pe/ui/launcher.cpp
 msgid "Version {0} is on homebrew.page"
 msgstr ""
 

@@ -77,6 +77,23 @@ python3 -B "$root/tools/launcher/package-branding.py" \
 # Refuse previous audio variants and unreviewed replacements in a build.
 # Keep this immediately after copying UI assets, not merely in the CI workflow.
 python3 -B "$root/tools/check-tactile-leaf-audio.py" "$app/ui/sounds"
+# MihawkGen neural frame generation weights (headless/prosperoeden/eden_services.cpp: mihawkgen_state).
+mihawkgen_weights="$root/../mihawk-framegen-review/framegen/models/network.fgw"
+if grep -qx 'EDEN_PS5_MIHAWKGEN:BOOL=ON' "$out/CMakeCache.txt"; then
+    if [[ ! -s "$mihawkgen_weights" ]]; then
+        echo "ERROR: MihawkGen enabled but network.fgw is missing or empty." >&2
+        exit 1
+    fi
+    mkdir -p "$app/mihawkgen"
+    cp "$mihawkgen_weights" "$app/mihawkgen/network.fgw"
+    test -s "$app/mihawkgen/network.fgw" || {
+        echo "ERROR: MihawkGen model was not packaged." >&2
+        exit 1
+    }
+    echo "MihawkGen model packaged successfully."
+else
+    echo "NOTICE: MihawkGen is not enabled in this native build." >&2
+fi
 # The switches the runner reads from the app folder (headless/main.cpp). Only a development
 # package gets them: the profile title otherwise takes its timed input replay instead of the
 # controller, and a release build never parses the file.

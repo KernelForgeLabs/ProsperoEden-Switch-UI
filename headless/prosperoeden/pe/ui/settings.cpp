@@ -76,6 +76,7 @@ enum VideoRow : int
     video_post_processing, // one of Eden's ReShade FX presets, or off (Vulkan only)
     // Frame generation: not shown in a build without it (Services::frame_gen_state).
     video_frame_gen,
+    video_frame_gen_method,
     video_frame_gen_target,
     video_frame_gen_multiplier,
     kVideoRows,
@@ -100,6 +101,7 @@ enum HudRow : int
     hud_resolution_row, // the game's own picture, as it renders it (bit 9; last, so no earlier bit moves)
     kHudRows,
 };
+constexpr int kFrameGenMethods = 2;     // Lossless Scaling, MihawkGen (settings_store.h)
 constexpr int kFrameGenTargets = 6;     // Auto, 60, 90, 120, 144, 240 Hz (settings_store.h)
 constexpr int kFrameGenMultipliers = 3; // 2x, 3x, 4x
 constexpr int kHudSizes = 3;            // Regular, Medium, Large (settings_store.h, kHudSizeKeys)
@@ -126,10 +128,11 @@ enum PerformanceRow : int
     speed_reactive_flushing,
     speed_skip_invalidation,
     speed_compact_memory,
-    speed_memory_layout, // the memory a game's console is told it has; last, so no row moves
+    speed_limit_row,     // how fast a game may run: the row a game's own settings have after the switches
+    speed_memory_layout, // the memory a game's console is told it has; last
     kPerformanceRows,
 };
-constexpr int kPerformanceSwitches = speed_memory_layout;
+constexpr int kPerformanceSwitches = speed_limit_row;
 constexpr int kPerformanceRowsShown = 4;
 constexpr Rect kPerformanceWindow{592.0f, kVideoRowsTop, 736.0f,
                                   kVideoRowPitch * (kPerformanceRowsShown - 1) + kVideoRowHeight};
@@ -159,7 +162,9 @@ constexpr const char *kOutputs[] = {"1080p", "1440p", "2160p"};
 // Settings > Performance > Memory: what the guest's kernel is told the console has
 // (settings_store.h's kMemoryLayoutKeys). A size and its unit, so nothing here to translate.
 constexpr const char *kMemoryLayouts[] = {"4 GiB", "6 GiB", "8 GiB"};
+constexpr int kSpeedLimits = static_cast<int>(std::size(kSpeedLimitPercents));
 
+constexpr const char *kFrameGenMethodNames[] = {"Lossless Scaling", "MihawkGen"};
 constexpr const char *kFrameGenTargetNames[] = {"", "60", "90", "120", "144", "240"};
 constexpr const char *kFrameGenMultiplierNames[] = {"2x", "3x", "4x"};
 
@@ -177,6 +182,13 @@ std::string pick(const std::vector<std::string> &values, int index)
 {
     return index >= 0 && index < static_cast<int>(values.size()) ?
                values[static_cast<std::size_t>(index)] : std::string{"-"};
+}
+
+// Settings > Performance > Speed limit as the menu writes it: a percentage, or Unlimited.
+std::string speed_limit_name(int index)
+{
+    const int value = kSpeedLimitPercents[std::clamp(index, 0, kSpeedLimits - 1)];
+    return value > 0 ? percent(value) : std::string{tr("Unlimited")};
 }
 
 // A path that fits a label: the end is what tells folders apart.
@@ -498,6 +510,11 @@ const char *Launcher::performance_about(int row)
            "can be stale."),
         TR("Gives back memory a game left empty, 16 KiB at a time. More free memory; a game that "
            "writes there again can stutter for a moment.")};
+    // The speed limit is the row after the switches here and in a game's own settings
+    // (game_options.cpp), so the same line describes it in both.
+    if (row == speed_limit_row)
+        return TR("Above 100%, a game locked to 30 FPS can reach 60, and a game that counts its "
+                  "frames plays faster too.");
     // The memory row has no line of its own: every language would need one, and its value says
     // what it is (a size of memory) while the message after it changes says when it arrives.
     if (row >= kPerformanceSwitches)
@@ -512,7 +529,8 @@ int Launcher::dialog_rows(Modal modal) const
     switch (modal)
     {
     case Modal::video:
-        return services_.frame_gen_state() == 0 ? static_cast<int>(video_frame_gen) : static_cast<int>(kVideoRows);
+        return (services_.frame_gen_state() == 0 && services_.mihawkgen_state() == 0)
+            ? static_cast<int>(video_frame_gen) : static_cast<int>(kVideoRows);
     case Modal::hud:
         return kHudRows;
     case Modal::performance:
@@ -529,16 +547,16 @@ int Launcher::dialog_rows(Modal modal) const
     case Modal::accent:
         return static_cast<int>(accent_presets().size()) + 1;
     case Modal::game:
-        // Console mode, video, performance, audio, controls, system, language, mods; save data in
-        // builds that move saves.
+        // Console mode, video, performance, audio, controls, system, language, mods, cheats; save
+        // data in builds that move saves.
         // A game a download source has can be deleted from the console (and downloaded again).
-        return (services_.save_transfer_available() ? 9 : 8) +
+        return (services_.save_transfer_available() ? 10 : 9) +
                (library_.selected < static_cast<int>(games_.size()) &&
                         !games_[static_cast<std::size_t>(library_.selected)].sources.empty() &&
                         !games_[static_cast<std::size_t>(library_.selected)].remote ? 1 : 0);
     case Modal::controls:     // vibration, its strength, the button mapping, the menu's own buttons
         return kControlRows;
-    case Modal::diagnostics:  // detailed logging, logs written at once
+    case Modal::diagnostics:  // detailed logging and immediate log writes
         return 2;
     default:
         return 1;
@@ -566,8 +584,8 @@ float Launcher::dialog_row_top(Modal modal, int row) const
         return 334.0f + 96.0f * static_cast<float>(row);
     case Modal::controls: // under the shortcuts; the list scrolls
         return kControlsRowsTop + kVideoRowPitch * static_cast<float>(row) - controls_rows_.scroll();
-    case Modal::diagnostics: // under the setup's state
-        return 500.0f + 102.0f * static_cast<float>(row);
+    case Modal::diagnostics: // under the setup's state, spaced as Video's rows so two fit
+        return 470.0f + kVideoRowPitch * static_cast<float>(row);
     default:
         return 670.0f;
     }
@@ -865,7 +883,9 @@ void Launcher::press_dialog(Key key)
             prefs_.refresh = prefs_.refresh != 0 ? 0 : 1;
         else if (option_ == video_post_processing)
         {
-            const int count = static_cast<int>(services_.post_processing_labels().size());
+            // The shared presets only: a game's own are in its settings (Services::post_processing_shared).
+            const int count = std::clamp(services_.post_processing_shared(), 1,
+                                         static_cast<int>(services_.post_processing_labels().size()));
             prefs_.post_processing = (std::clamp(prefs_.post_processing, 0, count - 1) + step + count) % count;
         }
         else if (option_ == video_overlay_options)
@@ -875,9 +895,26 @@ void Launcher::press_dialog(Key key)
                 open_hud();
             return;
         }
-        else if (option_ >= video_frame_gen && services_.frame_gen_state() != 2)
+        else if (option_ == video_frame_gen_method) {
+            auto method_available = [&](int m) {
+                return m == 0 ? services_.frame_gen_state() == 2
+                              : services_.mihawkgen_state() == 2;
+            };
+            int m = std::clamp(prefs_.frame_gen_method, 0, kFrameGenMethods - 1);
+            for (int i = 0; i < kFrameGenMethods; ++i) {
+                m = (m + step + kFrameGenMethods) % kFrameGenMethods;
+                if (method_available(m)) break;
+            }
+            prefs_.frame_gen_method = m;
+        }
+        else if (option_ >= video_frame_gen && option_ != video_frame_gen_method &&
+                 (prefs_.frame_gen_method == 0 ? services_.frame_gen_state() != 2
+                                               : services_.mihawkgen_state() != 2))
         {
-            say(tr("Frame generation needs Lossless.dll, from Lossless Scaling, in the lossless folder."), true);
+            if (prefs_.frame_gen_method == 0)
+                say(tr("Frame generation needs Lossless.dll, from Lossless Scaling, in the lossless folder."), true);
+            else
+                say(tr("Frame generation needs MihawkGen weights (network.fgw)."), true);
             cue(Cue::error);
             return;
         }
@@ -917,6 +954,13 @@ void Launcher::press_dialog(Key key)
             const int count = static_cast<int>(std::size(kMemoryLayouts));
             prefs_.memory_layout =
                 (std::clamp(prefs_.memory_layout, 0, count - 1) + step + count) % count;
+            break;
+        }
+        if (option_ == speed_limit_row)
+        {
+            // 100% to 300%, then Unlimited, and round to 100% again.
+            prefs_.speed_limit =
+                (std::clamp(prefs_.speed_limit, 0, kSpeedLimits - 1) + step + kSpeedLimits) % kSpeedLimits;
             break;
         }
         bool *const switches[kPerformanceSwitches] = {
@@ -968,8 +1012,10 @@ void Launcher::press_dialog(Key key)
     case Modal::diagnostics:
         if (option_ == 0)
             prefs_.detailed_logging = !prefs_.detailed_logging;
-        else
+        else if (option_ == 1)
             prefs_.immediate_logs = !prefs_.immediate_logs;
+        else
+            return;
         break;
     case Modal::wallpaper:
         if (!activate)
@@ -1010,9 +1056,10 @@ void Launcher::press_dialog(Key key)
         say(tr("Saved. Full quality uses four times the graphics memory for these textures and can run out "
                "above 1x."));
     }
-    else if (modal_ == Modal::performance && option_ == speed_memory_layout)
+    else if (modal_ == Modal::performance && (option_ == speed_memory_layout || option_ == speed_limit_row))
     {
-        // The guest's memory is taken as a game starts, so this says when the change arrives.
+        // The guest's memory is taken, and the speed set, as a game starts, so this says when the
+        // change arrives.
         say(tr("Saved. Applies when a game starts."));
     }
     apply_look();
@@ -1080,7 +1127,7 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
     default:
         title = tr("Diagnostics");
         copy = option_ == 0 ? tr("Detailed logs apply to the next game launch.") :
-                             tr("Keeps the last line before a crash, but games stutter. From the next start.");
+               tr("Keeps the last line before a crash, but games stutter. From the next start.");
         break;
     }
     text_shrink(c, title, 592.0f, baseline(218.0f, 62.0f, th().size_display), th().size_display,
@@ -1167,16 +1214,20 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
             std::string{}, // Overlay options: an opener
             pick(services_.post_processing_labels(), prefs_.post_processing),
             on_off(prefs_.frame_gen),
+            std::string{kFrameGenMethodNames[std::clamp(prefs_.frame_gen_method, 0, kFrameGenMethods - 1)]},
             prefs_.frame_gen_target <= 0 ? std::string{tr("Auto")} :
                 fill(tr("{0} Hz"), {kFrameGenTargetNames[std::clamp(prefs_.frame_gen_target, 1, kFrameGenTargets - 1)]}),
             kFrameGenMultiplierNames[std::clamp(prefs_.frame_gen_multiplier, 0, kFrameGenMultipliers - 1)],
         };
-        const bool frame_gen_locked = services_.frame_gen_state() != 2;
+        const bool lsfg_locked = services_.frame_gen_state() != 2;
+        const bool mihawkgen_locked = services_.mihawkgen_state() != 2;
+        const bool frame_gen_locked = prefs_.frame_gen_method == 0 ? lsfg_locked :
+                                      prefs_.frame_gen_method == 1 ? mihawkgen_locked : true;
         static constexpr const char *kNames[kVideoRows] = {
             TR("Renderer"),         TR("Output resolution"), TR("Resolution"),
             TR("Upscaling filter"), TR("ASTC textures"),     TR("Refresh rate"),
             TR("FPS overlay"),      TR("Overlay options"),   TR("Post-processing"),
-            TR("Frame generation"), TR("Frame gen target"),  TR("Frame gen multiplier")};
+            TR("Frame generation"), TR("Frame gen method"),  TR("Frame gen target"),  TR("Frame gen multiplier")};
         for (int row = first; row <= last; ++row)
         {
             list.push_opacity(video_rows_.row_alpha(row, kVideoRowHeight));
@@ -1193,9 +1244,9 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
                                                 th().size_small, th().meta, 320.0f, Align::right);
                 label(row, tr(kNames[row]), shown);
             }
-            else if (row >= video_frame_gen && frame_gen_locked)
+            else if (row >= video_frame_gen && row != video_frame_gen_method && frame_gen_locked)
             {
-                // Greyed out: the user's Lossless.dll is not there.
+                // Greyed out: the selected method's requirement is not met.
                 list.push_opacity(0.38f);
                 label(row, tr(kNames[row]), choice(row, tr("Unavailable")));
                 list.pop_opacity();
@@ -1302,10 +1353,17 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
         static constexpr const char *kNames[kPerformanceRows] = {
             TR("Compile ahead"),        TR("Asynchronous shaders"), TR("Faster GPU emulation"),
             TR("Faster CPU emulation"), TR("Faster DMA"),           TR("Reactive flushing"),
-            TR("Skip CPU invalidation"), TR("Compact memory"), TR("Memory")};
+            TR("Skip CPU invalidation"), TR("Compact memory"), TR("Speed limit"), TR("Memory")};
         for (int row = first; row <= last; ++row)
         {
             list.push_opacity(rows_view.row_alpha(row, kVideoRowHeight));
+            if (row == speed_limit_row)
+            {
+                // Not a switch either: how fast the game may run, 100% being the console's own pace.
+                label(row, tr(kNames[row]), choice(row, speed_limit_name(prefs_.speed_limit)));
+                list.pop_opacity();
+                continue;
+            }
             if (row == speed_memory_layout)
             {
                 // Not a switch: the memory the game's console is told it has. 4 GiB is what a
@@ -1545,9 +1603,11 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
     }
     default:
     {
-        text_block(c, services_.setup_details(), 592.0f, baseline(364.0f, 40.0f, th().size_text),
-                   th().size_text, 40.0f, th().body, 736.0f, 3, kShrink);
-        static constexpr const char *kNames[] = {TR("Detailed logging"), TR("Write logs at once")};
+        text_block(c, services_.setup_details(), 592.0f, baseline(350.0f, 38.0f, th().size_text),
+                   th().size_text, 38.0f, th().body, 736.0f, 3, kShrink);
+        // Switch UI: self-update notices are unavailable until qualified.
+        static constexpr const char *kNames[] = {
+            TR("Detailed logging"), TR("Write logs at once")};
         static constexpr const char *kAbout[] = {
             TR("Eden's debug messages in the logs of a game."),
             TR("Keeps the last line before a crash, but games stutter. From the next start.")};
@@ -1561,7 +1621,7 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
         const std::string reports = services_.crash_reports_folder();
         text_block(c, reports.empty() ? std::string{tr(kAbout[std::clamp(option_, 0, 1)])} :
                        fill(tr("Crash reports (FTP): {0}\nAttach crash-*.txt and its matching logs to your issue."), {reports}),
-                   592.0f, baseline(716.0f, 26.0f, th().size_small),
+                   592.0f, baseline(772.0f, 26.0f, th().size_small),
                    th().size_small, 26.0f, th().body, 736.0f, 3, kShrink);
         break;
     }
@@ -1572,9 +1632,9 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
         list.pop_clip();
         scrollbar(c, rows_view, 1340.0f, window.y, window.h);
     }
-    if (modal == Modal::performance && option_ < kPerformanceSwitches)
+    if (modal == Modal::performance && *performance_about(option_))
     {
-        // What the highlighted switch does, under the window.
+        // What the highlighted switch (or the speed limit) does, under the window.
         text_block(c, tr(performance_about(option_)), 592.0f,
                    baseline(window.y + window.h + 22.0f, 30.0f, th().size_small), th().size_small, 30.0f,
                    th().meta, 736.0f, 2, kShrink);
@@ -1590,11 +1650,10 @@ void Launcher::draw_dialog(Canvas &c, Modal modal, float open)
                    30.0f, th().meta, 736.0f, 2, kShrink);
     }
 
-    // Under the rows: Video's five, and Performance's four with their line of text, end lower
-    // than the other dialogs' three.
-    // Themes uses the lower inside edge for hints, separate from the preview
-    // and the fourth installed-theme row (which ends near y=770).
-    const float foot = modal == Modal::theme ? 842.0f : (scrolls ? 848.0f : 811.0f);
+    // Themezer uses a dedicated footer below its preview and installed
+    // themes. Scrolling dialogs and Diagnostics also need lower hints.
+    const float foot = modal == Modal::theme ? 842.0f :
+                       (scrolls || modal == Modal::diagnostics ? 848.0f : 811.0f);
     if (!message_.empty() && scrolls)
     {
         // Two lines, placed as a game's own settings place theirs: what a Video choice costs

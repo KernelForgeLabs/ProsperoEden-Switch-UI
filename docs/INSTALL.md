@@ -14,23 +14,27 @@ Only these subfolders matter; the folder itself can have any name and location.
 ├── firmware/
 │   └── *.nca                           # extracted firmware NCAs
 ├── roms/
-│   ├── Game.nsp
-│   └── Game.xci
-├── updates/                            # optional: update and DLC files
-│   └── Game update.nsp
-├── mods/                               # optional: mods, one folder per title ID
-│   └── <title ID>/                     # the 16-character code in the game's file name
-│       ├── <mod name>/
-│       │   ├── exefs/                  # code patches: *.pchtxt, *.ips
-│       │   ├── romfs/                  # replacement game files
-│       │   └── cheats/
-│       │       └── <build ID>.txt      # cheats for one version of the game
-│       └── cheat_<name>.txt            # optional: cheats without a mod folder
+│   └── <Game>/                         # one folder per game
+│       ├── <game>.nsp                  # the game (NSP or XCI)
+│       ├── <game> update.nsp           # optional: its update and DLC files, beside it
+│       ├── <game> DLC.nsp
+│       ├── mods/                       # optional: its mods, one folder each (see Mods and cheats)
+│       │   └── <mod name>/
+│       │       ├── exefs/              # code patches: *.pchtxt, *.ips
+│       │       ├── romfs/              # replacement game files
+│       │       └── romfs_ext/          # files added to the game's own
+│       ├── cheats/                     # optional: its cheats
+│       │   └── <build ID>.txt          # one file per version of the game
+│       └── reshade/                    # optional: its post-processing presets and effects
+│           ├── <preset>.fxp            # offered in this game's settings
+│           └── <effect>.fx             # and the .fxh files and Textures/ they use
 ├── save-import/                        # optional: saves to import, one folder per title ID
 ├── ryujinx/                            # optional: a Ryujinx data folder to import saves from
 ├── save-export/                        # written by "Export a copy"
 └── .remote-downloads/                  # downloads that are not finished yet (see Download sources)
 ```
+
+Each game sits in a folder of its own in `roms/`, with everything that belongs to it: its update and DLC files, its mods, its cheats and its post-processing presets. ProsperoEden tells the game from its update and DLC by what each file holds, not by its name, so the files can have any names. Folders inside a game folder are not searched for games, and folders whose names start with a dot are skipped. **Delete from console** also deletes the update and DLC files in the game's folder, and the folder once it is empty.
 
 The folder browser shows how many keys, firmware files, and games each folder holds, so you can check a folder before selecting it. Moving your files later only needs a new selection in Settings; saved settings, covers, and recently played games carry over.
 
@@ -73,6 +77,8 @@ Once each time it opens, ProsperoEden asks [homebrew.page](https://homebrew.page
 - **Update now** downloads the release ZIP from its GitHub release, checks it against the SHA-256 in the catalog's signed list, and unpacks it beside the app. A ring shows how far it is and the time left; Circle cancels, and nothing has changed until the end. Then ProsperoEden closes, the update helper (`self-updater.elf`, sent to the console's payload loader on port 9021) replaces the app's files, and the console shows a notification. Open ProsperoEden again to use the new version. The version it replaced is kept; see [Going back to the previous version](#going-back-to-the-previous-version).
 - **What's new** (when the release has notes) shows what changes in it before you decide: the release notes as homebrew.page lists them. Up/Down scroll, L1/R1 jump a page, Cross updates and Circle goes back to the offer. Triangle opens them from the offer too.
 - **Skip** keeps the version you have. The dialog shows again the next time ProsperoEden opens, not when you come back from a game.
+
+To stay on a version without being asked at every start, turn off **Settings > Diagnostics > Update notices** (`"system": { "update_notices": false }` in the settings file). ProsperoEden still asks homebrew.page, but neither the dialog nor the notification below shows; the About screen names the newer version beside the one running. It applies the next time ProsperoEden opens.
 
 If the download or the unpacking fails, the dialog says why and offers **Try again**; the app stays as it was. Without a network, or without an answer, nothing is shown. When ProsperoEden cannot install the release itself (no payload loader, or an install it cannot find), the menu says **Update available** at the top right for ten seconds instead, and the steps below still work:
 

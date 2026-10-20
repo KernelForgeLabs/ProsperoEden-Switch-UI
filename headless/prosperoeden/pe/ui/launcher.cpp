@@ -144,7 +144,7 @@ std::array<bool, 8> Launcher::switch_states(Modal modal) const
     case Modal::wallpaper:
         return {}; // no switches: the dialog only lists the folder's images
     default:
-        return {prefs_.detailed_logging, prefs_.immediate_logs, false};
+        return {prefs_.detailed_logging, prefs_.immediate_logs};
     }
 }
 
@@ -239,6 +239,8 @@ void Launcher::press(Key key)
         return press_game(key);
     if (modal_ == Modal::mods)
         return press_mods(key);
+    if (modal_ == Modal::cheats)
+        return press_cheats(key);
     if (modal_ == Modal::game_options)
         return press_game_options(key);
     if (modal_ == Modal::mapping)
@@ -389,7 +391,7 @@ void Launcher::update(float dt)
     grid_rows_.update(dt);
     grid_x_.update(dt, t.cursor_spring);
     grid_y_.update(dt, t.cursor_spring);
-    pane_.target = modal_ == Modal::game_options || modal_ == Modal::mods ||
+    pane_.target = modal_ == Modal::game_options || modal_ == Modal::mods || modal_ == Modal::cheats ||
                            (modal_ == Modal::mapping && mapping_for_game_) ? 1.0f : 0.0f;
     pane_.update(dt, 18.0f);
     settings_.update(dt);
@@ -402,6 +404,7 @@ void Launcher::update(float dt)
     wallpaper_rows_.update(dt);
     game_rows_.update(dt);
     mod_rows_.update(dt);
+    cheat_rows_.update(dt);
     option_rows_.update(dt);
     mapping_rows_.update(dt);
     menu_mapping_rows_.update(dt);
@@ -472,6 +475,8 @@ void Launcher::update(float dt)
 void Launcher::update_offer(float dt)
 {
     (void)dt;
+    if (!kSwitchUiUpdateOffersQualified)
+        return;
     if (!update_waiting_ && update_notice_left_ <= 0.0f && selected_game_.empty() && update_.version.empty())
     {
         UpdateOffer offer;
@@ -480,6 +485,10 @@ void Launcher::update_offer(float dt)
             // "v1.000.050" and "1.000.050" both read as the number.
             const std::string &newer = offer.version;
             update_version_ = newer.size() > 1 && (newer[0] == 'v' || newer[0] == 'V') ? newer.substr(1) : newer;
+            // Update notices off (Settings > Diagnostics): neither the dialog nor the notification.
+            // The version stays known, and About names it.
+            if (!prefs_.update_notices)
+                return;
             if (offer.installable && first_start_)
             {
                 // Asked each time the app opens (not on returning from a game).
@@ -802,7 +811,7 @@ void Launcher::draw(gfx::DrawList &list)
     // A game's settings are a page of their own over the Library, beside the rail; its button
     // mapping is a dialog over that page.
     const bool mapping_of_game = modal_shown_ == Modal::mapping && mapping_for_game_;
-    const bool page = modal_shown_ == Modal::game || modal_shown_ == Modal::mods ||
+    const bool page = modal_shown_ == Modal::game || modal_shown_ == Modal::mods || modal_shown_ == Modal::cheats ||
                       modal_shown_ == Modal::game_options || mapping_of_game;
     if (page)
         draw_game_page(c, opened);

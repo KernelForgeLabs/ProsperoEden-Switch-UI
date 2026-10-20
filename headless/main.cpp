@@ -121,7 +121,14 @@ extern "C" unsigned long long eden_dmb_dropped, eden_checkbit_fused;
 #include "video_core/gpu.h"
 #ifdef EDEN_PS5_FRAMEGEN
 #include "video_core/frame_gen/lossless_dll.h"
+#include "video_core/post_processing/fx_effect.h"
+#include "video_core/post_processing/fx_effect.h"
 #include "video_core/post_processing/fx_preset.h"
+#include "reshade_folder.h"
+#include "reshade_folder.h"
+#endif
+#ifdef EDEN_PS5_MIHAWKGEN
+#include "mihawkgen_bridge.h"
 #endif
 #include "profiles.h"
 #include "stop_limit.h"
@@ -1134,6 +1141,21 @@ int main(int argc, char** argv) {
             Settings::values.post_shader_enabled.SetValue(false);
             Settings::values.post_shader_chain.SetValue(std::string{});
             Settings::values.post_shader_preset.SetValue(std::string{});
+            // A game in its own folder in roms/ (issue 168) brings its update, DLC, mods, cheats
+            // and its own post-processing (reshade_folder.h): its presets and effects are read
+            // again when the folder is another than the last game's.
+            Eden::Mods::SessionGameFolder().clear();
+            if (guest) {
+                const std::string roms = Eden::AssetsPath("roms/");
+                const std::string_view path{guest};
+                if (path.starts_with(roms))
+                    if (const auto slash = path.find('/', roms.size()); slash != std::string_view::npos)
+                        Eden::Mods::SessionGameFolder() = std::string{path.substr(0, slash)};
+            }
+            if (Eden::Reshade::SetGameFolder(Eden::Mods::SessionGameFolder())) {
+                VideoCore::ReloadFxPresetCatalog();
+                VideoCore::ReloadFxCatalog();
+            }
             if (!video.post_processing.empty()) {
                 std::string line = "Post-processing: " + video.post_processing;
                 if (backend != Eden::GraphicsBackend::Vulkan) {
@@ -1145,20 +1167,9 @@ int main(int argc, char** argv) {
                 }
                 Eden::Report("launch", line.c_str());
             }
-#ifdef EDEN_PS5_FRAMEGEN
-            // Lossless Scaling frame generation (EDEN_PS5_FRAMEGEN, headless/vulkan.cmake).
-            // Settings > Video's switch, or the game's own in Library > Triangle > Video, asks
-            // for it. The app folder's framegen.txt overrides all of it, the way block-list.txt
-            // turns the block list on: its first number is the target rate in Hz, its second the
-            // multiplier.
-            //
-            // Eden's two controls work the way Eden defines them (settings.cpp). A target rate
-            // makes the pacer add as many frames as that rate needs, up to Eden's own maximum;
-            // "auto" passes 0 and leaves the multiplier in charge, which is the ratio Eden uses
-            // when no target is asked for. Per session, and before the renderer starts: the
-            // swapchain and the presentation manager read them as they are created. Vulkan only,
-            // and only when the build has the feature at all (it needs the user's own
-            // Lossless.dll).
+            // Frame generation: common setup for both methods (LSFG and MihawkGen).
+            // The target rate and multiplier control the pacer regardless of which method
+            // generates the frames. framegen.txt overrides them; Vulkan only.
             {
                 const auto at = [](int index, auto count) {
                     return std::clamp(index, 0, static_cast<int>(count) - 1);
@@ -1176,21 +1187,17 @@ int main(int argc, char** argv) {
                 (void)(frame_gen_file >> override_multiplier);
                 if (override_rate > 0) target = override_rate;
                 if (override_multiplier >= 2) multiplier = override_multiplier;
-                const bool active = (override_rate >= 0 || override_multiplier >= 0 || video.frame_gen) &&
+                const bool wants_framegen = (override_rate >= 0 || override_multiplier >= 0 || video.frame_gen) &&
                                     video.backend == Eden::GraphicsBackend::Vulkan;
-                Settings::values.frame_gen.SetValue(active);
+#ifdef EDEN_PS5_FRAMEGEN
+                const bool use_lsfg = wants_framegen && video.frame_gen_method == 0;
+                Settings::values.frame_gen.SetValue(use_lsfg);
                 Settings::values.frame_gen_target_rate.SetValue(
-                    active ? static_cast<unsigned>(std::min(target, 240)) : 0u);
+                    use_lsfg ? static_cast<unsigned>(std::min(target, 240)) : 0u);
                 Settings::values.frame_gen_multiplier.SetValue(
                     static_cast<unsigned>(std::clamp(multiplier, 2, 4)));
-                if (active)
+                if (use_lsfg)
                 {
-                    // Both of frame generation's gates give up silently, so a session that
-                    // cannot run it looks exactly like one that never asked: the shaders load
-                    // only from the user's own Lossless Scaling library, and the shader stage
-                    // needs Vulkan memory model plus robustBufferAccess2's null descriptors.
-                    // Say what this session found, in the log and in the crash report, so the
-                    // answer does not need another console round trip.
                     const auto folder = Common::FS::GetEdenPath(Common::FS::EdenPath::LosslessDir);
                     const auto status =
                         static_cast<unsigned>(VideoCore::FrameGen::GetInstalledLosslessStatus());
@@ -1209,8 +1216,31 @@ int main(int argc, char** argv) {
                                   (Eden::DevVulkan::disable_null_descriptor ? "off" : "on"))
                                      .c_str());
                 }
-            }
 #endif
+#ifdef EDEN_PS5_MIHAWKGEN
+                const bool use_mihawkgen = wants_framegen && video.frame_gen_method == 1;
+                Eden::MihawkGenBridge::active.store(use_mihawkgen);
+                if (use_mihawkgen) {
+                    Eden::MihawkGenBridge::weights_path =
+                        Eden::FileExists(Eden::UserDir() + "/mihawkgen/network.fgw")
+                            ? Eden::UserDir() + "/mihawkgen/network.fgw"
+                            : Eden::AppDir() + "/mihawkgen/network.fgw";
+                    Eden::MihawkGenBridge::target_rate.store(target);
+                    Eden::MihawkGenBridge::multiplier.store(multiplier);
+                    Settings::values.frame_gen.SetValue(true);
+                    Settings::values.frame_gen_target_rate.SetValue(
+                        static_cast<unsigned>(std::min(target, 240)));
+                    Settings::values.frame_gen_multiplier.SetValue(
+                        static_cast<unsigned>(std::clamp(multiplier, 2, 4)));
+                }
+                Eden::Report("launch",
+                             (std::string("MihawkGen frame generation: ") +
+                              (use_mihawkgen ? "active" : "inactive") + "; weights " +
+                              (Eden::FileExists(Eden::MihawkGenBridge::weights_path)
+                                   ? "found" : "not found") +
+                              " at " + Eden::MihawkGenBridge::weights_path).c_str());
+#endif
+            }
             // The output's refresh rate while the game runs (display_refresh.h): the renderer asks
             // for it as it opens the output.
             const int refresh = video.refresh;
@@ -1262,6 +1292,15 @@ int main(int argc, char** argv) {
                           " GiB), direct memory pool " +
                           std::to_string(sceKernelGetDirectMemorySize() >> 20) + " MiB")
                              .c_str());
+            // Settings > Performance > Speed limit: how fast the game may run, as a percentage of
+            // the console it was made for. Eden's vsync clock comes that much sooner (vi/conductor.cpp
+            // on several cores), so a game that waits for it runs faster: one locked to 30 FPS can
+            // reach 60 at 200% where the console has the time to spare, and one that counts its
+            // frames to keep time plays faster with them. Unlimited switches the limit off. 100%,
+            // the default, is Eden's own default and what every session had before.
+            const int speed_percent = Eden::kSpeedLimitPercent[speed.speed_limit];
+            Settings::values.use_speed_limit.SetValue(speed_percent > 0);
+            Settings::values.speed_limit.SetValue(static_cast<u16>(speed_percent > 0 ? speed_percent : 100));
             // The block list is off unless the settings turn it on (block-list.txt in the app
             // folder still does, further down).
             if (!dev_block_list) Eden::JitList::enabled = speed.block_list;
@@ -1278,25 +1317,30 @@ int main(int argc, char** argv) {
                                     on(Settings::values.dma_accuracy.GetValue() == Settings::DmaAccuracy::Unsafe) +
                                     ", reactive flushing " + on(Settings::values.use_reactive_flushing.GetValue()) +
                                     ", skip invalidation " +
-                                    on(Settings::values.skip_cpu_inner_invalidation.GetValue())).c_str());
+                                    on(Settings::values.skip_cpu_inner_invalidation.GetValue()) +
+                                    ", speed limit " +
+                                    (Settings::values.use_speed_limit.GetValue() ?
+                                         std::to_string(Settings::values.speed_limit.GetValue()) + "%" :
+                                         std::string{"unlimited"})).c_str());
             // What a crash report says was running.
             char title_id[20];
             std::snprintf(title_id, sizeof(title_id), "%016llx",
                           static_cast<unsigned long long>(eden_game_title_id(guest)));
             // The game's mods, minus those switched off in the launcher (Library > Game settings >
-            // Mods): Eden's patch manager skips the names in this list. With the Library's Mods
-            // switch off for the game, every one of them is in it.
+            // Mods and Cheats): Eden's patch manager skips the names in this list. The game's Mods
+            // and Cheats switches add theirs (mods.h).
             const u64 title = eden_game_title_id(guest);
-            const auto all_mods = Eden::Mods::List(Eden::AssetsPath("mods"), title);
-            auto mods_off = Eden::LoadDisabledMods(title);
-            if (!Eden::LoadModsEnabled(title)) {
-                for (const auto& mod : all_mods)
-                    if (std::find(mods_off.begin(), mods_off.end(), mod.name) == mods_off.end())
-                        mods_off.push_back(mod.name);
-            }
+            // The game's own folder (Mods::SessionGameFolder) was found with its post-processing.
+            const auto all_mods = Eden::Mods::List(
+                {Eden::AssetsPath("mods"), Eden::AssetsPath("cheats"), Eden::Mods::SessionGameFolder()}, title);
             // Of a mod that lists several cheats, only the ones chosen there run (cheats.h).
-            const auto cheats_on = Eden::LoadChosenCheats(title);
-            Eden::Cheats::Off() = Eden::Mods::CheatsOff(all_mods, cheats_on);
+            const bool cheats_enabled = Eden::LoadCheatsEnabled(title);
+            const auto cheats_on = cheats_enabled ? Eden::LoadChosenCheats(title) : std::vector<std::string>{};
+            auto switched = Eden::Mods::Switches(all_mods, Eden::LoadDisabledMods(title), cheats_on,
+                                                 Eden::LoadCheatsOff(title), Eden::LoadModsEnabled(title),
+                                                 cheats_enabled);
+            Eden::Cheats::Off() = std::move(switched.cheats_off);
+            const auto& mods_off = switched.mods_off;
             const std::string mods = Eden::Mods::Summary(all_mods, mods_off, cheats_on);
             Settings::values.disabled_addons[title] = mods_off;
             Eden::Report("launch", ("Mods: " + mods).c_str());
@@ -1493,7 +1537,10 @@ int main(int argc, char** argv) {
                 system.SetShuttingDown(false);
                 // Update and DLC files (NSP or XCI) in the game files' updates folder apply to their
                 // base game: Eden's ExternalContentProvider, which the patch manager checks first.
+                // So do those in the game's own folder, when it has one (roms/<folder>/, issue 168).
                 Settings::values.external_content_dirs = {Eden::AssetsPath("updates")};
+                if (const std::string& folder = Eden::Mods::SessionGameFolder(); !folder.empty())
+                    Settings::values.external_content_dirs.push_back(folder);
                 system.GetFileSystemController().CreateFactories(*system.GetFilesystem());
                 // The game's own contents, registered as Eden's desktop frontends do before booting a
                 // game (ConfigureFilesystemProvider). An update's data is a patch on the base game's:
