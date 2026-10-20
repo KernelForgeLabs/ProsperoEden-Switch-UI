@@ -2,6 +2,52 @@
 
 What changed in each release of ProsperoEden, newest first. A release's notes on GitHub are its section here.
 
+## v6.000.000
+
+First public beta of **ProsperoEden Switch UI Edition** by
+**KernelForgeLabs**, based on ProsperoEden v1.005.000.
+This is an independent PS5 homebrew edition, not an official
+release from the upstream maintainers.
+
+### Highlights
+
+- Separate PS5 application identity (`PPSA99186`) so this
+  edition can be installed alongside original ProsperoEden
+  (`PPSA99008`).
+- Switch-inspired HOME screen, Library, Settings and
+  KernelForgeLabs branding.
+- Switch Dark built-in interface, Themezer theme support,
+  customizable wallpapers and Tactile Leaf v3 menu sounds.
+- Includes the upstream v1.005.000 emulator improvements,
+  game-folder support, cheats and graphics fixes.
+- Automated ZIP integrity checks, SHA-256 checksums and
+  GitHub Actions build provenance.
+
+### Installation and limitations
+
+- This is experimental PS5 homebrew. Game compatibility and
+  performance vary.
+- Both ProsperoEden editions use `/data/prosperoeden/`.
+  Back up saves and configuration before installation,
+  updating or rollback. Do not run both editions at once.
+- Automatic in-app update checking and installation are
+  intentionally disabled in this beta. Updates require
+  a verified manual installation or a separately qualified
+  distribution process.
+- Known upstream limitations include intermittent controller
+  shortcuts across consecutive game sessions and frame
+  generation method selection when a required backend is
+  unavailable. Frame-generation performance is not fully
+  qualified.
+- No commercial games, firmware or console keys are included.
+
+### Credits
+
+Built on ProsperoEden v1.005.000, originally developed by
+BlackBearReloaded, with emulator-core contributions from Eden,
+graphics work from Mihawk and other upstream contributors.
+Switch UI Edition is maintained independently by KernelForgeLabs.
+
 ## v1.005.000
 
 This alpha keeps each game in a folder of its own with everything that belongs to it, gives cheats their own list, adds a speed limit and a second frame generation method, and fixes a lost graphics device and black boxes that spread over the picture. Performance and compatibility still vary by game.

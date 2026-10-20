@@ -164,7 +164,7 @@ retesting is required if a different ID is chosen or assigned.
   `06.000.000` implies the tag and archive name **`v6.000.000`** and
   `ProsperoEden-v6.000.000.zip`, not `v6.0.0`.
 - The release step requires `dist/release-notes.md`. Its generation looks
-  for the exact `## Changes in v6.000.000` heading in `README.md`.
+  for the exact `## v6.000.000` heading in `docs/CHANGELOG.md`.
 - After a repository move, update owner-specific source references,
   catalog listing, release links, and provenance verification instructions.
   Confirm old links redirect and installed update clients still find releases.
