@@ -83,7 +83,7 @@ Local-wireless multiplayer through Eden rooms is new in v1.000.110 and experimen
 
 1. Download and extract the release ZIP.
 2. For this **Switch UI release candidate**, copy the included `PPSA99186` folder to `/data/homebrew/PPSA99186` on the PS5 (or another folder ShadowMountPlus scans, such as `/mnt/usb0/homebrew/PPSA99186`). Do **not** replace or rename the original `PPSA99008` app folder.
-3. With ShadowMountPlus older than 1.7beta4, the bundled Lapy helper may require your jailbreak environment's local ELF loader on TCP port 9021. Automatic update installation is disabled in this Switch UI release candidate.
+3. Your jailbreak setup may require a local ELF loader on TCP port 9021, particularly with older ShadowMountPlus installations using the bundled Lapy helper. In-app automatic updating is disabled for this beta.
 4. Put your own legally dumped keys, firmware, and games in a **game files folder** (layout below). It can be anywhere the PS5 can read: internal storage, an M.2 or external drive, or a USB device.
 5. Launch **ProsperoEden**, open **Settings > Game files**, browse to that folder and select it. The default is `/data/prosperoeden`.
 6. Close and reopen ProsperoEden, then open **Library**. Setup is checked when the app opens, so reopen it after changing the folder or adding keys or firmware.
@@ -154,48 +154,37 @@ If an early upstream ProsperoEden installation has user files under `/data/homeb
 
 ### Updating
 
-> [!CAUTION]
-> **Switch UI automatic updates are disabled.** This edition does not currently
-> check the upstream homebrew catalog, present qualified update offers, or
-> automatically install a newer version. The separate `PPSA99186` release
-> channel has not yet completed its qualification.
+**Automatic in-app update checking and installation are disabled
+in Switch UI v6.0 beta.**
 
-For a future **verified Switch UI Edition** release:
+Once this edition is available in ProsperoStore, users can check
+for and install newer KernelForgeLabs releases through the store.
 
-1. Close the application. Make a backup of the existing
-   `/data/homebrew/PPSA99186` application folder before replacing any files.
-2. Back up important data in `/data/prosperoeden`, particularly configuration
-   and saves. The original ProsperoEden edition shares this data location,
-   so do not erase or reset it during installation.
-3. Verify that the new package is explicitly identified as the independent
-   Switch UI Edition with title ID `PPSA99186`. Do not use the upstream
-   `PPSA99008` package to update this edition.
-4. Replace only the Switch UI application files in
-   `/data/homebrew/PPSA99186`, preserving user-owned files. Leave
-   `/data/homebrew/PPSA99008` and `/data/prosperoeden` untouched.
-5. Reopen the application and verify its version, games, themes, settings,
-   and save-data access before discarding your backups.
+For manual updates:
 
-No automatic update notification or rollback backup is expected in this
-release candidate. Any bundled update-helper executable is inactive while
-the independent update system remains disabled.
+1. Close Switch UI and the original ProsperoEden application.
+2. Back up `/data/homebrew/PPSA99186/` and important configuration
+   and save files under `/data/prosperoeden/`.
+3. Download the new release ZIP and checksum from
+   KernelForgeLabs/ProsperoEden-Switch-UI on GitHub.
+4. Verify the checksum, extract `PPSA99186/`, and replace
+   the corresponding files in `/data/homebrew/PPSA99186/`.
+5. Relaunch Switch UI and verify games, settings and saves.
+
+Do not replace the original `PPSA99008` application. Both editions
+share `/data/prosperoeden/`.
 
 ### Going back to the previous version
 
-Manual installation does **not** automatically retain the previous
-application. Rollback requires the backup made before the update:
+Manual updates do not automatically create rollback backups.
 
-1. Close the Switch UI application.
-2. Restore your backed-up `PPSA99186` application files to
-   `/data/homebrew/PPSA99186`. Do not overwrite the original
-   `PPSA99008` application.
-3. Reopen Switch UI and check the version, settings, and game library.
-   If the earlier build cannot read newer configuration correctly,
-   use your separately backed-up configuration and saves as appropriate
-   rather than deleting or resetting shared data.
+1. Close both applications.
+2. Preserve newer saves or configuration changes separately.
+3. Restore the previously backed-up `PPSA99186` app folder.
+4. Relaunch Switch UI and verify a known game and save.
 
-The `previous-version/PPSA99186-backup` folder is reserved for a future
-qualified automatic updater; do not assume it exists after a manual update.
+See the [beta installation and rollback guide](docs/BETA_INSTALL_AND_ROLLBACK.md)
+before restoring older shared configuration or save data.
 
 ### Moving save data
 
@@ -389,7 +378,9 @@ Earlier versions read everything from `/data/homebrew/PPSA99008/assets/`. That f
 
 ## Changes in v6.000.000
 
-- **Independent Switch UI Edition.** Switch-inspired HOME, All Software grid, Settings, Themezer themes, navigation and feedback, and separate PS5 home-screen application identity (`PPSA99186`, provisional and not registered in the homebrew catalog).
+- **Updated emulator foundation.** Integrated ProsperoEden v1.005.000 while retaining the KernelForge Switch UI experience.
+
+- **Independent Switch UI Edition.** Switch-inspired HOME, All Software grid, Settings, Themezer themes, navigation and feedback, and separate PS5 home-screen application identity (`PPSA99186`, reserved through merged catalog PR #302).
 - **Themezer wallpapers.** Built-in Switch Dark theme and Quick ID download/import for Themezer themes and packs; first-run theme folders are created automatically.
 - **Settings refinement.** Flat Downloads and Save Sync lists, consistent selection treatment, dialogs that dim the Settings interface while preserving the theme wallpaper.
 - **Attribution.** About screen identifies Switch UI as provided by KernelForgeX while preserving Eden and BlackBearReloaded credits.
